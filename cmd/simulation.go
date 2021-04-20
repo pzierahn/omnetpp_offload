@@ -5,12 +5,10 @@ import (
 	"flag"
 )
 
-var status bool
 var simulate string
 
 func init() {
-	flag.BoolVar(&status, "status", false, "")
-	flag.StringVar(&simulate, "simulate", "", "")
+	flag.StringVar(&simulate, "run", "", "path to OMNeT++ simulation")
 }
 
 func main() {
@@ -19,9 +17,5 @@ func main() {
 
 	if simulate != "" {
 		simulation.Run(simulate)
-	}
-
-	if status {
-		simulation.Status()
 	}
 }
