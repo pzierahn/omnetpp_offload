@@ -17,7 +17,24 @@ func (server *broker) NewSimulation(_ context.Context, req *pb.Simulation) (repl
 	logger.Println("new simulation", string(jsonBytes))
 
 	go func() {
-		server.work <- req
+		for _, conf := range req.GetConfigs() {
+			for _, run := range conf.RunNumbers {
+				confId := conf.Name + "." + run
+
+				work := pb.Work{
+					SimulationId: req.SimulationId,
+					ConfigId:     confId,
+					Source:       req.Source,
+					Config:       conf.Name,
+					RunNumber:    run,
+				}
+
+				logger.Println(work.SimulationId, work.ConfigId)
+				server.queue.jobs.Push(&work)
+			}
+		}
+
+		server.queue.DistributeWork()
 	}()
 
 	reply = &pb.SimulationReply{

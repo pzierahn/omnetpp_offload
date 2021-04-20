@@ -24,32 +24,34 @@ func (server *broker) Link(stream pb.Broker_LinkServer) (err error) {
 		return
 	}
 
-	logger.Println("link", id)
+	logger.Println("linked", id)
 
 	//
 	// Send work to clients
 	//
 
+	work := make(chan *pb.Work)
+	defer func() {
+		server.queue.Unlink(id)
+		close(work)
+	}()
+
+	server.queue.Link(id, work)
+
 	go func() {
 		for {
-			work, ok := <-server.work
-
+			job, ok := <-work
 			if !ok {
 				logger.Println("exit work mode for", id)
+				break
 			}
 
 			logger.Println("send work to ", id)
 
-			err := stream.Send(&pb.Work{
-				SimulationId: work.SimulationId,
-				ConfigId:     "config-xxx",
-				Source:       work.Source,
-				Config:       "Config-XXX",
-				RunNumber:    "1",
-			})
-
+			err := stream.Send(job)
 			if err != nil {
 				logger.Println(err)
+				break
 			}
 		}
 	}()
@@ -75,7 +77,7 @@ func (server *broker) Link(stream pb.Broker_LinkServer) (err error) {
 		logger.Println("link", string(jsonBytes))
 	}
 
-	logger.Println("unlink", id)
+	logger.Println("unlinked", id)
 
 	return
 }
