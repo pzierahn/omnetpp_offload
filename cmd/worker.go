@@ -9,9 +9,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
-	"regexp"
 	"runtime"
-	"strings"
 )
 
 const configPath = defines.DataPath + "/worker-config.json"
@@ -34,18 +32,6 @@ func init() {
 	}
 }
 
-func configName(deviceName string) {
-	cleaner := regexp.MustCompile(`[^a-zA-B0-9-]`)
-
-	idName := deviceName
-	idName = strings.ToLower(idName)
-	idName = cleaner.ReplaceAllString(idName, "_")
-	idName = strings.Trim(idName, "_ ")
-
-	config.WorkerId = idName + "-" + simple.RandomId(6)
-	config.DeviceName = deviceName
-}
-
 func persistConfig() {
 
 	byt, _ := json.MarshalIndent(config, "", "  ")
@@ -64,7 +50,8 @@ func main() {
 	flag.Parse()
 
 	if deviceName != "" {
-		configName(deviceName)
+		config.WorkerId = simple.NamedId(deviceName, 6)
+		config.DeviceName = deviceName
 	}
 
 	if brokerAddress != "" {

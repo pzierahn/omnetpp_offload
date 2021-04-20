@@ -1,53 +1,29 @@
 package simulation
 
 import (
-	"com.github.patrickz98.omnet/defines"
 	pb "com.github.patrickz98.omnet/proto"
-	"context"
-	"google.golang.org/grpc"
-	"log"
-	"os"
+	"com.github.patrickz98.omnet/simple"
+	"com.github.patrickz98.omnet/storage"
 )
 
-var logger *log.Logger
+func Upload(config Config) (ref *pb.StorageRef, err error) {
 
-func init() {
-	logger = log.New(os.Stderr, "Simulation ", log.LstdFlags|log.Lshortfile)
-}
+	logger.Println("zipping", config.Path)
 
-func Run(filepath string) {
-
-	conn, err := grpc.Dial(defines.Address, grpc.WithInsecure(), grpc.WithBlock())
+	buf, err := simple.TarGz(config.Path, config.Id)
 	if err != nil {
-		logger.Fatalf("did not connect: %v", err)
-	}
-	defer func() {
-		_ = conn.Close()
-	}()
-
-	client := pb.NewBrokerClient(conn)
-
-	simulation := pb.Simulation{
-		SimulationId: "tictoc-1234",
-		Source: &pb.StorageRef{
-			Bucket:   "tictoc",
-			Filename: "source.tar.gz",
-		},
-		Configs: []*pb.Config{
-			{
-				Name: "TicToc18",
-				RunNumbers: []string{
-					"1", "2", "3",
-				},
-			},
-		},
+		return
 	}
 
-	ctx := context.Background()
-	reply, err := client.NewSimulation(ctx, &simulation)
+	logger.Println("uploading", config.Id)
+
+	ref, err = storage.Upload(&buf, storage.FileMeta{
+		Bucket:   config.Id,
+		Filename: "source.tar.gz",
+	})
 	if err != nil {
-		logger.Fatalln(err)
+		return
 	}
 
-	logger.Println("simulationId", reply.SimulationId)
+	return
 }

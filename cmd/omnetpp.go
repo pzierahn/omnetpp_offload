@@ -16,7 +16,7 @@ func main() {
 	flag.Parse()
 
 	if path == "" {
-		fmt.Println("path to source is missing!")
+		fmt.Println("missing parameter: path")
 		return
 	}
 

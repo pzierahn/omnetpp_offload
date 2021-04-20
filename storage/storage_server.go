@@ -28,11 +28,17 @@ func (server *storage) Get(req *pb.StorageRef, stream pb.Storage_GetServer) (err
 
 	logger.Println("get", bucket, filename)
 
-	file := fileStream(filepath)
+	file, err := os.Open(filepath)
+	if err != nil {
+		return
+	}
+	defer func() { _ = file.Close() }()
+
+	reader := streamReader(file)
 
 	packages := 0
 
-	for chunk := range file {
+	for chunk := range reader {
 		parcel := pb.StorageParcel{
 			Size:    int32(chunk.size),
 			Offset:  int64(chunk.offset),

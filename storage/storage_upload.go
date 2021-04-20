@@ -5,38 +5,36 @@ import (
 	"context"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/metadata"
+	"io"
 	"time"
 )
 
-func Upload(filename string) {
-	logger.Println("upload", filename)
+func Upload(data io.Reader, meta FileMeta) (ref *pb.StorageRef, err error) {
 
 	conn, err := grpc.Dial(port, grpc.WithInsecure(), grpc.WithBlock())
 	if err != nil {
-		logger.Fatalf("did not connect: %v", err)
+		return
 	}
+
 	defer func() { _ = conn.Close() }()
 
-	client := pb.NewStorageClient(conn)
-
 	md := metadata.New(map[string]string{
-		"bucket":   "tictic-1234",
-		"filename": filename,
+		"bucket":   meta.Bucket,
+		"filename": meta.Filename,
 	})
 
 	ctx := context.Background()
 	ctx = metadata.NewOutgoingContext(ctx, md)
 
+	client := pb.NewStorageClient(conn)
 	stream, err := client.Put(ctx)
 	if err != nil {
-		logger.Fatalf("connecting stream failed: %v", err)
+		return
 	}
 
 	start := time.Now()
 
-	file := fileStream(filename)
-
-	for chunk := range file {
+	for chunk := range streamReader(data) {
 		parcel := pb.StorageParcel{
 			Size:    int32(chunk.size),
 			Offset:  int64(chunk.offset),
@@ -49,11 +47,12 @@ func Upload(filename string) {
 		}
 	}
 
-	reply, err := stream.CloseAndRecv()
+	ref, err = stream.CloseAndRecv()
 	if err != nil {
-		logger.Fatalln(err)
+		return
 	}
 
-	logger.Println("reply", reply.GetBucket(), reply.GetFilename())
-	logger.Println("time", time.Now().Sub(start))
+	logger.Println("upload time", time.Now().Sub(start))
+
+	return
 }

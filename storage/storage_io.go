@@ -2,7 +2,6 @@ package storage
 
 import (
 	"io"
-	"os"
 )
 
 const (
@@ -16,25 +15,12 @@ type fileChunk struct {
 	payload []byte
 }
 
-func fileStream(filename string) (stream chan fileChunk) {
+func streamReader(reader io.Reader) (stream chan fileChunk) {
 
 	stream = make(chan fileChunk)
 
 	go func() {
 		defer close(stream)
-
-		file, err := os.Open(filename)
-		if err != nil {
-			logger.Fatalln(err)
-		}
-		defer func() { _ = file.Close() }()
-
-		//stat, err := file.Stat()
-		//if err != nil {
-		//	logger.Fatalln(err)
-		//}
-		//
-		//fileSize := stat.Size()
 
 		offset := 0
 
@@ -43,7 +29,7 @@ func fileStream(filename string) (stream chan fileChunk) {
 			buffer := make([]byte, bufferSize)
 
 			var size int
-			size, err = file.Read(buffer)
+			size, err := reader.Read(buffer)
 			if err == io.EOF {
 				break
 			}
@@ -59,9 +45,6 @@ func fileStream(filename string) (stream chan fileChunk) {
 			}
 
 			offset += size
-
-			//percent := float64(offset) / float64(fileSize) * 100.0
-			//logger.Println("Percent", percent)
 		}
 	}()
 
