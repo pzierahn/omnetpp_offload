@@ -65,7 +65,8 @@ func (que *queue) DistributeWork() {
 		work := job.(*pb.Work)
 
 		for workerId, stream := range que.workers {
-			logger.Println("assign", work.ConfigId, "-->", workerId)
+			logger.Printf("assign %s.%s --> %s",
+				work.SimulationId, work.ConfigId, workerId)
 			stream <- work
 			break
 		}

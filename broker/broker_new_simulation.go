@@ -29,7 +29,6 @@ func (server *broker) NewSimulation(_ context.Context, req *pb.Simulation) (repl
 					RunNumber:    run,
 				}
 
-				logger.Println(work.SimulationId, work.ConfigId)
 				server.queue.jobs.Push(&work)
 			}
 		}

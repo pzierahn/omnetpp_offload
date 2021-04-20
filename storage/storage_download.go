@@ -12,7 +12,7 @@ import (
 func Download(filename string) {
 	logger.Println("download", filename)
 
-	conn, err := grpc.Dial(port, grpc.WithInsecure(), grpc.WithBlock())
+	conn, err := grpc.Dial(storageAddress, grpc.WithInsecure(), grpc.WithBlock())
 	if err != nil {
 		logger.Fatalf("did not connect: %v", err)
 	}

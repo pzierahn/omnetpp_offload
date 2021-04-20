@@ -11,11 +11,6 @@ import (
 	"os"
 )
 
-const (
-	port     = ":50052"
-	dataPath = "data/storage"
-)
-
 type storage struct {
 	pb.UnimplementedStorageServer
 }
@@ -24,7 +19,7 @@ func (server *storage) Get(req *pb.StorageRef, stream pb.Storage_GetServer) (err
 
 	bucket := req.GetBucket()
 	filename := req.GetFilename()
-	filepath := dataPath + "/" + bucket + "/" + filename
+	filepath := storagePath + "/" + bucket + "/" + filename
 
 	logger.Println("get", bucket, filename)
 
@@ -85,9 +80,9 @@ func (server *storage) Put(stream pb.Storage_PutServer) (err error) {
 	}
 
 	filepath = bucket + "/" + filename
-	dataFile := dataPath + "/" + filepath
+	dataFile := storagePath + "/" + filepath
 
-	_ = os.MkdirAll(dataPath+"/"+bucket, 0755)
+	_ = os.MkdirAll(storagePath+"/"+bucket, 0755)
 
 	logger.Println("new upload request", bucket, "-->", filename)
 
@@ -128,7 +123,7 @@ func StartServer() {
 
 	logger.Println("start storage server")
 
-	lis, err := net.Listen("tcp", port)
+	lis, err := net.Listen("tcp", storageAddress)
 	if err != nil {
 		logger.Fatalf("failed to listen: %v", err)
 	}

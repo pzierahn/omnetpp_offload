@@ -11,7 +11,7 @@ import (
 
 func Upload(data io.Reader, meta FileMeta) (ref *pb.StorageRef, err error) {
 
-	conn, err := grpc.Dial(port, grpc.WithInsecure(), grpc.WithBlock())
+	conn, err := grpc.Dial(storageAddress, grpc.WithInsecure(), grpc.WithBlock())
 	if err != nil {
 		return
 	}
