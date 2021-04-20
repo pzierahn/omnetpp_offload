@@ -1,0 +1,161 @@
+syntax = "proto3";
+package service;
+
+option go_package = "./proto";
+
+import "google/protobuf/duration.proto";
+import "google/protobuf/timestamp.proto";
+import "storage.proto";
+
+service Broker {
+  rpc NewSimulation (Simulation)        returns (SimulationReply) {}
+  rpc Link          (stream ClientInfo) returns (stream Work)     {}
+  rpc WorkFinished  (WorkResult)        returns (WorkAffirmation) {}
+  rpc Status        (StatusRequest)     returns (StatusReply)     {}
+  rpc PinPong       (stream Ping)       returns (stream Pong)     {}
+}
+
+message ClientInfo {
+  // Workers id
+  string id = 1;
+
+  // Workers operating system
+  string os = 2;
+
+  // Workers system architecture
+  string arch = 3;
+
+  // CPU Count
+  int32 numCPU = 4;
+
+  // Time
+  google.protobuf.Timestamp timestamp = 5;
+
+  // Number of available cores
+  int32 freeResources = 6;
+}
+
+message Work {
+  // Simulation ID
+  string simulationId = 1;
+
+  // Configuration ID
+  string configId = 2;
+
+  // Path to simulation source code
+  StorageRef source = 3;
+
+  // Simulation config name (-c argument)
+  string config = 4;
+
+  // Simulation run (-r argument)
+  string runNumber = 5;
+}
+
+message KeepAlive {
+  string workerName = 1;
+  int32 freeSlots = 2;
+}
+
+message Ping {
+  string message = 1;
+  google.protobuf.Timestamp time = 2;
+}
+
+message Pong {
+  string message = 1;
+  google.protobuf.Timestamp time = 2;
+}
+
+message Config {
+  // Name of the configuration, this will be passed as -c parameter
+  string name = 1;
+
+  // Array with configuration numbers, this will be passed with -r
+  repeated string runNumbers = 2;
+}
+
+message Simulation {
+  // Name
+  string simulationId = 1;
+
+  // Simulation storage source path
+  StorageRef source = 2;
+
+  // Simulation configs that shall be executed
+  repeated Config configs = 3;
+}
+
+message SimulationReply {
+  // Simulation id
+  string simulationId = 1;
+
+  // Check for success
+  optional string error = 2;
+}
+
+message WorkResult {
+  // Simulation ID
+  string simulationId = 1;
+
+  // Configuration ID
+  string configId = 2;
+
+  // Execution time
+  google.protobuf.Duration executionTime = 3;
+
+  // Finish time
+  google.protobuf.Timestamp time = 4;
+
+  // Results path
+  string resultStorageId = 5;
+
+  // Error
+  string error = 6;
+}
+
+message WorkAffirmation {
+  // Simulation ID
+  string simulationId = 1;
+
+  // Configuration ID
+  string configId = 2;
+
+  // Success
+  bool success = 3;
+
+  // Error
+  string error = 4;
+}
+
+message StatusRequest {
+  string simulationId = 1;
+}
+
+message RunStatus {
+  string runNumber = 1;
+
+  enum State {
+    TODO = 0;
+    DOING = 1;
+    SUCCESS = 2;
+    FAILED = 3;
+  }
+
+  State state = 2;
+
+  // Execution time
+  optional google.protobuf.Duration executionTime = 3;
+  optional string workerId = 4;
+}
+
+message ConfigStatus {
+  string simulationId = 1;
+  string configId = 2;
+  repeated RunStatus runs = 3;
+}
+
+message StatusReply {
+  repeated ConfigStatus state = 2;
+}
+

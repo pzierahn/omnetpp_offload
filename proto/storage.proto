@@ -1,0 +1,20 @@
+syntax = "proto3";
+package service;
+
+option go_package = "./proto";
+
+service Storage {
+  rpc Get (StorageRef)           returns (stream StorageParcel)   {}
+  rpc Put (stream StorageParcel) returns (StorageRef) {}
+}
+
+message StorageRef {
+  string bucket = 1;
+  string filename = 2;
+}
+
+message StorageParcel {
+  int32 size = 1;
+  int64 offset = 2;
+  bytes payload = 3;
+}
