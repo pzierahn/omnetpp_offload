@@ -5,14 +5,14 @@ option go_package = "./proto";
 
 import "google/protobuf/duration.proto";
 import "google/protobuf/timestamp.proto";
+
 import "storage.proto";
 
 service Broker {
   rpc NewSimulation (Simulation)        returns (SimulationReply) {}
   rpc Link          (stream ClientInfo) returns (stream Work)     {}
-  rpc WorkFinished  (WorkResult)        returns (WorkAffirmation) {}
+  rpc Results       (WorkResult)        returns (WorkAffirmation) {}
   rpc Status        (StatusRequest)     returns (StatusReply)     {}
-  rpc PinPong       (stream Ping)       returns (stream Pong)     {}
 }
 
 message ClientInfo {
@@ -50,21 +50,6 @@ message Work {
 
   // Simulation run (-r argument)
   string runNumber = 5;
-}
-
-message KeepAlive {
-  string workerName = 1;
-  int32 freeSlots = 2;
-}
-
-message Ping {
-  string message = 1;
-  google.protobuf.Timestamp time = 2;
-}
-
-message Pong {
-  string message = 1;
-  google.protobuf.Timestamp time = 2;
 }
 
 message Config {

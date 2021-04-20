@@ -20,9 +20,8 @@ const _ = grpc.SupportPackageIsVersion7
 type BrokerClient interface {
 	NewSimulation(ctx context.Context, in *Simulation, opts ...grpc.CallOption) (*SimulationReply, error)
 	Link(ctx context.Context, opts ...grpc.CallOption) (Broker_LinkClient, error)
-	WorkFinished(ctx context.Context, in *WorkResult, opts ...grpc.CallOption) (*WorkAffirmation, error)
+	Results(ctx context.Context, in *WorkResult, opts ...grpc.CallOption) (*WorkAffirmation, error)
 	Status(ctx context.Context, in *StatusRequest, opts ...grpc.CallOption) (*StatusReply, error)
-	PinPong(ctx context.Context, opts ...grpc.CallOption) (Broker_PinPongClient, error)
 }
 
 type brokerClient struct {
@@ -73,9 +72,9 @@ func (x *brokerLinkClient) Recv() (*Work, error) {
 	return m, nil
 }
 
-func (c *brokerClient) WorkFinished(ctx context.Context, in *WorkResult, opts ...grpc.CallOption) (*WorkAffirmation, error) {
+func (c *brokerClient) Results(ctx context.Context, in *WorkResult, opts ...grpc.CallOption) (*WorkAffirmation, error) {
 	out := new(WorkAffirmation)
-	err := c.cc.Invoke(ctx, "/service.Broker/WorkFinished", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/service.Broker/Results", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -91,46 +90,14 @@ func (c *brokerClient) Status(ctx context.Context, in *StatusRequest, opts ...gr
 	return out, nil
 }
 
-func (c *brokerClient) PinPong(ctx context.Context, opts ...grpc.CallOption) (Broker_PinPongClient, error) {
-	stream, err := c.cc.NewStream(ctx, &Broker_ServiceDesc.Streams[1], "/service.Broker/PinPong", opts...)
-	if err != nil {
-		return nil, err
-	}
-	x := &brokerPinPongClient{stream}
-	return x, nil
-}
-
-type Broker_PinPongClient interface {
-	Send(*Ping) error
-	Recv() (*Pong, error)
-	grpc.ClientStream
-}
-
-type brokerPinPongClient struct {
-	grpc.ClientStream
-}
-
-func (x *brokerPinPongClient) Send(m *Ping) error {
-	return x.ClientStream.SendMsg(m)
-}
-
-func (x *brokerPinPongClient) Recv() (*Pong, error) {
-	m := new(Pong)
-	if err := x.ClientStream.RecvMsg(m); err != nil {
-		return nil, err
-	}
-	return m, nil
-}
-
 // BrokerServer is the server API for Broker service.
 // All implementations must embed UnimplementedBrokerServer
 // for forward compatibility
 type BrokerServer interface {
 	NewSimulation(context.Context, *Simulation) (*SimulationReply, error)
 	Link(Broker_LinkServer) error
-	WorkFinished(context.Context, *WorkResult) (*WorkAffirmation, error)
+	Results(context.Context, *WorkResult) (*WorkAffirmation, error)
 	Status(context.Context, *StatusRequest) (*StatusReply, error)
-	PinPong(Broker_PinPongServer) error
 	mustEmbedUnimplementedBrokerServer()
 }
 
@@ -144,14 +111,11 @@ func (UnimplementedBrokerServer) NewSimulation(context.Context, *Simulation) (*S
 func (UnimplementedBrokerServer) Link(Broker_LinkServer) error {
 	return status.Errorf(codes.Unimplemented, "method Link not implemented")
 }
-func (UnimplementedBrokerServer) WorkFinished(context.Context, *WorkResult) (*WorkAffirmation, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method WorkFinished not implemented")
+func (UnimplementedBrokerServer) Results(context.Context, *WorkResult) (*WorkAffirmation, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Results not implemented")
 }
 func (UnimplementedBrokerServer) Status(context.Context, *StatusRequest) (*StatusReply, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Status not implemented")
-}
-func (UnimplementedBrokerServer) PinPong(Broker_PinPongServer) error {
-	return status.Errorf(codes.Unimplemented, "method PinPong not implemented")
 }
 func (UnimplementedBrokerServer) mustEmbedUnimplementedBrokerServer() {}
 
@@ -210,20 +174,20 @@ func (x *brokerLinkServer) Recv() (*ClientInfo, error) {
 	return m, nil
 }
 
-func _Broker_WorkFinished_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _Broker_Results_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(WorkResult)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(BrokerServer).WorkFinished(ctx, in)
+		return srv.(BrokerServer).Results(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/service.Broker/WorkFinished",
+		FullMethod: "/service.Broker/Results",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(BrokerServer).WorkFinished(ctx, req.(*WorkResult))
+		return srv.(BrokerServer).Results(ctx, req.(*WorkResult))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -246,32 +210,6 @@ func _Broker_Status_Handler(srv interface{}, ctx context.Context, dec func(inter
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Broker_PinPong_Handler(srv interface{}, stream grpc.ServerStream) error {
-	return srv.(BrokerServer).PinPong(&brokerPinPongServer{stream})
-}
-
-type Broker_PinPongServer interface {
-	Send(*Pong) error
-	Recv() (*Ping, error)
-	grpc.ServerStream
-}
-
-type brokerPinPongServer struct {
-	grpc.ServerStream
-}
-
-func (x *brokerPinPongServer) Send(m *Pong) error {
-	return x.ServerStream.SendMsg(m)
-}
-
-func (x *brokerPinPongServer) Recv() (*Ping, error) {
-	m := new(Ping)
-	if err := x.ServerStream.RecvMsg(m); err != nil {
-		return nil, err
-	}
-	return m, nil
-}
-
 // Broker_ServiceDesc is the grpc.ServiceDesc for Broker service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -284,8 +222,8 @@ var Broker_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _Broker_NewSimulation_Handler,
 		},
 		{
-			MethodName: "WorkFinished",
-			Handler:    _Broker_WorkFinished_Handler,
+			MethodName: "Results",
+			Handler:    _Broker_Results_Handler,
 		},
 		{
 			MethodName: "Status",
@@ -296,12 +234,6 @@ var Broker_ServiceDesc = grpc.ServiceDesc{
 		{
 			StreamName:    "Link",
 			Handler:       _Broker_Link_Handler,
-			ServerStreams: true,
-			ClientStreams: true,
-		},
-		{
-			StreamName:    "PinPong",
-			Handler:       _Broker_PinPong_Handler,
 			ServerStreams: true,
 			ClientStreams: true,
 		},
