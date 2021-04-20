@@ -12,15 +12,15 @@ import (
 	"time"
 )
 
-var workerId string
+func Link(config Config) (err error) {
 
-func init() {
-	workerId = "patrick-macbook-" + simple.RandomId(4)
-}
+	logger.Println("config", simple.PrettyString(config))
 
-func Link() (err error) {
-	// Set up a connection to the server.
-	conn, err := grpc.Dial(address, grpc.WithInsecure(), grpc.WithBlock())
+	//
+	// Set up a connection to the server
+	//
+
+	conn, err := grpc.Dial(config.BrokerAddress, grpc.WithInsecure(), grpc.WithBlock())
 	if err != nil {
 		logger.Fatalf("did not connect: %v", err)
 	}
@@ -31,7 +31,7 @@ func Link() (err error) {
 	client := pb.NewBrokerClient(conn)
 
 	md := metadata.New(map[string]string{
-		"workerId": workerId,
+		"workerId": config.WorkerId,
 	})
 
 	ctx := context.Background()
@@ -64,7 +64,7 @@ func Link() (err error) {
 		logger.Println("sending info")
 
 		info := pb.ClientInfo{
-			Id:            workerId,
+			Id:            config.WorkerId,
 			Os:            runtime.GOOS,
 			Arch:          runtime.GOARCH,
 			NumCPU:        int32(runtime.NumCPU()),

@@ -23,6 +23,8 @@ type broker struct {
 
 func Start() (err error) {
 
+	logger.Println("start server")
+
 	var lis net.Listener
 	lis, err = net.Listen("tcp", defines.Port)
 	if err != nil {

@@ -124,7 +124,7 @@ func RWPrettify(filename string) {
 	WritePrettyJson(filename, bytes)
 }
 
-func ReadJSON(filepath string, obj interface{}) error {
+func UnmarshallFile(filepath string, obj interface{}) error {
 	file, err := os.Open(filepath)
 	if err != nil {
 		return err

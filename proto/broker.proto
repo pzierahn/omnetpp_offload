@@ -17,7 +17,7 @@ service Broker {
 
 message ClientInfo {
   // Workers id
-  string id = 1;
+  string workerId = 1;
 
   // Workers operating system
   string os = 2;
