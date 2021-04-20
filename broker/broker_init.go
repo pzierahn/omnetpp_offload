@@ -7,7 +7,6 @@ import (
 	"log"
 	"net"
 	"os"
-	"sync"
 )
 
 var logger *log.Logger
@@ -18,7 +17,7 @@ func init() {
 
 type broker struct {
 	pb.UnimplementedBrokerServer
-	workers map[string]*pb.ClientInfo
+	workers workerList
 	queue   queue
 }
 
@@ -33,12 +32,8 @@ func Start() (err error) {
 	}
 
 	brk := broker{
-		workers: make(map[string]*pb.ClientInfo),
-		queue: queue{
-			mu:      sync.Mutex{},
-			jobs:    make(WorkHeap, 0),
-			workers: make(map[string]chan *pb.Work),
-		},
+		workers: initWorkerList(),
+		queue:   initQueue(),
 	}
 
 	server := grpc.NewServer()

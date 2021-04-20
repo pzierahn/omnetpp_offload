@@ -71,7 +71,7 @@ func (server *broker) Link(stream pb.Broker_LinkServer) (err error) {
 			id = info.Id
 		}
 
-		server.workers[info.Id] = info
+		server.workers.Put(info.Id, info)
 
 		jsonBytes, _ := json.MarshalIndent(info, "", "    ")
 		logger.Println("link", string(jsonBytes))

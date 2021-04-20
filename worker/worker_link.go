@@ -9,8 +9,12 @@ import (
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/protobuf/types/known/timestamppb"
 	"runtime"
+	"sync"
 	"time"
 )
+
+var mutex sync.Mutex
+var freeResources = runtime.NumCPU()
 
 func Link(config Config) (err error) {
 
@@ -57,20 +61,26 @@ func Link(config Config) (err error) {
 			}
 
 			logger.Println("work: ", string(byt))
+
+			mutex.Lock()
+			freeResources--
+			mutex.Unlock()
 		}
 	}()
 
 	for {
 		logger.Println("sending info")
 
+		mutex.Lock()
 		info := pb.ClientInfo{
 			Id:            config.WorkerId,
 			Os:            runtime.GOOS,
 			Arch:          runtime.GOARCH,
 			NumCPU:        int32(runtime.NumCPU()),
 			Timestamp:     timestamppb.Now(),
-			FreeResources: 0,
+			FreeResources: int32(freeResources),
 		}
+		mutex.Unlock()
 
 		err = link.Send(&info)
 

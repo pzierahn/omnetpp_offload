@@ -33,7 +33,7 @@ func (server *broker) NewSimulation(_ context.Context, req *pb.Simulation) (repl
 			}
 		}
 
-		server.queue.DistributeWork()
+		server.distributeWork()
 	}()
 
 	reply = &pb.SimulationReply{

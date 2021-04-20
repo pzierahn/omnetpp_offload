@@ -57,20 +57,12 @@ func (que *queue) Unlink(id string) {
 	que.mu.Unlock()
 }
 
-func (que *queue) DistributeWork() {
-	que.mu.Lock()
-
-	for que.jobs.Len() > 0 {
-		job := que.jobs.Pop()
-		work := job.(*pb.Work)
-
-		for workerId, stream := range que.workers {
-			logger.Printf("assign %s.%s --> %s",
-				work.SimulationId, work.ConfigId, workerId)
-			stream <- work
-			break
-		}
+func initQueue() (que queue) {
+	que = queue{
+		mu:      sync.Mutex{},
+		jobs:    make(WorkHeap, 0),
+		workers: make(map[string]chan *pb.Work),
 	}
 
-	que.mu.Unlock()
+	return
 }
