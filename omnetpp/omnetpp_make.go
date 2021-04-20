@@ -56,3 +56,22 @@ func (project *OmnetProject) Clean() (err error) {
 
 	return
 }
+
+func (project *OmnetProject) Setup() (err error) {
+	err = project.Clean()
+	if err != nil {
+		return
+	}
+
+	err = project.MakeMake()
+	if err != nil {
+		return
+	}
+
+	err = project.Compile()
+	if err != nil {
+		return
+	}
+
+	return
+}
