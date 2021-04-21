@@ -56,7 +56,7 @@ func (server *broker) distributeWork() {
 			jobs = append(jobs, work)
 		}
 
-		logger.Printf("assign %s --> \n", workerId, jobs)
+		logger.Printf("assign %s --> %s\n", workerId, jobs)
 
 		// Send data to worker
 		stream <- &pb.Tasks{Jobs: jobs}

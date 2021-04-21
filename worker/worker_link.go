@@ -7,7 +7,6 @@ import (
 	"encoding/json"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/metadata"
-	"math/rand"
 	"runtime"
 	"time"
 )
@@ -56,7 +55,7 @@ func Link(config Config) (err error) {
 				return
 			}
 
-			err = wClient.OccupyResource()
+			err = wClient.OccupyResource(len(tasks.Jobs))
 			if err != nil {
 				logger.Println(err)
 				return
@@ -69,16 +68,13 @@ func Link(config Config) (err error) {
 					return
 				}
 
-				randWait := rand.Intn(300) + 30
-				waitTine := time.Duration(randWait) * time.Millisecond
-				logger.Printf("doing %s for %v\n", byt, waitTine)
-				time.Sleep(waitTine)
+				//randWait := rand.Intn(300) + 30
+				//waitTine := time.Duration(randWait) * time.Millisecond
+				//logger.Printf("doing %s for %v\n", byt, waitTine)
+				//time.Sleep(waitTine)
 
-				err = wClient.FeeResource()
-				if err != nil {
-					logger.Println(err)
-					return
-				}
+				logger.Printf("doing %s\n", byt)
+				runTasks(&wClient, tasks)
 			}(tasks)
 		}
 	}()

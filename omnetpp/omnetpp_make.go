@@ -75,3 +75,27 @@ func (project *OmnetProject) Setup() (err error) {
 
 	return
 }
+
+func (project *OmnetProject) SetupCheck() (err error) {
+
+	if _, err = os.Stat(project.SourcePath + "/" + project.simulationExe); err == nil {
+		return
+	}
+
+	err = project.Clean()
+	if err != nil {
+		return
+	}
+
+	err = project.MakeMake()
+	if err != nil {
+		return
+	}
+
+	err = project.Compile()
+	if err != nil {
+		return
+	}
+
+	return
+}

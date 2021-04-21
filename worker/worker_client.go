@@ -14,9 +14,9 @@ type workerClient struct {
 	freeResources int
 }
 
-func (client *workerClient) OccupyResource() (err error) {
+func (client *workerClient) OccupyResource(num int) (err error) {
 	client.Lock()
-	client.freeResources--
+	client.freeResources -= num
 	logger.Println("OccupyResource", client.freeResources)
 	client.Unlock()
 
