@@ -6,24 +6,31 @@ import (
 	"fmt"
 )
 
+var debug bool
 var simulate string
-var simulationName string
+var name string
 
 func init() {
+	flag.BoolVar(&debug, "debug", false, "send debug request")
 	flag.StringVar(&simulate, "run", "", "path to OMNeT++ simulation")
-	flag.StringVar(&simulationName, "name", "", "name of OMNeT++ simulation")
+	flag.StringVar(&name, "name", "", "name of OMNeT++ simulation")
 }
 
 func main() {
 
 	flag.Parse()
 
+	if debug {
+		simulation.DebugRequest()
+		return
+	}
+
 	if simulate == "" {
 		fmt.Println("missing parameter: run")
 		return
 	}
 
-	config := simulation.New(simulate, simulationName)
+	config := simulation.New(simulate, name)
 
 	simulation.Run(config)
 }

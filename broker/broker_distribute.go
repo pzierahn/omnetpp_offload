@@ -9,16 +9,30 @@ func (server *broker) distributeWork() {
 	server.queue.mu.Lock()
 	server.workers.Lock()
 
-	logger.Printf("distributeWork jobs %d\n", server.queue.jobs.Len())
+	defer func() {
+		server.workers.Unlock()
+		server.queue.mu.Unlock()
+	}()
+
+	logger.Printf("jobs %d in queue\n", server.queue.jobs.Len())
 	logger.Printf("available workers %d\n", len(server.queue.workers))
+
+	if server.queue.jobs.Len() == 0 {
+		return
+	}
 
 	for workerId, stream := range server.queue.workers {
 
-		status, _ := server.workers.workers[workerId]
+		status, ok := server.workers.workers[workerId]
+
+		if !ok {
+			logger.Printf("Checking %s --> busy\n", workerId)
+			continue
+		}
 
 		logger.Printf("Checking %s --> %d\n", workerId, status.FreeResources)
 
-		if status.FreeResources == 0 {
+		if status.FreeResources <= 0 {
 			//
 			// Client is busy
 			//
@@ -33,16 +47,21 @@ func (server *broker) distributeWork() {
 			int(status.FreeResources),
 		)
 
+		var jobs []*pb.Work
+
 		for inx := 0; inx < packages; inx++ {
 			job := server.queue.jobs.Pop()
 			work := job.(*pb.Work)
 
-			logger.Printf("assign %s.%s --> %s\n",
-				work.SimulationId, work.ConfigId, workerId)
-			stream <- work
+			jobs = append(jobs, work)
 		}
-	}
 
-	server.workers.Unlock()
-	server.queue.mu.Unlock()
+		logger.Printf("assign %s --> \n", workerId, jobs)
+
+		// Send data to worker
+		stream <- &pb.Tasks{Jobs: jobs}
+
+		// Remove client info from worker queue
+		delete(server.workers.workers, workerId)
+	}
 }

@@ -7,14 +7,10 @@ import (
 	"encoding/json"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/metadata"
-	"google.golang.org/protobuf/types/known/timestamppb"
+	"math/rand"
 	"runtime"
-	"sync"
 	"time"
 )
-
-var mutex sync.Mutex
-var freeResources = runtime.NumCPU()
 
 func Link(config Config) (err error) {
 
@@ -46,44 +42,55 @@ func Link(config Config) (err error) {
 		logger.Fatalln(err)
 	}
 
+	wClient := workerClient{
+		config:        config,
+		link:          link,
+		freeResources: runtime.NumCPU(),
+	}
+
 	go func() {
 		for {
-			work, err := link.Recv()
+			tasks, err := link.Recv()
 			if err != nil {
 				logger.Println(err)
 				return
 			}
 
-			byt, err := json.MarshalIndent(work, "", "    ")
+			err = wClient.OccupyResource()
 			if err != nil {
 				logger.Println(err)
 				return
 			}
 
-			logger.Println("work: ", string(byt))
+			go func(tasks *pb.Tasks) {
+				byt, err := json.MarshalIndent(tasks, "", "  ")
+				if err != nil {
+					logger.Println(err)
+					return
+				}
 
-			mutex.Lock()
-			freeResources--
-			mutex.Unlock()
+				randWait := rand.Intn(300) + 30
+				waitTine := time.Duration(randWait) * time.Millisecond
+				logger.Printf("doing %s for %v\n", byt, waitTine)
+				time.Sleep(waitTine)
+
+				err = wClient.FeeResource()
+				if err != nil {
+					logger.Println(err)
+					return
+				}
+			}(tasks)
 		}
 	}()
 
 	for {
-		logger.Println("sending info")
-
-		mutex.Lock()
-		info := pb.ClientInfo{
-			Id:            config.WorkerId,
-			Os:            runtime.GOOS,
-			Arch:          runtime.GOARCH,
-			NumCPU:        int32(runtime.NumCPU()),
-			Timestamp:     timestamppb.Now(),
-			FreeResources: int32(freeResources),
+		err = wClient.SendClientInfo()
+		if err != nil {
+			break
 		}
-		mutex.Unlock()
-
-		err = link.Send(&info)
 
 		time.Sleep(time.Second * 23)
 	}
+
+	return
 }

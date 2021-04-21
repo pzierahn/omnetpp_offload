@@ -9,6 +9,32 @@ import (
 	"google.golang.org/grpc"
 )
 
+func commitSimulation(simulation *pb.Simulation) (err error) {
+	//
+	// Connect to broker to commit a new simulation
+	//
+
+	conn, err := grpc.Dial(defines.Address, grpc.WithInsecure(), grpc.WithBlock())
+	if err != nil {
+		return fmt.Errorf("did not connect: %v", err)
+	}
+	defer func() {
+		_ = conn.Close()
+	}()
+
+	client := pb.NewBrokerClient(conn)
+
+	ctx := context.Background()
+	reply, err := client.NewSimulation(ctx, simulation)
+	if err != nil {
+		return
+	}
+
+	logger.Println("simulationId", reply.SimulationId)
+
+	return
+}
+
 func Run(config Config) {
 
 	//
@@ -40,18 +66,8 @@ func Run(config Config) {
 	}
 
 	//
-	// Connect to broker to commit a new simulation
+	// Create and push simulation to broker
 	//
-
-	conn, err := grpc.Dial(defines.Address, grpc.WithInsecure(), grpc.WithBlock())
-	if err != nil {
-		logger.Fatalf("did not connect: %v", err)
-	}
-	defer func() {
-		_ = conn.Close()
-	}()
-
-	client := pb.NewBrokerClient(conn)
 
 	simulation := pb.Simulation{
 		SimulationId: config.Id,
@@ -59,11 +75,35 @@ func Run(config Config) {
 		Configs:      confs,
 	}
 
-	ctx := context.Background()
-	reply, err := client.NewSimulation(ctx, &simulation)
-	if err != nil {
+	if err = commitSimulation(&simulation); err != nil {
 		logger.Fatalln(err)
 	}
+}
 
-	logger.Println("simulationId", reply.SimulationId)
+func DebugRequest() {
+
+	var mockConfigs []*pb.Config
+
+	for inx := 0; inx < 200; inx++ {
+		mockConfigs = append(mockConfigs, &pb.Config{
+			Name: fmt.Sprintf("DebugConfig-%d", inx),
+			RunNumbers: []string{
+				"1",
+				"2",
+			},
+		})
+	}
+
+	simulation := pb.Simulation{
+		SimulationId: "debug-123456",
+		Source: &pb.StorageRef{
+			Bucket:   "abcd",
+			Filename: "source",
+		},
+		Configs: mockConfigs,
+	}
+
+	if err := commitSimulation(&simulation); err != nil {
+		logger.Fatalln(err)
+	}
 }

@@ -52,7 +52,7 @@ func (c *brokerClient) Link(ctx context.Context, opts ...grpc.CallOption) (Broke
 
 type Broker_LinkClient interface {
 	Send(*ClientInfo) error
-	Recv() (*Work, error)
+	Recv() (*Tasks, error)
 	grpc.ClientStream
 }
 
@@ -64,8 +64,8 @@ func (x *brokerLinkClient) Send(m *ClientInfo) error {
 	return x.ClientStream.SendMsg(m)
 }
 
-func (x *brokerLinkClient) Recv() (*Work, error) {
-	m := new(Work)
+func (x *brokerLinkClient) Recv() (*Tasks, error) {
+	m := new(Tasks)
 	if err := x.ClientStream.RecvMsg(m); err != nil {
 		return nil, err
 	}
@@ -153,7 +153,7 @@ func _Broker_Link_Handler(srv interface{}, stream grpc.ServerStream) error {
 }
 
 type Broker_LinkServer interface {
-	Send(*Work) error
+	Send(*Tasks) error
 	Recv() (*ClientInfo, error)
 	grpc.ServerStream
 }
@@ -162,7 +162,7 @@ type brokerLinkServer struct {
 	grpc.ServerStream
 }
 
-func (x *brokerLinkServer) Send(m *Work) error {
+func (x *brokerLinkServer) Send(m *Tasks) error {
 	return x.ServerStream.SendMsg(m)
 }
 

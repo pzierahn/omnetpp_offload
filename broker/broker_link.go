@@ -30,7 +30,7 @@ func (server *broker) Link(stream pb.Broker_LinkServer) (err error) {
 	// Send work to clients
 	//
 
-	work := make(chan *pb.Work)
+	work := make(chan *pb.Tasks)
 	defer func() {
 		server.queue.Unlink(id)
 		close(work)
@@ -46,7 +46,7 @@ func (server *broker) Link(stream pb.Broker_LinkServer) (err error) {
 				break
 			}
 
-			logger.Println("send work to ", id)
+			logger.Println("send work to", id)
 
 			err := stream.Send(job)
 			if err != nil {
@@ -68,13 +68,15 @@ func (server *broker) Link(stream pb.Broker_LinkServer) (err error) {
 		}
 
 		if id == "" {
-			id = info.Id
+			id = info.WorkerId
 		}
 
-		server.workers.Put(info.Id, info)
+		server.workers.Put(info.WorkerId, info)
 
 		jsonBytes, _ := json.MarshalIndent(info, "", "    ")
 		logger.Println("link", string(jsonBytes))
+
+		server.distributeWork()
 	}
 
 	logger.Println("unlinked", id)
