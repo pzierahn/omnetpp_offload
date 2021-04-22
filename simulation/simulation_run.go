@@ -4,9 +4,12 @@ import (
 	"com.github.patrickz98.omnet/defines"
 	"com.github.patrickz98.omnet/omnetpp"
 	pb "com.github.patrickz98.omnet/proto"
+	"com.github.patrickz98.omnet/simple"
 	"context"
 	"fmt"
 	"google.golang.org/grpc"
+	"os"
+	"sort"
 )
 
 func commitSimulation(simulation *pb.Simulation) (err error) {
@@ -49,7 +52,7 @@ func Run(config Config) {
 		return
 	}
 
-	confs, err := extractConfigs(omnet)
+	allConfs, err := extractConfigs(omnet)
 	if err != nil {
 		return
 	}
@@ -69,11 +72,45 @@ func Run(config Config) {
 	// Create and push simulation to broker
 	//
 
+	if len(config.Configs) == 0 {
+
+		//
+		// Add all configs
+		//
+
+		for conf := range allConfs {
+			config.Configs = append(config.Configs, conf)
+		}
+	}
+
+	var confs []*pb.Config
+
+	for _, name := range config.Configs {
+
+		runNums, ok := allConfs[name]
+		if !ok {
+			fmt.Printf("unknown simulation configuration '%s'\n", name)
+			os.Exit(1)
+		}
+
+		confs = append(confs, &pb.Config{
+			Name:       name,
+			RunNumbers: runNums,
+		})
+	}
+
+	// Sort OCD
+	sort.Slice(confs, func(i, j int) bool {
+		return confs[i].Name > confs[j].Name
+	})
+
 	simulation := pb.Simulation{
 		SimulationId: config.Id,
 		Source:       ref,
 		Configs:      confs,
 	}
+
+	simple.WritePretty("debug/simulation.json", &simulation)
 
 	if err = commitSimulation(&simulation); err != nil {
 		logger.Fatalln(err)

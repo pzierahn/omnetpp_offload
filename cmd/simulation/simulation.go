@@ -4,16 +4,19 @@ import (
 	"com.github.patrickz98.omnet/simulation"
 	"flag"
 	"fmt"
+	"strings"
 )
 
 var debug bool
-var simulate string
+var path string
 var name string
+var configs string
 
 func init() {
 	flag.BoolVar(&debug, "debug", false, "send debug request")
-	flag.StringVar(&simulate, "run", "", "path to OMNeT++ simulation")
-	flag.StringVar(&name, "name", "", "name of OMNeT++ simulation")
+	flag.StringVar(&path, "path", "", "path to OMNeT++ simulation")
+	flag.StringVar(&name, "name", "", "name of the simulation")
+	flag.StringVar(&configs, "configs", "", "simulation config names")
 }
 
 func main() {
@@ -25,12 +28,16 @@ func main() {
 		return
 	}
 
-	if simulate == "" {
-		fmt.Println("missing parameter: run")
+	if path == "" {
+		fmt.Println("missing parameter: path")
 		return
 	}
 
-	config := simulation.New(simulate, name)
+	config := simulation.New(path, name)
+
+	if configs != "" {
+		config.Configs = strings.Split(configs, ",")
+	}
 
 	simulation.Run(config)
 }

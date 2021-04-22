@@ -14,10 +14,25 @@ scp -r project.go.omnetpp ubuntu@raspberry3b:~/
 go get -u google.golang.org/grpc
 ```
 
-## Add a new worker
+## Worker
 
+First configure your working client:
 ```
-go run cmd/worker.go -deviceName $(hostname -s) \
-    -brokerAddress 192.168.0.11:50051 \
-    -configure
+go run cmd/worker.go --deviceName $(hostname -s) \
+    --brokerAddress 192.168.0.11:50051 \
+    --configure
+```
+
+
+## Simulation
+Options:
+```
+  -configs string
+    	simulation config names
+  -debug
+    	send debug request
+  -name string
+    	name of the simulation
+  -path string
+    	path to OMNeT++ simulation
 ```

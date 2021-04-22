@@ -2,17 +2,18 @@ package simulation
 
 import (
 	"com.github.patrickz98.omnet/omnetpp"
-	pb "com.github.patrickz98.omnet/proto"
 	"fmt"
 )
 
-func extractConfigs(omnet omnetpp.OmnetProject) (configs []*pb.Config, err error) {
+func extractConfigs(omnet omnetpp.OmnetProject) (configs map[string][]string, err error) {
 
 	oppConfigs, err := omnet.GetConfigs()
 	if err != nil {
 		err = fmt.Errorf("couldn't get simulation configs: %v", err)
 		return
 	}
+
+	configs = make(map[string][]string)
 
 	for _, configName := range oppConfigs {
 
@@ -22,12 +23,7 @@ func extractConfigs(omnet omnetpp.OmnetProject) (configs []*pb.Config, err error
 			return
 		}
 
-		pbConf := pb.Config{
-			Name:       configName,
-			RunNumbers: numbers,
-		}
-
-		configs = append(configs, &pbConf)
+		configs[configName] = numbers
 	}
 
 	return
