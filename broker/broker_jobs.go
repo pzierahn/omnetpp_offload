@@ -36,10 +36,10 @@ func (h *WorkHeap) Pop() interface{} {
 type queue struct {
 	mu      sync.Mutex
 	jobs    WorkHeap
-	workers map[string]chan *pb.Tasks
+	workers map[string]chan<- *pb.Tasks
 }
 
-func (que *queue) Link(id string, worker chan *pb.Tasks) {
+func (que *queue) Link(id string, worker chan<- *pb.Tasks) {
 	que.mu.Lock()
 
 	logger.Println("link", id)
@@ -61,7 +61,7 @@ func initQueue() (que queue) {
 	que = queue{
 		mu:      sync.Mutex{},
 		jobs:    make(WorkHeap, 0),
-		workers: make(map[string]chan *pb.Tasks),
+		workers: make(map[string]chan<- *pb.Tasks),
 	}
 
 	return
