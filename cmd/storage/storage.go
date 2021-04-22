@@ -26,8 +26,4 @@ func main() {
 	if upload != "" {
 		//storage.Upload(upload)
 	}
-
-	if download != "" {
-		storage.Download(download)
-	}
 }

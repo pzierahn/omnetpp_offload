@@ -1,42 +1,31 @@
 package storage
 
 import (
+	"bytes"
 	pb "com.github.patrickz98.omnet/proto"
 	"context"
+	"fmt"
 	"google.golang.org/grpc"
 	"io"
-	"os"
 	"time"
 )
 
-func Download(filename string) {
-	logger.Println("download", filename)
+func Download(file *pb.StorageRef) (byt io.Reader, err error) {
 
 	conn, err := grpc.Dial(storageAddress, grpc.WithInsecure(), grpc.WithBlock())
 	if err != nil {
-		logger.Fatalf("did not connect: %v", err)
+		err = fmt.Errorf("did not connect: %v", err)
+		return
 	}
 	defer func() { _ = conn.Close() }()
 
 	client := pb.NewStorageClient(conn)
-
-	request := &pb.StorageRef{
-		Bucket:   "tictic-1234",
-		Filename: filename,
-	}
-
-	stream, err := client.Get(context.Background(), request)
+	stream, err := client.Get(context.Background(), file)
 	if err != nil {
-		logger.Fatalln(err)
+		return
 	}
 
-	file, err := os.OpenFile(filename, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0644)
-	if err != nil {
-		logger.Fatalln(err)
-	}
-	defer func() {
-		_ = file.Close()
-	}()
+	var buf bytes.Buffer
 
 	start := time.Now()
 
@@ -51,11 +40,15 @@ func Download(filename string) {
 			logger.Fatalln(err)
 		}
 
-		_, err = file.WriteAt(parcel.Payload, parcel.Offset)
+		_, err = buf.Write(parcel.Payload)
 		if err != nil {
 			logger.Fatalln(err)
 		}
 	}
 
-	logger.Println("time", time.Now().Sub(start))
+	logger.Printf("received data in %v", time.Now().Sub(start))
+
+	byt = &buf
+
+	return
 }

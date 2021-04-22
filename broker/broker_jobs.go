@@ -15,9 +15,15 @@ type Item struct {
 // An IntHeap is a min-heap of ints.
 type WorkHeap []*pb.Work
 
-func (h WorkHeap) Len() int           { return len(h) }
-func (h WorkHeap) Less(i, j int) bool { return h[i].SimulationId < h[j].SimulationId }
-func (h WorkHeap) Swap(i, j int)      { h[i], h[j] = h[j], h[i] }
+func (h WorkHeap) Len() int {
+	return len(h)
+}
+
+func (h WorkHeap) Less(i, j int) bool {
+	return h[i].Config+h[i].RunNumber < h[j].Config+h[j].RunNumber
+}
+
+func (h WorkHeap) Swap(i, j int) { h[i], h[j] = h[j], h[i] }
 
 func (h *WorkHeap) Push(x *pb.Work) {
 	// Push and Pop use pointer receivers because they modify the slice's length,

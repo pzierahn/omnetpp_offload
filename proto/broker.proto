@@ -39,21 +39,19 @@ message Work {
   // Simulation ID
   string simulationId = 1;
 
-  // Configuration ID
-  string configId = 2;
-
   // Path to simulation source code
-  StorageRef source = 3;
+  StorageRef source = 2;
 
   // Simulation config name (-c argument)
-  string config = 4;
+  string config = 3;
 
   // Simulation run (-r argument)
-  string runNumber = 5;
+  string runNumber = 4;
 }
 
 message Tasks {
-  repeated Work jobs = 1;
+  // Config name and run number
+  repeated Work jobs = 3;
 }
 
 message Config {

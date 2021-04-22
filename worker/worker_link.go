@@ -4,7 +4,6 @@ import (
 	pb "com.github.patrickz98.omnet/proto"
 	"com.github.patrickz98.omnet/simple"
 	"context"
-	"encoding/json"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/metadata"
 	"runtime"
@@ -61,21 +60,9 @@ func Link(config Config) (err error) {
 				return
 			}
 
-			go func(tasks *pb.Tasks) {
-				byt, err := json.MarshalIndent(tasks, "", "  ")
-				if err != nil {
-					logger.Println(err)
-					return
-				}
+			logger.Printf("received task %v\n", tasks.ProtoReflect())
 
-				//randWait := rand.Intn(300) + 30
-				//waitTine := time.Duration(randWait) * time.Millisecond
-				//logger.Printf("doing %s for %v\n", byt, waitTine)
-				//time.Sleep(waitTine)
-
-				logger.Printf("doing %s\n", byt)
-				runTasks(&wClient, tasks)
-			}(tasks)
+			go runTasks(&wClient, tasks)
 		}
 	}()
 

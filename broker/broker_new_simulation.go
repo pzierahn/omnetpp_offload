@@ -19,11 +19,8 @@ func (server *broker) NewSimulation(_ context.Context, req *pb.Simulation) (repl
 	go func() {
 		for _, conf := range req.GetConfigs() {
 			for _, run := range conf.RunNumbers {
-				confId := conf.Name + "." + run
-
 				work := pb.Work{
 					SimulationId: req.SimulationId,
-					ConfigId:     confId,
 					Source:       req.Source,
 					Config:       conf.Name,
 					RunNumber:    run,
