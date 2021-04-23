@@ -84,7 +84,7 @@ func (server *storage) Put(stream pb.Storage_PutServer) (err error) {
 
 	_ = os.MkdirAll(storagePath+"/"+bucket, 0755)
 
-	logger.Println("new upload request", bucket, "-->", filename)
+	logger.Println("put", bucket, "-->", filename)
 
 	file, err := os.OpenFile(dataFile, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0644)
 	if err != nil {

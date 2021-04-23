@@ -9,30 +9,21 @@ import "google/protobuf/timestamp.proto";
 import "storage.proto";
 
 service Broker {
-  rpc NewSimulation (Simulation)        returns (SimulationReply) {}
-  rpc Link          (stream ClientInfo) returns (stream Tasks)    {}
-  rpc Results       (WorkResult)        returns (WorkAffirmation) {}
-  rpc Status        (StatusRequest)     returns (StatusReply)     {}
+  rpc NewSimulation (Simulation)              returns (SimulationReply) {}
+  rpc Link          (stream ResourceCapacity) returns (stream Tasks)    {}
+  rpc Push          (WorkResult)              returns (WorkAffirmation) {}
+  rpc Status        (StatusRequest)           returns (StatusReply)     {}
 }
 
-message ClientInfo {
+message ResourceCapacity {
   // Workers id
   string workerId = 1;
 
-  // Workers operating system
-  string os = 2;
-
-  // Workers system architecture
-  string arch = 3;
-
-  // CPU Count
-  int32 numCPU = 4;
-
   // Time
-  google.protobuf.Timestamp timestamp = 5;
+  google.protobuf.Timestamp timestamp = 2;
 
   // Number of available cores
-  int32 freeResources = 6;
+  int32 freeResources = 3;
 }
 
 message Work {
@@ -82,23 +73,14 @@ message SimulationReply {
 }
 
 message WorkResult {
-  // Simulation ID
-  string simulationId = 1;
-
-  // Configuration ID
-  string configId = 2;
-
-  // Execution time
-  google.protobuf.Duration executionTime = 3;
-
-  // Finish time
-  google.protobuf.Timestamp time = 4;
-
-  // Results path
-  string resultStorageId = 5;
+  // Work
+  Work job = 1;
 
   // Error
-  string error = 6;
+  string error = 2;
+
+  // Results path
+  StorageRef results = 3;
 }
 
 message WorkAffirmation {

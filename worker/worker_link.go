@@ -2,78 +2,91 @@ package worker
 
 import (
 	pb "com.github.patrickz98.omnet/proto"
-	"com.github.patrickz98.omnet/simple"
 	"context"
-	"google.golang.org/grpc"
+	"fmt"
 	"google.golang.org/grpc/metadata"
 	"runtime"
 	"time"
 )
 
-func Link(config Config) (err error) {
-
-	logger.Println("config", simple.PrettyString(config))
-
-	//
-	// Set up a connection to the server
-	//
-
-	conn, err := grpc.Dial(config.BrokerAddress, grpc.WithInsecure(), grpc.WithBlock())
-	if err != nil {
-		logger.Fatalf("did not connect: %v", err)
-	}
-	defer func() {
-		_ = conn.Close()
-	}()
-
-	client := pb.NewBrokerClient(conn)
+func (client *workerConnection) StartLink(ctx context.Context) (err error) {
 
 	md := metadata.New(map[string]string{
-		"workerId": config.WorkerId,
+		"workerId": client.config.WorkerId,
+		"os":       runtime.GOOS,
+		"arch":     runtime.GOARCH,
+		"numCPU":   fmt.Sprint(runtime.NumCPU()),
 	})
 
-	ctx := context.Background()
 	ctx = metadata.NewOutgoingContext(ctx, md)
 
-	link, err := client.Link(ctx)
+	// Link to the work stream
+	link, err := client.client.Link(ctx)
 	if err != nil {
-		logger.Fatalln(err)
+		return
 	}
 
-	wClient := workerClient{
-		config:        config,
-		link:          link,
-		freeResources: runtime.NumCPU(),
-	}
+	// channel for thread safe error communication
+	done := make(chan bool)
+	defer close(done)
 
 	go func() {
+
+		//
+		// Receive task from the broker
+		//
+
 		for {
-			tasks, err := link.Recv()
+			var tasks *pb.Tasks
+			tasks, err = link.Recv()
 			if err != nil {
-				logger.Println(err)
-				return
+				break
 			}
 
-			err = wClient.OccupyResource(len(tasks.Jobs))
-			if err != nil {
-				logger.Println(err)
-				return
+			client.OccupyResource(len(tasks.Jobs))
+
+			//logger.Printf("received task %v\n", tasks)
+
+			for _, job := range tasks.Jobs {
+				go func(job *pb.Work) {
+					logger.Printf("running task %v_%v\n", job.Config, job.RunNumber)
+					client.runTasks(job)
+
+					logger.Printf("free resource %v_%v\n", job.Config, job.RunNumber)
+
+					client.FeeResource()
+
+					err = client.SendResourceCapacity(link)
+					if err != nil {
+						logger.Fatalln(err)
+					}
+				}(job)
 			}
-
-			logger.Printf("received task %v\n", tasks.ProtoReflect())
-
-			go runTasks(&wClient, tasks)
 		}
+
+		done <- true
 	}()
 
-	for {
-		err = wClient.SendClientInfo()
-		if err != nil {
-			break
+	go func() {
+
+		//
+		// Send every 23 seconds the resource capacity
+		// This will prevent the connection from closing the connection
+		//
+
+		for {
+			err = client.SendResourceCapacity(link)
+			if err != nil {
+				break
+			}
+
+			time.Sleep(time.Second * 23)
 		}
 
-		time.Sleep(time.Second * 23)
-	}
+		done <- true
+	}()
+
+	<-done
 
 	return
 }

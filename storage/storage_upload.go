@@ -52,7 +52,7 @@ func Upload(data io.Reader, meta FileMeta) (ref *pb.StorageRef, err error) {
 		return
 	}
 
-	logger.Println("upload time", time.Now().Sub(start))
+	logger.Printf("upload %v->%v in %v\n", meta.Bucket, meta.Filename, time.Now().Sub(start))
 
 	return
 }

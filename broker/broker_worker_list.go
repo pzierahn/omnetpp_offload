@@ -7,10 +7,10 @@ import (
 
 type workerList struct {
 	sync.RWMutex
-	workers map[string]*pb.ClientInfo
+	workers map[string]*pb.ResourceCapacity
 }
 
-func (list *workerList) Get(key string) (info *pb.ClientInfo, ok bool) {
+func (list *workerList) Get(key string) (info *pb.ResourceCapacity, ok bool) {
 	list.RLock()
 
 	info, ok = list.workers[key]
@@ -20,7 +20,7 @@ func (list *workerList) Get(key string) (info *pb.ClientInfo, ok bool) {
 	return
 }
 
-func (list *workerList) Put(key string, value *pb.ClientInfo) {
+func (list *workerList) Put(key string, value *pb.ResourceCapacity) {
 	list.Lock()
 
 	list.workers[key] = value
@@ -39,7 +39,7 @@ func (list *workerList) Remove(key string) {
 func initWorkerList() (list workerList) {
 	list = workerList{
 		RWMutex: sync.RWMutex{},
-		workers: make(map[string]*pb.ClientInfo),
+		workers: make(map[string]*pb.ResourceCapacity),
 	}
 
 	return

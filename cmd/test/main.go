@@ -1,21 +1,29 @@
 package main
 
-import (
-	"com.github.patrickz98.omnet/simple"
-	"os"
-)
+import "com.github.patrickz98.omnet/simple"
+
+const input = "/Users/patrick/Desktop/xxx/tictoc"
+const mirror = "/Users/patrick/Desktop/xxx/tictoc-mirror"
 
 func main() {
-	file, err := os.Open("data/storage/tictoc-1f779d/source.tar.gz")
-	if err != nil {
-		panic(err)
-	}
 
-	_ = os.RemoveAll("data/xxx")
-	_ = os.MkdirAll("data/xxx", 0755)
+	//_ = os.RemoveAll(mirror)
+	//_ = os.MkdirAll(mirror, 0755)
 
-	err = simple.UnTarGz("data/xxx", file)
-	if err != nil {
-		panic(err)
-	}
+	_ = simple.SymbolicCopy(input, mirror+"-1", map[string]bool{
+		"results/": true,
+	})
+
+	//file, err := os.Open("data/storage/tictoc-1f779d/source.tar.gz")
+	//if err != nil {
+	//	panic(err)
+	//}
+	//
+	//_ = os.RemoveAll("data/xxx")
+	//_ = os.MkdirAll("data/xxx", 0755)
+	//
+	//err = simple.UnTarGz("data/xxx", file)
+	//if err != nil {
+	//	panic(err)
+	//}
 }

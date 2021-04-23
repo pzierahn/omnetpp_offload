@@ -6,68 +6,153 @@ import (
 	pb "com.github.patrickz98.omnet/proto"
 	"com.github.patrickz98.omnet/simple"
 	"com.github.patrickz98.omnet/storage"
+	"context"
+	"fmt"
 	"os"
+	"path/filepath"
 	"sync"
 )
 
 var setupSync sync.Mutex
 
-func setup(work *pb.Work) (project omnetpp.OmnetProject, err error) {
+var copyIgnores = map[string]bool{
+	// Don't copy results
+	"results/": true,
+}
 
+func setup(job *pb.Work) (project omnetpp.OmnetProject, err error) {
+
+	// Prevent that a simulation will be downloaded multiple times
 	setupSync.Lock()
 	defer setupSync.Unlock()
 
-	simPath := defines.Simulation + "/" + work.SimulationId
+	// Simulation directory with simulation source code
+	simulationBase := filepath.Join(defines.Simulation, job.SimulationId)
 
-	if _, err = os.Stat(simPath); err == nil {
+	// This will be the working directory, that contains the results for the job
+	// A symbolic copy is created to use all configs, ned files and ini files
+	simulationPath := filepath.Join(defines.Simulation, "mirrors", simple.NamedId(job.SimulationId, 8))
+
+	if _, err = os.Stat(simulationBase); err == nil {
+
 		//
 		// Simulation already downloaded and prepared
 		//
 
-		logger.Printf("simulation %s already downloaded\n", work.SimulationId)
-		project = omnetpp.New(simPath)
+		err = simple.SymbolicCopy(simulationBase, simulationPath, copyIgnores)
+		if err != nil {
+			return
+		}
+
+		logger.Printf("simulation %s already downloaded\n", job.SimulationId)
+		project = omnetpp.New(simulationPath)
 
 		return
 	}
 
-	logger.Printf("download %s to %s\n", work.SimulationId, simPath)
+	//
+	// Download and compile the simulation
+	//
 
-	byt, err := storage.Download(work.Source)
+	logger.Printf("checkout %s to %s\n", job.SimulationId, simulationBase)
+
+	byt, err := storage.Download(job.Source)
 	if err != nil {
 		return
 	}
 
 	err = simple.UnTarGz(defines.Simulation, byt)
 	if err != nil {
-		_ = os.RemoveAll(simPath)
+		_ = os.RemoveAll(simulationBase)
 		return
 	}
 
-	logger.Printf("setup %s\n", work.SimulationId)
+	logger.Printf("setup %s\n", job.SimulationId)
 
-	project = omnetpp.New(simPath)
-	err = project.Setup()
+	// Compile simulation source code
+	srcProject := omnetpp.New(simulationBase)
+	err = srcProject.Setup()
+	if err != nil {
+		return
+	}
+
+	// Create a new symbolic copy
+	err = simple.SymbolicCopy(simulationBase, simulationPath, copyIgnores)
+	if err != nil {
+		return
+	}
+
+	project = omnetpp.New(simulationPath)
 
 	return
 }
 
-func runTasks(client *workerClient, tasks *pb.Tasks) {
-	for _, job := range tasks.Jobs {
-		go func(job *pb.Work) {
-			opp, err := setup(job)
-			if err != nil {
-				logger.Fatalln(err)
-			}
+func (client *workerConnection) uploadResults(project omnetpp.OmnetProject, job *pb.Work) (err error) {
 
-			err = opp.Run(job.Config, job.RunNumber)
-			if err != nil {
-				logger.Fatalln(err)
-			}
-
-			err = client.FeeResource()
-			if err != nil {
-				logger.Fatalln(err)
-			}
-		}(job)
+	buf, err := project.ZipResults()
+	if err != nil {
+		return
 	}
+
+	ref, err := storage.Upload(&buf, storage.FileMeta{
+		Bucket:   job.SimulationId,
+		Filename: fmt.Sprintf("results_%s_%s.tar.gz", job.Config, job.RunNumber),
+	})
+	if err != nil {
+		return
+	}
+
+	results := pb.WorkResult{
+		Job:     job,
+		Results: ref,
+	}
+
+	aff, err := client.client.Push(context.Background(), &results)
+	if err != nil {
+		// TODO: Delete storage upload
+		// _ = storage.Delete(ref)
+		return
+	}
+
+	if aff.Error != "" {
+		err = fmt.Errorf(aff.Error)
+	}
+
+	return
+}
+
+func (client *workerConnection) runTasks(job *pb.Work) {
+
+	//
+	// Setup simulation environment
+	// Includes downloading and compiling the simulation
+	//
+
+	opp, err := setup(job)
+	if err != nil {
+		logger.Fatalln(err)
+	}
+
+	//
+	// Setup simulation environment
+	//
+
+	err = opp.RunLog(job.Config, job.RunNumber)
+	if err != nil {
+		logger.Fatalln(err)
+	}
+
+	//
+	// Upload simulation results
+	//
+
+	err = client.uploadResults(opp, job)
+	if err != nil {
+		logger.Fatalln(err)
+	}
+
+	// Todo: Cleanup simulationBase
+
+	// Cleanup symbolic mirrors
+	_ = os.RemoveAll(opp.SourcePath)
 }

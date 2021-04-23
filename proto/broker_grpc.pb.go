@@ -20,7 +20,7 @@ const _ = grpc.SupportPackageIsVersion7
 type BrokerClient interface {
 	NewSimulation(ctx context.Context, in *Simulation, opts ...grpc.CallOption) (*SimulationReply, error)
 	Link(ctx context.Context, opts ...grpc.CallOption) (Broker_LinkClient, error)
-	Results(ctx context.Context, in *WorkResult, opts ...grpc.CallOption) (*WorkAffirmation, error)
+	Push(ctx context.Context, in *WorkResult, opts ...grpc.CallOption) (*WorkAffirmation, error)
 	Status(ctx context.Context, in *StatusRequest, opts ...grpc.CallOption) (*StatusReply, error)
 }
 
@@ -51,7 +51,7 @@ func (c *brokerClient) Link(ctx context.Context, opts ...grpc.CallOption) (Broke
 }
 
 type Broker_LinkClient interface {
-	Send(*ClientInfo) error
+	Send(*ResourceCapacity) error
 	Recv() (*Tasks, error)
 	grpc.ClientStream
 }
@@ -60,7 +60,7 @@ type brokerLinkClient struct {
 	grpc.ClientStream
 }
 
-func (x *brokerLinkClient) Send(m *ClientInfo) error {
+func (x *brokerLinkClient) Send(m *ResourceCapacity) error {
 	return x.ClientStream.SendMsg(m)
 }
 
@@ -72,9 +72,9 @@ func (x *brokerLinkClient) Recv() (*Tasks, error) {
 	return m, nil
 }
 
-func (c *brokerClient) Results(ctx context.Context, in *WorkResult, opts ...grpc.CallOption) (*WorkAffirmation, error) {
+func (c *brokerClient) Push(ctx context.Context, in *WorkResult, opts ...grpc.CallOption) (*WorkAffirmation, error) {
 	out := new(WorkAffirmation)
-	err := c.cc.Invoke(ctx, "/service.Broker/Results", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/service.Broker/Push", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -96,7 +96,7 @@ func (c *brokerClient) Status(ctx context.Context, in *StatusRequest, opts ...gr
 type BrokerServer interface {
 	NewSimulation(context.Context, *Simulation) (*SimulationReply, error)
 	Link(Broker_LinkServer) error
-	Results(context.Context, *WorkResult) (*WorkAffirmation, error)
+	Push(context.Context, *WorkResult) (*WorkAffirmation, error)
 	Status(context.Context, *StatusRequest) (*StatusReply, error)
 	mustEmbedUnimplementedBrokerServer()
 }
@@ -111,8 +111,8 @@ func (UnimplementedBrokerServer) NewSimulation(context.Context, *Simulation) (*S
 func (UnimplementedBrokerServer) Link(Broker_LinkServer) error {
 	return status.Errorf(codes.Unimplemented, "method Link not implemented")
 }
-func (UnimplementedBrokerServer) Results(context.Context, *WorkResult) (*WorkAffirmation, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method Results not implemented")
+func (UnimplementedBrokerServer) Push(context.Context, *WorkResult) (*WorkAffirmation, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Push not implemented")
 }
 func (UnimplementedBrokerServer) Status(context.Context, *StatusRequest) (*StatusReply, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Status not implemented")
@@ -154,7 +154,7 @@ func _Broker_Link_Handler(srv interface{}, stream grpc.ServerStream) error {
 
 type Broker_LinkServer interface {
 	Send(*Tasks) error
-	Recv() (*ClientInfo, error)
+	Recv() (*ResourceCapacity, error)
 	grpc.ServerStream
 }
 
@@ -166,28 +166,28 @@ func (x *brokerLinkServer) Send(m *Tasks) error {
 	return x.ServerStream.SendMsg(m)
 }
 
-func (x *brokerLinkServer) Recv() (*ClientInfo, error) {
-	m := new(ClientInfo)
+func (x *brokerLinkServer) Recv() (*ResourceCapacity, error) {
+	m := new(ResourceCapacity)
 	if err := x.ServerStream.RecvMsg(m); err != nil {
 		return nil, err
 	}
 	return m, nil
 }
 
-func _Broker_Results_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _Broker_Push_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(WorkResult)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(BrokerServer).Results(ctx, in)
+		return srv.(BrokerServer).Push(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/service.Broker/Results",
+		FullMethod: "/service.Broker/Push",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(BrokerServer).Results(ctx, req.(*WorkResult))
+		return srv.(BrokerServer).Push(ctx, req.(*WorkResult))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -222,8 +222,8 @@ var Broker_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _Broker_NewSimulation_Handler,
 		},
 		{
-			MethodName: "Results",
-			Handler:    _Broker_Results_Handler,
+			MethodName: "Push",
+			Handler:    _Broker_Push_Handler,
 		},
 		{
 			MethodName: "Status",

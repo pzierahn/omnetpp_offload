@@ -2,9 +2,9 @@ package omnetpp
 
 import (
 	"com.github.patrickz98.omnet/defines"
-	"log"
 	"os"
 	"os/exec"
+	"path/filepath"
 )
 
 func (project *OmnetProject) Run(config, run string) (err error) {
@@ -29,12 +29,13 @@ func (project *OmnetProject) RunLog(config, run string) (err error) {
 	// Run simulation
 	//
 
-	logPath := defines.DataPath + "/simulation-logs"
-	_ = os.MkdirAll(logPath, 0755)
+	logDir := filepath.Join(defines.DataPath, "simulation-logs")
+	_ = os.MkdirAll(logDir, 0755)
+	logPath := filepath.Join(logDir, config+"."+run+".log")
 
-	file, err := os.OpenFile(logPath+"/"+config+"."+run+".log", os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0644)
+	file, err := os.OpenFile(logPath, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0644)
 	if err != nil {
-		log.Fatalln(err)
+		return
 	}
 
 	sim := exec.Command("./"+project.simulationExe, "-c", config, "-r", run)

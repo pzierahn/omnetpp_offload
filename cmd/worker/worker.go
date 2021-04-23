@@ -4,6 +4,7 @@ import (
 	"com.github.patrickz98.omnet/defines"
 	"com.github.patrickz98.omnet/simple"
 	"com.github.patrickz98.omnet/worker"
+	"context"
 	"encoding/json"
 	"flag"
 	"fmt"
@@ -86,7 +87,12 @@ func main() {
 		config.BrokerAddress = brokerAddress
 	}
 
-	if err := worker.Link(config); err != nil {
+	conn, err := worker.Connect(config)
+	if err != nil {
+		panic(err)
+	}
+
+	if err := conn.StartLink(context.Background()); err != nil {
 		panic(err)
 	}
 }

@@ -61,7 +61,7 @@ func (server *broker) Link(stream pb.Broker_LinkServer) (err error) {
 	//
 
 	for {
-		var info *pb.ClientInfo
+		var info *pb.ResourceCapacity
 		info, err = stream.Recv()
 		if err != nil {
 			break
