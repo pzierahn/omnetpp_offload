@@ -35,10 +35,16 @@ go run cmd/worker/worker.go --deviceName $(hostname -s) \
 Start a worker
 
 ```shell
-go run cmd/simulation/simulation.go --name TicToc --path ~/Desktop/tictoc --configs TicToc18
+go run cmd/worker/worker.go
 ```
 
 ## Simulation
+
+Start a new simulation
+
+```shell
+go run cmd/simulation/simulation.go --name TicToc --path ~/Desktop/tictoc --configs TicToc18
+```
 
 Options:
 
