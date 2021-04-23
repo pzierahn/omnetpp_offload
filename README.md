@@ -27,7 +27,7 @@ protoc --go_out=. --go_opt=paths=source_relative \
 First configure your working client:
 
 ```shell
-go run cmd/worker.go --deviceName $(hostname -s) \
+go run cmd/worker/worker.go --deviceName $(hostname -s) \
     --brokerAddress 192.168.0.11:50051 \
     --configure
 ```

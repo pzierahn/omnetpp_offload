@@ -10,10 +10,11 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"path/filepath"
 	"runtime"
 )
 
-const configPath = defines.DataPath + "/worker-config.json"
+var configPath = filepath.Join(defines.DataPath, "worker-config.json")
 
 var deviceName string
 var brokerAddress string
@@ -39,6 +40,8 @@ func persistConfig() {
 
 	fmt.Println("config", string(byt))
 	fmt.Println("write config to", configPath)
+
+	_ = os.MkdirAll(defines.DataPath, 0755)
 
 	err := ioutil.WriteFile(configPath, byt, 0644)
 	if err != nil {
@@ -92,7 +95,7 @@ func main() {
 		panic(err)
 	}
 
-	if err := conn.StartLink(context.Background()); err != nil {
+	if err = conn.StartLink(context.Background()); err != nil {
 		panic(err)
 	}
 }
