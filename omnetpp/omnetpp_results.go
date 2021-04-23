@@ -2,7 +2,7 @@ package omnetpp
 
 import (
 	"bytes"
-	"com.github.patrickz98.omnet/simple"
+	"github.com/patrickz98/project.go.omnetpp/simple"
 	"path/filepath"
 )
 

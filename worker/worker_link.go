@@ -1,9 +1,9 @@
 package worker
 
 import (
-	pb "com.github.patrickz98.omnet/proto"
 	"context"
 	"fmt"
+	pb "github.com/patrickz98/project.go.omnetpp/proto"
 	"google.golang.org/grpc/metadata"
 	"runtime"
 	"time"

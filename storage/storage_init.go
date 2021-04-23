@@ -1,7 +1,7 @@
 package storage
 
 import (
-	"com.github.patrickz98.omnet/defines"
+	"github.com/patrickz98/project.go.omnetpp/defines"
 	"log"
 	"os"
 )

@@ -1,7 +1,7 @@
 package main
 
 import (
-	"com.github.patrickz98.omnet/simple"
+	"github.com/patrickz98/project.go.omnetpp/simple"
 )
 
 const input = "/Users/patrick/Desktop/xxx/tictoc"

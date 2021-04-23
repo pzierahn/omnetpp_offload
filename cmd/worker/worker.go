@@ -1,13 +1,13 @@
 package main
 
 import (
-	"com.github.patrickz98.omnet/defines"
-	"com.github.patrickz98.omnet/simple"
-	"com.github.patrickz98.omnet/worker"
 	"context"
 	"encoding/json"
 	"flag"
 	"fmt"
+	"github.com/patrickz98/project.go.omnetpp/defines"
+	"github.com/patrickz98/project.go.omnetpp/simple"
+	"github.com/patrickz98/project.go.omnetpp/worker"
 	"io/ioutil"
 	"os"
 	"path/filepath"

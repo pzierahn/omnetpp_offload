@@ -1,9 +1,9 @@
 package main
 
 import (
-	"com.github.patrickz98.omnet/simulation"
 	"flag"
 	"fmt"
+	"github.com/patrickz98/project.go.omnetpp/simulation"
 	"strings"
 )
 

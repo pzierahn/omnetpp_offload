@@ -1,7 +1,7 @@
 package broker
 
 import (
-	pb "com.github.patrickz98.omnet/proto"
+	pb "github.com/patrickz98/project.go.omnetpp/proto"
 	"sync"
 )
 

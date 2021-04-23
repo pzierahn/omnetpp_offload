@@ -1,4 +1,4 @@
-module com.github.patrickz98.omnet
+module github.com/patrickz98/project.go.omnetpp
 
 go 1.16
 

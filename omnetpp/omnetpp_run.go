@@ -1,7 +1,7 @@
 package omnetpp
 
 import (
-	"com.github.patrickz98.omnet/defines"
+	"github.com/patrickz98/project.go.omnetpp/defines"
 	"os"
 	"os/exec"
 	"path/filepath"

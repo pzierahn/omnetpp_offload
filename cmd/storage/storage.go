@@ -1,8 +1,8 @@
 package main
 
 import (
-	"com.github.patrickz98.omnet/storage"
 	"flag"
+	"github.com/patrickz98/project.go.omnetpp/storage"
 )
 
 var server bool

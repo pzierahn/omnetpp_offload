@@ -1,8 +1,8 @@
 package simulation
 
 import (
-	"com.github.patrickz98.omnet/omnetpp"
 	"fmt"
+	"github.com/patrickz98/project.go.omnetpp/omnetpp"
 )
 
 func extractConfigs(omnet omnetpp.OmnetProject) (configs map[string][]string, err error) {

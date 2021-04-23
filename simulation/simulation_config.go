@@ -1,7 +1,7 @@
 package simulation
 
 import (
-	"com.github.patrickz98.omnet/simple"
+	"github.com/patrickz98/project.go.omnetpp/simple"
 )
 
 type Config struct {

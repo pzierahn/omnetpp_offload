@@ -1,7 +1,7 @@
 package main
 
 import (
-	"com.github.patrickz98.omnet/broker"
+	"github.com/patrickz98/project.go.omnetpp/broker"
 )
 
 func main() {

@@ -1,13 +1,13 @@
 package worker
 
 import (
-	"com.github.patrickz98.omnet/defines"
-	"com.github.patrickz98.omnet/omnetpp"
-	pb "com.github.patrickz98.omnet/proto"
-	"com.github.patrickz98.omnet/simple"
-	"com.github.patrickz98.omnet/storage"
 	"context"
 	"fmt"
+	"github.com/patrickz98/project.go.omnetpp/defines"
+	"github.com/patrickz98/project.go.omnetpp/omnetpp"
+	pb "github.com/patrickz98/project.go.omnetpp/proto"
+	"github.com/patrickz98/project.go.omnetpp/simple"
+	"github.com/patrickz98/project.go.omnetpp/storage"
 	"os"
 	"path/filepath"
 	"sync"

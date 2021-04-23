@@ -1,8 +1,8 @@
 package storage
 
 import (
-	pb "com.github.patrickz98.omnet/proto"
 	"context"
+	pb "github.com/patrickz98/project.go.omnetpp/proto"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/metadata"
 	"io"

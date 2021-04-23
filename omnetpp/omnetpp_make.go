@@ -1,8 +1,8 @@
 package omnetpp
 
 import (
-	"com.github.patrickz98.omnet/shell"
 	"fmt"
+	"github.com/patrickz98/project.go.omnetpp/shell"
 	"os"
 	"runtime"
 )

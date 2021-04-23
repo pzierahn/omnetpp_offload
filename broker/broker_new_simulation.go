@@ -1,9 +1,9 @@
 package broker
 
 import (
-	pb "com.github.patrickz98.omnet/proto"
 	"context"
 	"encoding/json"
+	pb "github.com/patrickz98/project.go.omnetpp/proto"
 )
 
 func (server *broker) NewSimulation(_ context.Context, req *pb.Simulation) (reply *pb.SimulationReply, err error) {

@@ -1,9 +1,9 @@
 package simulation
 
 import (
-	pb "com.github.patrickz98.omnet/proto"
-	"com.github.patrickz98.omnet/simple"
-	"com.github.patrickz98.omnet/storage"
+	pb "github.com/patrickz98/project.go.omnetpp/proto"
+	"github.com/patrickz98/project.go.omnetpp/simple"
+	"github.com/patrickz98/project.go.omnetpp/storage"
 )
 
 func Upload(config Config) (ref *pb.StorageRef, err error) {

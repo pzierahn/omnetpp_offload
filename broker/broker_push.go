@@ -1,9 +1,9 @@
 package broker
 
 import (
-	pb "com.github.patrickz98.omnet/proto"
 	"context"
 	"encoding/json"
+	pb "github.com/patrickz98/project.go.omnetpp/proto"
 )
 
 func (server *broker) Push(ctx context.Context, req *pb.WorkResult) (reply *pb.WorkAffirmation, err error) {

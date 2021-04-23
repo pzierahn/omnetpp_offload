@@ -9,10 +9,10 @@ import "google/protobuf/timestamp.proto";
 import "storage.proto";
 
 service Broker {
-  rpc NewSimulation (Simulation)              returns (SimulationReply) {}
-  rpc Link          (stream ResourceCapacity) returns (stream Tasks)    {}
-  rpc Push          (WorkResult)              returns (WorkAffirmation) {}
-  rpc Status        (StatusRequest)           returns (StatusReply)     {}
+  rpc ExecuteSimulation  (Simulation)              returns (SimulationReply)    {}
+  rpc TaskSubscription   (stream ResourceCapacity) returns (stream Tasks)       {}
+  rpc CommitResults      (WorkResult)              returns (WorkAffirmation)    {}
+  rpc StatusSubscription (StatusRequest)           returns (stream StatusReply) {}
 }
 
 message ResourceCapacity {
@@ -26,7 +26,7 @@ message ResourceCapacity {
   int32 freeResources = 3;
 }
 
-message Work {
+message Task {
   // Simulation ID
   string simulationId = 1;
 
@@ -42,7 +42,7 @@ message Work {
 
 message Tasks {
   // Config name and run number
-  repeated Work jobs = 3;
+  repeated Task items = 3;
 }
 
 message Config {
@@ -74,7 +74,7 @@ message SimulationReply {
 
 message WorkResult {
   // Work
-  Work job = 1;
+  Task task = 1;
 
   // Error
   string error = 2;
@@ -87,44 +87,15 @@ message WorkAffirmation {
   // Simulation ID
   string simulationId = 1;
 
-  // Configuration ID
-  string configId = 2;
-
-  // Success
-  bool success = 3;
-
-  // Error
-  string error = 4;
+  // Check this var for error handling
+  string error = 2;
 }
 
 message StatusRequest {
   string simulationId = 1;
 }
 
-message RunStatus {
-  string runNumber = 1;
-
-  enum State {
-    TODO = 0;
-    DOING = 1;
-    SUCCESS = 2;
-    FAILED = 3;
-  }
-
-  State state = 2;
-
-  // Execution time
-  optional google.protobuf.Duration executionTime = 3;
-  optional string workerId = 4;
-}
-
-message ConfigStatus {
-  string simulationId = 1;
-  string configId = 2;
-  repeated RunStatus runs = 3;
-}
-
 message StatusReply {
-  repeated ConfigStatus state = 2;
+  string simulationId = 1;
 }
 

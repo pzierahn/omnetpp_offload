@@ -1,8 +1,8 @@
 package broker
 
 import (
-	pb "com.github.patrickz98.omnet/proto"
-	"com.github.patrickz98.omnet/simple"
+	pb "github.com/patrickz98/project.go.omnetpp/proto"
+	"github.com/patrickz98/project.go.omnetpp/simple"
 )
 
 func (server *broker) distributeWork() {

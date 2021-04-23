@@ -1,8 +1,8 @@
 package broker
 
 import (
-	"com.github.patrickz98.omnet/defines"
-	pb "com.github.patrickz98.omnet/proto"
+	"github.com/patrickz98/project.go.omnetpp/defines"
+	pb "github.com/patrickz98/project.go.omnetpp/proto"
 	"google.golang.org/grpc"
 	"log"
 	"net"
