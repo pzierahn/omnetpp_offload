@@ -1,6 +1,8 @@
 package main
 
-import "com.github.patrickz98.omnet/simple"
+import (
+	"com.github.patrickz98.omnet/simple"
+)
 
 const input = "/Users/patrick/Desktop/xxx/tictoc"
 const mirror = "/Users/patrick/Desktop/xxx/tictoc-mirror"

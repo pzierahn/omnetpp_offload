@@ -12,6 +12,9 @@ ENV DEBIAN_FRONTEND noninteractive
 # Get essential dependencies
 #
 
+RUN ln -fs /usr/share/zoneinfo/Europe/Berlin /etc/localtime; \
+    dpkg-reconfigure --frontend noninteractive tzdata
+
 RUN apt-get update; \
     apt-get upgrade -y; \
     apt-get dist-upgrade -y; \
@@ -19,9 +22,6 @@ RUN apt-get update; \
     apt-get install -y --no-install-recommends build-essential clang make bison flex git libxml2-dev zlib1g-dev; \
     apt-get clean; \
     rm -rf /var/lib/apt/lists/*
-
-RUN ln -fs /usr/share/zoneinfo/Europe/Berlin /etc/localtime; \
-    dpkg-reconfigure --frontend noninteractive tzdata
 
 # RUN apt-get install -y --no-install-recommends build-essential clang make bison flex git libxml2-dev zlib1g-dev
 
@@ -42,5 +42,3 @@ ENV PATH $WORKDIR/omnetpp/bin:$PATH
 RUN cd omnetpp; \
     ./configure WITH_QTENV=no WITH_OSG=no WITH_OSGEARTH=no; \
     make -j $(nproc) MODE=release base
-
-# ENV PATH /root/omnetpp/bin:$PATH
