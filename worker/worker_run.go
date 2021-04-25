@@ -64,12 +64,14 @@ func setup(job *pb.Task) (project omnetpp.OmnetProject, err error) {
 	// Download and compile the simulation
 	//
 
-	logger.Printf("checkout %s to %s\n", job.SimulationId, simulationBase)
+	logger.Printf("download %s to %s\n", job.SimulationId, simulationBase)
 
 	byt, err := storage.Download(job.Source)
 	if err != nil {
 		return
 	}
+
+	logger.Printf("unzip %s\n", job.SimulationId)
 
 	err = simple.UnTarGz(defines.SimulationPath, byt)
 	if err != nil {
@@ -77,7 +79,7 @@ func setup(job *pb.Task) (project omnetpp.OmnetProject, err error) {
 		return
 	}
 
-	logger.Printf("setup %s\n", job.SimulationId)
+	logger.Printf("running setup %s\n", job.SimulationId)
 
 	oppConf := omnetpp.Config{
 		OppConfig: job.Simulation,
