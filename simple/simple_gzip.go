@@ -30,7 +30,7 @@ func TarGz(path, dirname string) (buffer bytes.Buffer, err error) {
 			return
 		}
 
-		if !info.Mode().IsRegular() && info.Mode().Type() != os.ModeSymlink {
+		if !info.Mode().IsRegular() && info.Mode() != os.ModeSymlink {
 			logger.Printf("skipping '%s', it has unknown file type '%v'\n", walkPath, info.Mode())
 			return
 		}

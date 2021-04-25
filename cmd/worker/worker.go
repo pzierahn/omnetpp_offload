@@ -86,6 +86,10 @@ func main() {
 		config.BrokerAddress = defines.Port
 	}
 
+	if config.NumCPU == 0 {
+		config.NumCPU = runtime.NumCPU()
+	}
+
 	if brokerAddress != "" {
 		config.BrokerAddress = brokerAddress
 	}
