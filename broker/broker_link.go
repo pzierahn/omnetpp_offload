@@ -8,7 +8,7 @@ import (
 	"google.golang.org/grpc/metadata"
 )
 
-func (server *broker) Link(stream pb.Broker_LinkServer) (err error) {
+func (server *broker) TaskSubscription(stream pb.Broker_TaskSubscriptionServer) (err error) {
 
 	md, ok := metadata.FromIncomingContext(stream.Context())
 

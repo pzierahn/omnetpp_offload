@@ -6,19 +6,19 @@ import (
 	"github.com/patrickz98/project.go.omnetpp/storage"
 )
 
-func Upload(config Config) (ref *pb.StorageRef, err error) {
+func Upload(config *Config) (ref *pb.StorageRef, err error) {
 
 	logger.Println("zipping", config.Path)
 
-	buf, err := simple.TarGz(config.Path, config.Id)
+	buf, err := simple.TarGz(config.Path, config.SimulationId)
 	if err != nil {
 		return
 	}
 
-	logger.Println("uploading", config.Id)
+	logger.Println("uploading", config.SimulationId)
 
 	ref, err = storage.Upload(&buf, storage.FileMeta{
-		Bucket:   config.Id,
+		Bucket:   config.SimulationId,
 		Filename: "source.tar.gz",
 	})
 	if err != nil {

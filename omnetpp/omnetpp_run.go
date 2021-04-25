@@ -1,47 +1,108 @@
 package omnetpp
 
 import (
-	"github.com/patrickz98/project.go.omnetpp/defines"
-	"os"
+	"bufio"
+	"github.com/patrickz98/project.go.omnetpp/shell"
 	"os/exec"
 	"path/filepath"
+	"regexp"
+	"strings"
 )
 
-func (project *OmnetProject) Run(config, run string) (err error) {
+// command
+//
+// Get simulation executable. This can ether be a simulationExe
+// or simulationLib in conjunction with opp_run
+func (project *OmnetProject) command(args ...string) (cmd *exec.Cmd, err error) {
 
-	//
-	// Run simulation
-	//
+	iniDir, iniFile := filepath.Split(project.IniFile)
+	iniDir = filepath.Join(project.Path, iniDir)
 
-	sim := exec.Command("./"+project.simulationExe, "-c", config, "-r", run)
-	sim.Dir = project.SourcePath
-	sim.Stdout = os.Stdout
-	sim.Stderr = os.Stderr
+	nedPaths := make([]string, len(project.NedPaths))
 
-	err = sim.Run()
+	for inx, nedpath := range project.NedPaths {
+		nedPaths[inx], err = filepath.Rel(iniDir, filepath.Join(project.Path, nedpath))
+		if err != nil {
+			return
+		}
+	}
+
+	args = append([]string{
+		"-u", "Cmdenv",
+		// Ini filepath
+		"-f", iniFile,
+		// Ned paths
+		"-n", strings.Join(nedPaths, ":"),
+	}, args...)
+
+	if project.UseLib {
+
+		//
+		// Use simulation shared library
+		//
+
+		var lib string
+		lib, err = filepath.Rel(iniDir, filepath.Join(project.Path, project.Simulation))
+		if err != nil {
+			return
+		}
+
+		args = append([]string{
+			"-l", lib,
+		}, args...)
+
+		cmd = shell.Command("opp_run", args...)
+		cmd.Dir = iniDir
+	} else {
+
+		//
+		// Use simulation exe
+		//
+
+		exe := filepath.Join(project.Path, project.Simulation)
+		exe, err = filepath.Abs(exe)
+		if err != nil {
+			return
+		}
+
+		cmd = exec.Command(exe, args...)
+		cmd.Dir = iniDir
+	}
 
 	return
 }
 
-func (project *OmnetProject) RunLog(config, run string) (err error) {
+// Run the simulation with configuration (-c) and run number (-r)
+func (project *OmnetProject) Run(config, run string) (err error) {
 
-	//
-	// Run simulation
-	//
+	// Todo: Add timeout, because some simulations are running indefinitely
+	sim, err := project.command("-c", config, "-r", run)
 
-	logDir := filepath.Join(defines.DataPath, "simulation-logs")
-	_ = os.MkdirAll(logDir, 0755)
-	logPath := filepath.Join(logDir, config+"."+run+".log")
-
-	file, err := os.OpenFile(logPath, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0644)
 	if err != nil {
 		return
 	}
 
-	sim := exec.Command("./"+project.simulationExe, "-c", config, "-r", run)
-	sim.Dir = project.SourcePath
-	sim.Stdout = file
-	sim.Stderr = file
+	// Debug
+	//sim.Stdout = os.Stdout
+	//sim.Stderr = os.Stderr
+
+	pipe, err := sim.StdoutPipe()
+	if err != nil {
+		return
+	}
+
+	go func() {
+		regex := regexp.MustCompile(`\(([0-9]{1,3})% total\)`)
+		scanner := bufio.NewScanner(pipe)
+
+		for scanner.Scan() {
+			match := regex.FindStringSubmatch(scanner.Text())
+
+			if len(match) == 2 {
+				logger.Printf("config=%s run=%s (%s%%)\n", config, run, match[1])
+			}
+		}
+	}()
 
 	err = sim.Run()
 

@@ -7,13 +7,13 @@ import (
 
 // An Item is something we manage in a priority queue.
 type Item struct {
-	value    *pb.Work
+	value    *pb.Task
 	priority int
 	index    int
 }
 
 // An IntHeap is a min-heap of ints.
-type WorkHeap []*pb.Work
+type WorkHeap []*pb.Task
 
 func (h WorkHeap) Len() int {
 	return len(h)
@@ -25,7 +25,7 @@ func (h WorkHeap) Less(i, j int) bool {
 
 func (h WorkHeap) Swap(i, j int) { h[i], h[j] = h[j], h[i] }
 
-func (h *WorkHeap) Push(x *pb.Work) {
+func (h *WorkHeap) Push(x *pb.Task) {
 	// Push and Pop use pointer receivers because they modify the slice's length,
 	// not just its contents.
 	*h = append(*h, x)

@@ -18,10 +18,10 @@ const _ = grpc.SupportPackageIsVersion7
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type BrokerClient interface {
-	NewSimulation(ctx context.Context, in *Simulation, opts ...grpc.CallOption) (*SimulationReply, error)
-	Link(ctx context.Context, opts ...grpc.CallOption) (Broker_LinkClient, error)
-	Push(ctx context.Context, in *WorkResult, opts ...grpc.CallOption) (*WorkAffirmation, error)
-	Status(ctx context.Context, in *StatusRequest, opts ...grpc.CallOption) (*StatusReply, error)
+	ExecuteSimulation(ctx context.Context, in *Simulation, opts ...grpc.CallOption) (*SimulationReply, error)
+	TaskSubscription(ctx context.Context, opts ...grpc.CallOption) (Broker_TaskSubscriptionClient, error)
+	CommitResults(ctx context.Context, in *TaskResult, opts ...grpc.CallOption) (*WorkAffirmation, error)
+	StatusSubscription(ctx context.Context, in *StatusRequest, opts ...grpc.CallOption) (Broker_StatusSubscriptionClient, error)
 }
 
 type brokerClient struct {
@@ -32,39 +32,39 @@ func NewBrokerClient(cc grpc.ClientConnInterface) BrokerClient {
 	return &brokerClient{cc}
 }
 
-func (c *brokerClient) NewSimulation(ctx context.Context, in *Simulation, opts ...grpc.CallOption) (*SimulationReply, error) {
+func (c *brokerClient) ExecuteSimulation(ctx context.Context, in *Simulation, opts ...grpc.CallOption) (*SimulationReply, error) {
 	out := new(SimulationReply)
-	err := c.cc.Invoke(ctx, "/service.Broker/NewSimulation", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/service.Broker/ExecuteSimulation", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *brokerClient) Link(ctx context.Context, opts ...grpc.CallOption) (Broker_LinkClient, error) {
-	stream, err := c.cc.NewStream(ctx, &Broker_ServiceDesc.Streams[0], "/service.Broker/Link", opts...)
+func (c *brokerClient) TaskSubscription(ctx context.Context, opts ...grpc.CallOption) (Broker_TaskSubscriptionClient, error) {
+	stream, err := c.cc.NewStream(ctx, &Broker_ServiceDesc.Streams[0], "/service.Broker/TaskSubscription", opts...)
 	if err != nil {
 		return nil, err
 	}
-	x := &brokerLinkClient{stream}
+	x := &brokerTaskSubscriptionClient{stream}
 	return x, nil
 }
 
-type Broker_LinkClient interface {
+type Broker_TaskSubscriptionClient interface {
 	Send(*ResourceCapacity) error
 	Recv() (*Tasks, error)
 	grpc.ClientStream
 }
 
-type brokerLinkClient struct {
+type brokerTaskSubscriptionClient struct {
 	grpc.ClientStream
 }
 
-func (x *brokerLinkClient) Send(m *ResourceCapacity) error {
+func (x *brokerTaskSubscriptionClient) Send(m *ResourceCapacity) error {
 	return x.ClientStream.SendMsg(m)
 }
 
-func (x *brokerLinkClient) Recv() (*Tasks, error) {
+func (x *brokerTaskSubscriptionClient) Recv() (*Tasks, error) {
 	m := new(Tasks)
 	if err := x.ClientStream.RecvMsg(m); err != nil {
 		return nil, err
@@ -72,32 +72,55 @@ func (x *brokerLinkClient) Recv() (*Tasks, error) {
 	return m, nil
 }
 
-func (c *brokerClient) Push(ctx context.Context, in *WorkResult, opts ...grpc.CallOption) (*WorkAffirmation, error) {
+func (c *brokerClient) CommitResults(ctx context.Context, in *TaskResult, opts ...grpc.CallOption) (*WorkAffirmation, error) {
 	out := new(WorkAffirmation)
-	err := c.cc.Invoke(ctx, "/service.Broker/Push", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/service.Broker/CommitResults", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *brokerClient) Status(ctx context.Context, in *StatusRequest, opts ...grpc.CallOption) (*StatusReply, error) {
-	out := new(StatusReply)
-	err := c.cc.Invoke(ctx, "/service.Broker/Status", in, out, opts...)
+func (c *brokerClient) StatusSubscription(ctx context.Context, in *StatusRequest, opts ...grpc.CallOption) (Broker_StatusSubscriptionClient, error) {
+	stream, err := c.cc.NewStream(ctx, &Broker_ServiceDesc.Streams[1], "/service.Broker/StatusSubscription", opts...)
 	if err != nil {
 		return nil, err
 	}
-	return out, nil
+	x := &brokerStatusSubscriptionClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type Broker_StatusSubscriptionClient interface {
+	Recv() (*StatusReply, error)
+	grpc.ClientStream
+}
+
+type brokerStatusSubscriptionClient struct {
+	grpc.ClientStream
+}
+
+func (x *brokerStatusSubscriptionClient) Recv() (*StatusReply, error) {
+	m := new(StatusReply)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
 }
 
 // BrokerServer is the server API for Broker service.
 // All implementations must embed UnimplementedBrokerServer
 // for forward compatibility
 type BrokerServer interface {
-	NewSimulation(context.Context, *Simulation) (*SimulationReply, error)
-	Link(Broker_LinkServer) error
-	Push(context.Context, *WorkResult) (*WorkAffirmation, error)
-	Status(context.Context, *StatusRequest) (*StatusReply, error)
+	ExecuteSimulation(context.Context, *Simulation) (*SimulationReply, error)
+	TaskSubscription(Broker_TaskSubscriptionServer) error
+	CommitResults(context.Context, *TaskResult) (*WorkAffirmation, error)
+	StatusSubscription(*StatusRequest, Broker_StatusSubscriptionServer) error
 	mustEmbedUnimplementedBrokerServer()
 }
 
@@ -105,17 +128,17 @@ type BrokerServer interface {
 type UnimplementedBrokerServer struct {
 }
 
-func (UnimplementedBrokerServer) NewSimulation(context.Context, *Simulation) (*SimulationReply, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method NewSimulation not implemented")
+func (UnimplementedBrokerServer) ExecuteSimulation(context.Context, *Simulation) (*SimulationReply, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ExecuteSimulation not implemented")
 }
-func (UnimplementedBrokerServer) Link(Broker_LinkServer) error {
-	return status.Errorf(codes.Unimplemented, "method Link not implemented")
+func (UnimplementedBrokerServer) TaskSubscription(Broker_TaskSubscriptionServer) error {
+	return status.Errorf(codes.Unimplemented, "method TaskSubscription not implemented")
 }
-func (UnimplementedBrokerServer) Push(context.Context, *WorkResult) (*WorkAffirmation, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method Push not implemented")
+func (UnimplementedBrokerServer) CommitResults(context.Context, *TaskResult) (*WorkAffirmation, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CommitResults not implemented")
 }
-func (UnimplementedBrokerServer) Status(context.Context, *StatusRequest) (*StatusReply, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method Status not implemented")
+func (UnimplementedBrokerServer) StatusSubscription(*StatusRequest, Broker_StatusSubscriptionServer) error {
+	return status.Errorf(codes.Unimplemented, "method StatusSubscription not implemented")
 }
 func (UnimplementedBrokerServer) mustEmbedUnimplementedBrokerServer() {}
 
@@ -130,43 +153,43 @@ func RegisterBrokerServer(s grpc.ServiceRegistrar, srv BrokerServer) {
 	s.RegisterService(&Broker_ServiceDesc, srv)
 }
 
-func _Broker_NewSimulation_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _Broker_ExecuteSimulation_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(Simulation)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(BrokerServer).NewSimulation(ctx, in)
+		return srv.(BrokerServer).ExecuteSimulation(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/service.Broker/NewSimulation",
+		FullMethod: "/service.Broker/ExecuteSimulation",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(BrokerServer).NewSimulation(ctx, req.(*Simulation))
+		return srv.(BrokerServer).ExecuteSimulation(ctx, req.(*Simulation))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Broker_Link_Handler(srv interface{}, stream grpc.ServerStream) error {
-	return srv.(BrokerServer).Link(&brokerLinkServer{stream})
+func _Broker_TaskSubscription_Handler(srv interface{}, stream grpc.ServerStream) error {
+	return srv.(BrokerServer).TaskSubscription(&brokerTaskSubscriptionServer{stream})
 }
 
-type Broker_LinkServer interface {
+type Broker_TaskSubscriptionServer interface {
 	Send(*Tasks) error
 	Recv() (*ResourceCapacity, error)
 	grpc.ServerStream
 }
 
-type brokerLinkServer struct {
+type brokerTaskSubscriptionServer struct {
 	grpc.ServerStream
 }
 
-func (x *brokerLinkServer) Send(m *Tasks) error {
+func (x *brokerTaskSubscriptionServer) Send(m *Tasks) error {
 	return x.ServerStream.SendMsg(m)
 }
 
-func (x *brokerLinkServer) Recv() (*ResourceCapacity, error) {
+func (x *brokerTaskSubscriptionServer) Recv() (*ResourceCapacity, error) {
 	m := new(ResourceCapacity)
 	if err := x.ServerStream.RecvMsg(m); err != nil {
 		return nil, err
@@ -174,40 +197,43 @@ func (x *brokerLinkServer) Recv() (*ResourceCapacity, error) {
 	return m, nil
 }
 
-func _Broker_Push_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(WorkResult)
+func _Broker_CommitResults_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(TaskResult)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(BrokerServer).Push(ctx, in)
+		return srv.(BrokerServer).CommitResults(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/service.Broker/Push",
+		FullMethod: "/service.Broker/CommitResults",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(BrokerServer).Push(ctx, req.(*WorkResult))
+		return srv.(BrokerServer).CommitResults(ctx, req.(*TaskResult))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Broker_Status_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(StatusRequest)
-	if err := dec(in); err != nil {
-		return nil, err
+func _Broker_StatusSubscription_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(StatusRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
 	}
-	if interceptor == nil {
-		return srv.(BrokerServer).Status(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/service.Broker/Status",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(BrokerServer).Status(ctx, req.(*StatusRequest))
-	}
-	return interceptor(ctx, in, info, handler)
+	return srv.(BrokerServer).StatusSubscription(m, &brokerStatusSubscriptionServer{stream})
+}
+
+type Broker_StatusSubscriptionServer interface {
+	Send(*StatusReply) error
+	grpc.ServerStream
+}
+
+type brokerStatusSubscriptionServer struct {
+	grpc.ServerStream
+}
+
+func (x *brokerStatusSubscriptionServer) Send(m *StatusReply) error {
+	return x.ServerStream.SendMsg(m)
 }
 
 // Broker_ServiceDesc is the grpc.ServiceDesc for Broker service.
@@ -218,24 +244,25 @@ var Broker_ServiceDesc = grpc.ServiceDesc{
 	HandlerType: (*BrokerServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
-			MethodName: "NewSimulation",
-			Handler:    _Broker_NewSimulation_Handler,
+			MethodName: "ExecuteSimulation",
+			Handler:    _Broker_ExecuteSimulation_Handler,
 		},
 		{
-			MethodName: "Push",
-			Handler:    _Broker_Push_Handler,
-		},
-		{
-			MethodName: "Status",
-			Handler:    _Broker_Status_Handler,
+			MethodName: "CommitResults",
+			Handler:    _Broker_CommitResults_Handler,
 		},
 	},
 	Streams: []grpc.StreamDesc{
 		{
-			StreamName:    "Link",
-			Handler:       _Broker_Link_Handler,
+			StreamName:    "TaskSubscription",
+			Handler:       _Broker_TaskSubscription_Handler,
 			ServerStreams: true,
 			ClientStreams: true,
+		},
+		{
+			StreamName:    "StatusSubscription",
+			Handler:       _Broker_StatusSubscription_Handler,
+			ServerStreams: true,
 		},
 	},
 	Metadata: "broker.proto",

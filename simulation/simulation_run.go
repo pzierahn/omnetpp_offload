@@ -8,18 +8,16 @@ import (
 	pb "github.com/patrickz98/project.go.omnetpp/proto"
 	"github.com/patrickz98/project.go.omnetpp/simple"
 	"google.golang.org/grpc"
-	"os"
 	"sort"
 )
 
+// Connect to broker to commit a new simulation
 func commitSimulation(simulation *pb.Simulation) (err error) {
-	//
-	// Connect to broker to commit a new simulation
-	//
 
 	conn, err := grpc.Dial(defines.Address, grpc.WithInsecure(), grpc.WithBlock())
 	if err != nil {
-		return fmt.Errorf("did not connect: %v", err)
+		err = fmt.Errorf("did not connect: %v", err)
+		return
 	}
 	defer func() {
 		_ = conn.Close()
@@ -28,7 +26,7 @@ func commitSimulation(simulation *pb.Simulation) (err error) {
 	client := pb.NewBrokerClient(conn)
 
 	ctx := context.Background()
-	reply, err := client.NewSimulation(ctx, simulation)
+	reply, err := client.ExecuteSimulation(ctx, simulation)
 	if err != nil {
 		return
 	}
@@ -38,24 +36,62 @@ func commitSimulation(simulation *pb.Simulation) (err error) {
 	return
 }
 
-func Run(config Config) {
+func Run(config *Config) (err error) {
+
+	if config.SimulationId == "" {
+		err = fmt.Errorf("no SimulationId in config")
+		return
+	}
 
 	//
 	// Extract configurations and clean the project afterwards
 	//
 
-	omnet := omnetpp.New(config.Path)
+	omnet := omnetpp.New(&config.Config)
 
-	err := omnet.Setup()
+	err = omnet.Setup()
 	if err != nil {
 		err = fmt.Errorf("couldn't setup simulation: %v", err)
 		return
 	}
 
-	allConfs, err := extractConfigs(omnet)
+	simConfs, err := extractConfigs(omnet)
 	if err != nil {
 		return
 	}
+
+	var confs []*pb.Simulation_RunConfig
+
+	if len(config.SimulateConfigs) == 0 {
+		// Add all configs
+		for conf := range simConfs {
+			config.SimulateConfigs = append(config.SimulateConfigs, conf)
+		}
+	}
+
+	for _, name := range config.SimulateConfigs {
+
+		runNums, ok := simConfs[name]
+		if !ok {
+			err = fmt.Errorf("unknown simulation configuration '%s'\n", name)
+			return
+		}
+
+		confs = append(confs, &pb.Simulation_RunConfig{
+			Config:     name,
+			RunNumbers: runNums,
+		})
+	}
+
+	// Sort OCD
+	sort.Slice(confs, func(i, j int) bool {
+		return fmt.Sprintf("%s-%-3s", confs[i].Config, confs[i].RunNumbers) >
+			fmt.Sprintf("%s-%-3s", confs[j].Config, confs[j].RunNumbers)
+	})
+
+	//
+	// Clean and upload simulation
+	//
 
 	err = omnet.Clean()
 	if err != nil {
@@ -65,82 +101,21 @@ func Run(config Config) {
 
 	ref, err := Upload(config)
 	if err != nil {
-		logger.Fatalf("couldn't upload simulation: %v", err)
+		err = fmt.Errorf("couldn't upload simulation: %v", err)
+		return
 	}
-
-	//
-	// Create and push simulation to broker
-	//
-
-	if len(config.Configs) == 0 {
-
-		//
-		// Add all configs
-		//
-
-		for conf := range allConfs {
-			config.Configs = append(config.Configs, conf)
-		}
-	}
-
-	var confs []*pb.Config
-
-	for _, name := range config.Configs {
-
-		runNums, ok := allConfs[name]
-		if !ok {
-			fmt.Printf("unknown simulation configuration '%s'\n", name)
-			os.Exit(1)
-		}
-
-		confs = append(confs, &pb.Config{
-			Name:       name,
-			RunNumbers: runNums,
-		})
-	}
-
-	// Sort OCD
-	sort.Slice(confs, func(i, j int) bool {
-		return confs[i].Name > confs[j].Name
-	})
 
 	simulation := pb.Simulation{
-		SimulationId: config.Id,
+		SimulationId: config.SimulationId,
+		Tag:          config.Tag,
+		OppConfig:    config.OppConfig,
 		Source:       ref,
-		Configs:      confs,
+		Run:          confs,
 	}
 
 	simple.WritePretty("debug/simulation.json", &simulation)
 
-	if err = commitSimulation(&simulation); err != nil {
-		logger.Fatalln(err)
-	}
-}
+	err = commitSimulation(&simulation)
 
-func DebugRequest() {
-
-	var mockConfigs []*pb.Config
-
-	for inx := 0; inx < 200; inx++ {
-		mockConfigs = append(mockConfigs, &pb.Config{
-			Name: fmt.Sprintf("DebugConfig-%d", inx),
-			RunNumbers: []string{
-				"1",
-				"2",
-			},
-		})
-	}
-
-	simulation := pb.Simulation{
-		SimulationId: "debug-123456",
-		Source: &pb.StorageRef{
-			Bucket:   "abcd",
-			Filename: "source",
-		},
-		Configs: mockConfigs,
-	}
-
-	if err := commitSimulation(&simulation); err != nil {
-		logger.Fatalln(err)
-	}
+	return
 }

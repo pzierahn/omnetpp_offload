@@ -9,5 +9,5 @@ const (
 )
 
 var (
-	Simulation = filepath.Join(DataPath, "simulations")
+	SimulationPath = filepath.Join(DataPath, "simulations")
 )

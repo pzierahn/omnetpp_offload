@@ -7,7 +7,7 @@ import (
 )
 
 func (server *broker) Status(ctx context.Context, req *pb.StatusRequest) (reply *pb.StatusReply, err error) {
-	jsonBytes, _ := json.MarshalIndent(req, "", "    ")
+	jsonBytes, _ := json.MarshalIndent(req, "", "  ")
 	logger.Printf("Status: %server", jsonBytes)
 
 	reply = &pb.StatusReply{}

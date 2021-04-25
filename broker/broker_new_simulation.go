@@ -3,10 +3,13 @@ package broker
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	pb "github.com/patrickz98/project.go.omnetpp/proto"
 )
 
-func (server *broker) NewSimulation(_ context.Context, req *pb.Simulation) (reply *pb.SimulationReply, err error) {
+func (server *broker) ExecuteSimulation(_ context.Context, req *pb.Simulation) (reply *pb.SimulationReply, err error) {
+
+	// Todo: synchronize queue!
 
 	var jsonBytes []byte
 	jsonBytes, err = json.MarshalIndent(req, "", "    ")
@@ -14,16 +17,22 @@ func (server *broker) NewSimulation(_ context.Context, req *pb.Simulation) (repl
 		return
 	}
 
-	logger.Println("new simulation", string(jsonBytes))
+	logger.Println("execute simulation", string(jsonBytes))
+
+	if req.SimulationId == "" {
+		err = fmt.Errorf("SimulationId missing")
+		return
+	}
 
 	go func() {
-		for _, conf := range req.GetConfigs() {
-			for _, run := range conf.RunNumbers {
-				work := pb.Work{
+		for _, run := range req.Run {
+			for _, runNum := range run.RunNumbers {
+				work := pb.Task{
 					SimulationId: req.SimulationId,
+					Simulation:   req.OppConfig,
 					Source:       req.Source,
-					Config:       conf.Name,
-					RunNumber:    run,
+					Config:       run.Config,
+					RunNumber:    runNum,
 				}
 
 				server.queue.jobs.Push(&work)

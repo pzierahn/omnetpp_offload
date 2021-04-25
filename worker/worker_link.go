@@ -21,7 +21,7 @@ func (client *workerConnection) StartLink(ctx context.Context) (err error) {
 	ctx = metadata.NewOutgoingContext(ctx, md)
 
 	// Link to the work stream
-	link, err := client.client.Link(ctx)
+	link, err := client.client.TaskSubscription(ctx)
 	if err != nil {
 		return
 	}
@@ -43,17 +43,16 @@ func (client *workerConnection) StartLink(ctx context.Context) (err error) {
 				break
 			}
 
-			client.OccupyResource(len(tasks.Jobs))
+			client.OccupyResource(len(tasks.Items))
 
 			//logger.Printf("received task %v\n", tasks)
 
-			for _, job := range tasks.Jobs {
-				go func(job *pb.Work) {
-					logger.Printf("running task %v_%v\n", job.Config, job.RunNumber)
+			for _, job := range tasks.Items {
+				go func(job *pb.Task) {
+					logger.Printf("running task %v_%v_%v\n", job.SimulationId, job.Config, job.RunNumber)
 					client.runTasks(job)
 
-					logger.Printf("free resource %v_%v\n", job.Config, job.RunNumber)
-
+					logger.Printf("free resource %v_%v_%v\n", job.SimulationId, job.Config, job.RunNumber)
 					client.FeeResource()
 
 					err = client.SendResourceCapacity(link)

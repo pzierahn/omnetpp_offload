@@ -1,29 +1,29 @@
 package omnetpp
 
 import (
+	pb "github.com/patrickz98/project.go.omnetpp/proto"
 	"log"
 	"os"
 )
 
+type Config struct {
+	*pb.OppConfig
+	Path string `json:"-"`
+}
+
 var logger *log.Logger
 
-const (
-	omnetBin = "/Users/patrick/Desktop/omnetpp-5.6.2/bin"
-)
-
 func init() {
-	logger = log.New(os.Stderr, "Omnetpp", log.LstdFlags|log.Lshortfile)
+	logger = log.New(os.Stderr, "OMNeT++ ", log.LstdFlags|log.Lshortfile)
 }
 
 type OmnetProject struct {
-	SourcePath    string
-	simulationExe string
+	*Config
 }
 
-func New(path string) (project OmnetProject) {
+func New(config *Config) (project OmnetProject) {
 	project = OmnetProject{
-		SourcePath:    path,
-		simulationExe: "simulation",
+		config,
 	}
 
 	return

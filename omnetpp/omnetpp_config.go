@@ -1,7 +1,6 @@
 package omnetpp
 
 import (
-	"os/exec"
 	"regexp"
 	"strings"
 )
@@ -12,10 +11,12 @@ func (project *OmnetProject) GetConfigs() (configs []string, err error) {
 	// Get configs
 	//
 
-	simConfigs := exec.Command("./"+project.simulationExe, "-s", "-a")
-	simConfigs.Dir = project.SourcePath
+	sim, err := project.command("-s", "-a")
+	if err != nil {
+		return
+	}
 
-	byt, err := simConfigs.CombinedOutput()
+	byt, err := sim.CombinedOutput()
 	if err != nil {
 		return
 	}
@@ -39,10 +40,12 @@ func (project *OmnetProject) GetRunNumbers(config string) (numbers []string, err
 	// Get runnumbers
 	//
 
-	runnumbers := exec.Command("./"+project.simulationExe, "-c", config, "-s", "-q", "runnumbers")
-	runnumbers.Dir = project.SourcePath
+	sim, err := project.command("-c", config, "-q", "runnumbers", "-s")
+	if err != nil {
+		return
+	}
 
-	byt, err := runnumbers.CombinedOutput()
+	byt, err := sim.CombinedOutput()
 	if err != nil {
 		return
 	}

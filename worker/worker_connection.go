@@ -51,7 +51,7 @@ func Connect(config Config) (worker *workerConnection, err error) {
 		config:        config,
 		conn:          conn,
 		client:        client,
-		freeResources: runtime.NumCPU(),
+		freeResources: config.NumCPU,
 	}
 
 	return

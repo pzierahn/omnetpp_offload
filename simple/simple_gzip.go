@@ -4,10 +4,10 @@ import (
 	"archive/tar"
 	"bytes"
 	"compress/gzip"
+	"fmt"
 	"io"
 	"os"
 	"path/filepath"
-	"strings"
 )
 
 func TarGz(path, dirname string) (buffer bytes.Buffer, err error) {
@@ -26,36 +26,74 @@ func TarGz(path, dirname string) (buffer bytes.Buffer, err error) {
 
 		err = inErr
 
-		if err != nil ||
-			strings.HasPrefix(info.Name(), ".") ||
-			info.IsDir() {
+		if err != nil || info.IsDir() {
 			return
 		}
 
-		var input *os.File
-		input, err = os.Open(walkPath)
-		if err != nil {
+		if !info.Mode().IsRegular() && info.Mode().Type() != os.ModeSymlink {
+			logger.Printf("skipping '%s', it has unknown file type '%v'\n", walkPath, info.Mode())
 			return
+		}
+
+		var link string
+
+		if !info.Mode().IsRegular() {
+			link, err = filepath.EvalSymlinks(walkPath)
+			if err != nil {
+				return
+			}
+
+			wDir, _ := filepath.Split(walkPath)
+			lDir, linkFile := filepath.Split(link)
+
+			//logger.Println(info.Name(), "walkPath", walkPath)
+			//logger.Println(info.Name(), "EvalSymlinks", link)
+			//logger.Println(info.Name(), "wDir", wDir, "lDir", lDir)
+			link, err = filepath.Rel(wDir, lDir)
+			if err != nil {
+				return
+			}
+			link = filepath.Join(link, linkFile)
+			//logger.Println(info.Name(), "Rel", link)
 		}
 
 		// generate tar header
-		header := &tar.Header{
-			Name:    dirname + "/" + strings.TrimPrefix(walkPath, path),
-			Size:    info.Size(),
-			Mode:    int64(info.Mode()),
-			ModTime: info.ModTime(),
-		}
-
-		if err = tw.WriteHeader(header); err != nil {
+		header, err := tar.FileInfoHeader(info, link)
+		if err != nil {
+			err = fmt.Errorf("error creating header for %s: %v", walkPath, err)
 			return
 		}
 
-		_, err = io.Copy(tw, input)
+		//logger.Println("############", info.Name(), header.Linkname)
+
+		relPath, err := filepath.Rel(path, walkPath)
 		if err != nil {
 			return
 		}
 
-		err = input.Close()
+		header.Name = filepath.Join(dirname, relPath)
+
+		if err = tw.WriteHeader(header); err != nil {
+			err = fmt.Errorf("error writing file %s: %v", walkPath, err)
+			return
+		}
+
+		if info.Mode().IsRegular() {
+			var input *os.File
+			input, err = os.Open(walkPath)
+			if err != nil {
+				err = fmt.Errorf("error open file %s: %v", walkPath, err)
+				return
+			}
+
+			_, err = io.Copy(tw, input)
+			if err != nil {
+				err = fmt.Errorf("error copying file %s: %v", walkPath, err)
+				return
+			}
+
+			err = input.Close()
+		}
 
 		return
 	}
@@ -102,10 +140,6 @@ LOOP:
 		// the target location where the dir/file should be created
 		target := filepath.Join(dst, header.Name)
 
-		// the following switch could also be done using fi.Mode(), not sure if there
-		// a benefit of using one vs. the other.
-		// fi := header.FileInfo()
-
 		// check the file type
 		switch header.Typeflag {
 
@@ -137,6 +171,15 @@ LOOP:
 			// manually close here after each file operation; defering would cause each file close
 			// to wait until all operations have completed.
 			if err = file.Close(); err != nil {
+				break LOOP
+			}
+
+		case tar.TypeSymlink:
+			dir, _ := filepath.Split(target)
+			err = os.MkdirAll(dir, 0755)
+
+			err = os.Symlink(header.Linkname, target)
+			if err != nil {
 				break LOOP
 			}
 		}

@@ -28,7 +28,7 @@ func (client *workerConnection) FeeResource() {
 	return
 }
 
-func (client *workerConnection) SendResourceCapacity(link pb.Broker_LinkClient) (err error) {
+func (client *workerConnection) SendResourceCapacity(link pb.Broker_TaskSubscriptionClient) (err error) {
 	resourceMutex.Lock()
 	defer resourceMutex.Unlock()
 

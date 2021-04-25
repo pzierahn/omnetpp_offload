@@ -47,11 +47,11 @@ func (server *broker) distributeWork() {
 			int(status.FreeResources),
 		)
 
-		var jobs []*pb.Work
+		var jobs []*pb.Task
 
 		for inx := 0; inx < packages; inx++ {
 			job := server.queue.jobs.Pop()
-			work := job.(*pb.Work)
+			work := job.(*pb.Task)
 
 			jobs = append(jobs, work)
 		}
@@ -59,7 +59,7 @@ func (server *broker) distributeWork() {
 		logger.Printf("assign %s --> %s\n", workerId, jobs)
 
 		// Send data to worker
-		stream <- &pb.Tasks{Jobs: jobs}
+		stream <- &pb.Tasks{Items: jobs}
 
 		// Remove client info from worker queue
 		delete(server.workers.workers, workerId)

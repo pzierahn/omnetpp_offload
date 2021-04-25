@@ -1,43 +1,48 @@
 package main
 
 import (
+	"encoding/json"
 	"flag"
-	"fmt"
 	"github.com/patrickz98/project.go.omnetpp/simulation"
-	"strings"
+	"io/ioutil"
+	"log"
+	"path/filepath"
 )
 
-var debug bool
 var path string
-var name string
-var configs string
+var configPath string
 
 func init() {
-	flag.BoolVar(&debug, "debug", false, "send debug request")
-	flag.StringVar(&path, "path", "", "path to OMNeT++ simulation")
-	flag.StringVar(&name, "name", "", "name of the simulation")
-	flag.StringVar(&configs, "configs", "", "simulation config names")
+	flag.StringVar(&path, "path", ".", "simulation path")
+	flag.StringVar(&configPath, "config", "opp-edge-config.json", "simulation config JSON")
 }
 
 func main() {
 
 	flag.Parse()
 
-	if debug {
-		simulation.DebugRequest()
-		return
+	path, err := filepath.Abs(path)
+	if err != nil {
+		log.Panicln(err)
 	}
 
-	if path == "" {
-		fmt.Println("missing parameter: path")
-		return
+	var config simulation.Config
+	config.Path = path
+
+	byt, err := ioutil.ReadFile(configPath)
+	if err != nil {
+		log.Panicln(err)
 	}
 
-	config := simulation.New(path, name)
-
-	if configs != "" {
-		config.Configs = strings.Split(configs, ",")
+	err = json.Unmarshal(byt, &config)
+	if err != nil {
+		log.Panicln(err)
 	}
 
-	simulation.Run(config)
+	config.GenerateId()
+
+	err = simulation.Run(&config)
+	if err != nil {
+		panic(err)
+	}
 }

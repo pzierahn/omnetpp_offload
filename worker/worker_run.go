@@ -20,18 +20,22 @@ var copyIgnores = map[string]bool{
 	"results/": true,
 }
 
-func setup(job *pb.Work) (project omnetpp.OmnetProject, err error) {
+func setup(job *pb.Task) (project omnetpp.OmnetProject, err error) {
 
 	// Prevent that a simulation will be downloaded multiple times
 	setupSync.Lock()
 	defer setupSync.Unlock()
 
 	// Simulation directory with simulation source code
-	simulationBase := filepath.Join(defines.Simulation, job.SimulationId)
+	simulationBase := filepath.Join(defines.SimulationPath, job.SimulationId)
 
 	// This will be the working directory, that contains the results for the job
 	// A symbolic copy is created to use all configs, ned files and ini files
-	simulationPath := filepath.Join(defines.Simulation, "mirrors", simple.NamedId(job.SimulationId, 8))
+	simulationPath := filepath.Join(
+		defines.SimulationPath,
+		"mirrors",
+		simple.NamedId(job.SimulationId, 8),
+	)
 
 	if _, err = os.Stat(simulationBase); err == nil {
 
@@ -39,13 +43,19 @@ func setup(job *pb.Work) (project omnetpp.OmnetProject, err error) {
 		// Simulation already downloaded and prepared
 		//
 
+		logger.Printf("simulation %s already downloaded\n", job.SimulationId)
+
 		err = simple.SymbolicCopy(simulationBase, simulationPath, copyIgnores)
 		if err != nil {
 			return
 		}
 
-		logger.Printf("simulation %s already downloaded\n", job.SimulationId)
-		project = omnetpp.New(simulationPath)
+		oppConf := omnetpp.Config{
+			OppConfig: job.Simulation,
+			Path:      simulationPath,
+		}
+
+		project = omnetpp.New(&oppConf)
 
 		return
 	}
@@ -61,7 +71,7 @@ func setup(job *pb.Work) (project omnetpp.OmnetProject, err error) {
 		return
 	}
 
-	err = simple.UnTarGz(defines.Simulation, byt)
+	err = simple.UnTarGz(defines.SimulationPath, byt)
 	if err != nil {
 		_ = os.RemoveAll(simulationBase)
 		return
@@ -69,8 +79,13 @@ func setup(job *pb.Work) (project omnetpp.OmnetProject, err error) {
 
 	logger.Printf("setup %s\n", job.SimulationId)
 
+	oppConf := omnetpp.Config{
+		OppConfig: job.Simulation,
+		Path:      simulationBase,
+	}
+
 	// Compile simulation source code
-	srcProject := omnetpp.New(simulationBase)
+	srcProject := omnetpp.New(&oppConf)
 	err = srcProject.Setup()
 	if err != nil {
 		return
@@ -82,12 +97,14 @@ func setup(job *pb.Work) (project omnetpp.OmnetProject, err error) {
 		return
 	}
 
-	project = omnetpp.New(simulationPath)
+	oppConf.Path = simulationPath
+
+	project = omnetpp.New(&oppConf)
 
 	return
 }
 
-func (client *workerConnection) uploadResults(project omnetpp.OmnetProject, job *pb.Work) (err error) {
+func (client *workerConnection) uploadResults(project omnetpp.OmnetProject, job *pb.Task) (err error) {
 
 	buf, err := project.ZipResults()
 	if err != nil {
@@ -102,12 +119,12 @@ func (client *workerConnection) uploadResults(project omnetpp.OmnetProject, job 
 		return
 	}
 
-	results := pb.WorkResult{
-		Job:     job,
+	results := pb.TaskResult{
+		Task:    job,
 		Results: ref,
 	}
 
-	aff, err := client.client.Push(context.Background(), &results)
+	aff, err := client.client.CommitResults(context.Background(), &results)
 	if err != nil {
 		// TODO: Delete storage upload
 		// _ = storage.Delete(ref)
@@ -121,7 +138,7 @@ func (client *workerConnection) uploadResults(project omnetpp.OmnetProject, job 
 	return
 }
 
-func (client *workerConnection) runTasks(job *pb.Work) {
+func (client *workerConnection) runTasks(job *pb.Task) {
 
 	//
 	// Setup simulation environment
@@ -137,7 +154,7 @@ func (client *workerConnection) runTasks(job *pb.Work) {
 	// Setup simulation environment
 	//
 
-	err = opp.RunLog(job.Config, job.RunNumber)
+	err = opp.Run(job.Config, job.RunNumber)
 	if err != nil {
 		logger.Fatalln(err)
 	}

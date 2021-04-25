@@ -1,5 +1,10 @@
 # OMNeT++ simulation distributor
 
+## Omnetpp
+
+```
+```
+
 ## Developer Notes
 
 Install protobuf dependencies
@@ -49,18 +54,9 @@ go run cmd/simulation/simulation.go --name TicToc --path ~/Desktop/tictoc --conf
 Options:
 
 ```
-  -configs string
-    	simulation config names
-  -debug
-    	send debug request
-  -name string
-    	name of the simulation
-  -path string
-    	path to OMNeT++ simulation
 ```
 
-## Misc
+Create a config file:
 
-```shell
-scp -r project.go.omnetpp ubuntu@raspberry3b:~/
+```JSON5
 ```

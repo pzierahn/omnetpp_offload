@@ -6,9 +6,9 @@ import (
 	pb "github.com/patrickz98/project.go.omnetpp/proto"
 )
 
-func (server *broker) Push(ctx context.Context, req *pb.WorkResult) (reply *pb.WorkAffirmation, err error) {
+func (server *broker) CommitResults(ctx context.Context, req *pb.TaskResult) (reply *pb.WorkAffirmation, err error) {
 	jsonBytes, _ := json.MarshalIndent(req, "", "  ")
-	logger.Println("results", string(jsonBytes))
+	logger.Println("commit results", string(jsonBytes))
 
 	reply = &pb.WorkAffirmation{}
 
