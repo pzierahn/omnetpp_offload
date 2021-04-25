@@ -36,6 +36,7 @@ func Download(file *pb.StorageRef) (byt io.Reader, err error) {
 		parcel, err = stream.Recv()
 
 		if err == io.EOF {
+			err = nil
 			break
 		}
 
