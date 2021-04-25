@@ -29,8 +29,11 @@ func Download(file *pb.StorageRef) (byt io.Reader, err error) {
 
 	start := time.Now()
 
+	packages := 0
+
 	for {
-		parcel, err := stream.Recv()
+		var parcel *pb.StorageParcel
+		parcel, err = stream.Recv()
 
 		if err == io.EOF {
 			break
@@ -44,9 +47,11 @@ func Download(file *pb.StorageRef) (byt io.Reader, err error) {
 		if err != nil {
 			logger.Fatalln(err)
 		}
+
+		packages++
 	}
 
-	logger.Printf("received data in %v", time.Now().Sub(start))
+	logger.Printf("received %d packages in %v\n", packages, time.Now().Sub(start))
 
 	byt = &buf
 

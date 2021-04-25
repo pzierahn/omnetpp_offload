@@ -7,6 +7,7 @@ FROM ubuntu:latest
 ENV WORKDIR=/install
 WORKDIR $WORKDIR
 ENV DEBIAN_FRONTEND noninteractive
+ENV MODE release
 
 #
 # Get essential dependencies
@@ -42,3 +43,5 @@ ENV PATH $WORKDIR/omnetpp/bin:$PATH
 RUN cd omnetpp; \
     ./configure WITH_QTENV=no WITH_OSG=no WITH_OSGEARTH=no; \
     make -j $(nproc) MODE=release base
+
+# echo 'export PATH="$HOME/install/omnetpp/bin/:$PATH"' >> ~/.bashrc

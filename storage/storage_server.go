@@ -9,6 +9,7 @@ import (
 	"io"
 	"net"
 	"os"
+	"path/filepath"
 )
 
 type storage struct {
@@ -17,21 +18,24 @@ type storage struct {
 
 func (server *storage) Get(req *pb.StorageRef, stream pb.Storage_GetServer) (err error) {
 
-	bucket := req.GetBucket()
-	filename := req.GetFilename()
-	filepath := storagePath + "/" + bucket + "/" + filename
+	filename := filepath.Join(storagePath, req.Bucket, req.Filename)
 
-	logger.Println("get", bucket, filename)
+	logger.Println("get", req.Bucket, req.Filename)
 
-	file, err := os.Open(filepath)
+	file, err := os.Open(filename)
 	if err != nil {
 		return
 	}
 	defer func() { _ = file.Close() }()
 
-	reader := streamReader(file)
+	stat, err := file.Stat()
+	if err != nil {
+		return
+	}
 
-	packages := 0
+	var packages int
+
+	reader := streamReader(file)
 
 	for chunk := range reader {
 		parcel := pb.StorageParcel{
@@ -46,6 +50,8 @@ func (server *storage) Get(req *pb.StorageRef, stream pb.Storage_GetServer) (err
 		}
 
 		packages++
+
+		logger.Printf("packages %s->%s send %0.2f%%\n", req.Bucket, req.Filename, 100.0*(float64(chunk.offset+chunk.size)/float64(stat.Size())))
 	}
 
 	logger.Println("packages send", packages)
@@ -55,7 +61,6 @@ func (server *storage) Get(req *pb.StorageRef, stream pb.Storage_GetServer) (err
 
 func (server *storage) Put(stream pb.Storage_PutServer) (err error) {
 
-	var filepath string
 	var filename string
 	var bucket string
 
@@ -79,10 +84,9 @@ func (server *storage) Put(stream pb.Storage_PutServer) (err error) {
 		return
 	}
 
-	filepath = bucket + "/" + filename
-	dataFile := storagePath + "/" + filepath
+	dataFile := filepath.Join(storagePath, bucket, filename)
 
-	_ = os.MkdirAll(storagePath+"/"+bucket, 0755)
+	_ = os.MkdirAll(filepath.Join(storagePath, bucket), 0755)
 
 	logger.Println("put", bucket, "-->", filename)
 

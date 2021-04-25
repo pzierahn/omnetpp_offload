@@ -2,6 +2,8 @@ package omnetpp
 
 import (
 	"bufio"
+	"bytes"
+	"fmt"
 	"github.com/patrickz98/project.go.omnetpp/shell"
 	"os/exec"
 	"path/filepath"
@@ -86,6 +88,9 @@ func (project *OmnetProject) Run(config, run string) (err error) {
 	//sim.Stdout = os.Stdout
 	//sim.Stderr = os.Stderr
 
+	var errBuf bytes.Buffer
+	sim.Stderr = &errBuf
+
 	pipe, err := sim.StdoutPipe()
 	if err != nil {
 		return
@@ -105,6 +110,12 @@ func (project *OmnetProject) Run(config, run string) (err error) {
 	}()
 
 	err = sim.Run()
+	if err != nil {
+		err = fmt.Errorf("err='%v'"+
+			"stderr='%s' "+
+			"command='%v' "+
+			"dir='%v'\n", err, errBuf.String(), sim.Args, sim.Dir)
+	}
 
 	return
 }

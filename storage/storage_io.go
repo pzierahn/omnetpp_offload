@@ -6,7 +6,15 @@ import (
 
 const (
 	// 1 megabyte buffer
-	bufferSize = 1024 * 1024
+	//bufferSize = 1024 * 1024
+	// 1 megabyte buffer
+	bufferSize = 1024 * 1024 * 2
+	// 3 megabyte buffer
+	//bufferSize = 1024 * 1024 * 3
+	// 64 kilo byte buffer
+	//bufferSize = 1024 * 64
+	// 4 kilo byte buffer
+	//bufferSize = 1024 * 4
 )
 
 type fileChunk struct {

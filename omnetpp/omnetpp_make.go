@@ -68,8 +68,10 @@ func (project *OmnetProject) Compile() (err error) {
 	// Compile simulation
 	//
 
+	src, _ := filepath.Split(project.Simulation)
+
 	makeCmd := shell.Command("make", "-j", fmt.Sprint(runtime.NumCPU()), "MODE=release")
-	makeCmd.Dir = project.SourcePath
+	makeCmd.Dir = filepath.Join(project.Path, src)
 	makeCmd.Stdout = os.Stdout
 	makeCmd.Stderr = os.Stderr
 
