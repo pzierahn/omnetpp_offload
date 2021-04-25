@@ -30,14 +30,16 @@ func TarGz(path, dirname string) (buffer bytes.Buffer, err error) {
 			return
 		}
 
-		if !info.Mode().IsRegular() && info.Mode() != os.ModeSymlink {
+		isSymlink := (info.Mode() & os.ModeSymlink) == os.ModeSymlink
+
+		if !info.Mode().IsRegular() && !isSymlink {
 			logger.Printf("skipping '%s', it has unknown file type '%v'\n", walkPath, info.Mode())
 			return
 		}
 
 		var link string
 
-		if !info.Mode().IsRegular() {
+		if isSymlink {
 			link, err = filepath.EvalSymlinks(walkPath)
 			if err != nil {
 				return
@@ -46,15 +48,11 @@ func TarGz(path, dirname string) (buffer bytes.Buffer, err error) {
 			wDir, _ := filepath.Split(walkPath)
 			lDir, linkFile := filepath.Split(link)
 
-			//logger.Println(info.Name(), "walkPath", walkPath)
-			//logger.Println(info.Name(), "EvalSymlinks", link)
-			//logger.Println(info.Name(), "wDir", wDir, "lDir", lDir)
 			link, err = filepath.Rel(wDir, lDir)
 			if err != nil {
 				return
 			}
 			link = filepath.Join(link, linkFile)
-			//logger.Println(info.Name(), "Rel", link)
 		}
 
 		// generate tar header

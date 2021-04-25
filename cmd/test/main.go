@@ -2,7 +2,6 @@ package main
 
 import (
 	"github.com/patrickz98/project.go.omnetpp/simple"
-	"io/ioutil"
 	"os"
 )
 
@@ -34,18 +33,18 @@ func main() {
 	_ = os.RemoveAll("data/xxx")
 	_ = os.MkdirAll("data/xxx", 0755)
 
-	buf, err := simple.TarGz("../TaskletSimulator", "test")
+	_, err := simple.TarGz("../TaskletSimulator", "test")
 	if err != nil {
 		panic(err)
 	}
 
-	err = ioutil.WriteFile("data/xxx/xxx.tgz", buf.Bytes(), 0644)
-	if err != nil {
-		panic(err)
-	}
-
-	err = simple.UnTarGz("data/xxx", &buf)
-	if err != nil {
-		panic(err)
-	}
+	//err = ioutil.WriteFile("data/xxx/xxx.tgz", buf.Bytes(), 0644)
+	//if err != nil {
+	//	panic(err)
+	//}
+	//
+	//err = simple.UnTarGz("data/xxx", &buf)
+	//if err != nil {
+	//	panic(err)
+	//}
 }
