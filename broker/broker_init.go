@@ -3,6 +3,7 @@ package broker
 import (
 	"github.com/patrickz98/project.go.omnetpp/defines"
 	pb "github.com/patrickz98/project.go.omnetpp/proto"
+	"github.com/patrickz98/project.go.omnetpp/storage"
 	"google.golang.org/grpc"
 	"log"
 	"net"
@@ -31,6 +32,8 @@ func Start() (err error) {
 		return
 	}
 
+	defer func() { _ = lis.Close() }()
+
 	brk := broker{
 		workers: initWorkerList(),
 		queue:   initQueue(),
@@ -38,6 +41,7 @@ func Start() (err error) {
 
 	server := grpc.NewServer()
 	pb.RegisterBrokerServer(server, &brk)
+	pb.RegisterStorageServer(server, &storage.Storage{})
 
 	err = server.Serve(lis)
 

@@ -111,7 +111,7 @@ func (project *OmnetProject) Run(config, run string) (err error) {
 
 	err = sim.Run()
 	if err != nil {
-		err = fmt.Errorf("err='%v'"+
+		err = fmt.Errorf("err='%v' "+
 			"stderr='%s' "+
 			"command='%v' "+
 			"dir='%v'\n", err, errBuf.String(), sim.Args, sim.Dir)

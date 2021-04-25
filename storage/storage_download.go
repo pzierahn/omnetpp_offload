@@ -7,7 +7,6 @@ import (
 	pb "github.com/patrickz98/project.go.omnetpp/proto"
 	"google.golang.org/grpc"
 	"io"
-	"time"
 )
 
 func Download(file *pb.StorageRef) (byt io.Reader, err error) {
@@ -27,9 +26,7 @@ func Download(file *pb.StorageRef) (byt io.Reader, err error) {
 
 	var buf bytes.Buffer
 
-	start := time.Now()
-
-	packages := 0
+	//start := time.Now()
 
 	for {
 		var parcel *pb.StorageParcel
@@ -48,11 +45,9 @@ func Download(file *pb.StorageRef) (byt io.Reader, err error) {
 		if err != nil {
 			logger.Fatalln(err)
 		}
-
-		packages++
 	}
 
-	logger.Printf("received %d packages in %v\n", packages, time.Now().Sub(start))
+	//logger.Printf("received %d packages in %v\n", packages, time.Now().Sub(start))
 
 	byt = &buf
 

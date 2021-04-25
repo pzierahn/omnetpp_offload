@@ -1,9 +1,6 @@
 package main
 
-import (
-	"github.com/patrickz98/project.go.omnetpp/simple"
-	"os"
-)
+import "github.com/patrickz98/project.go.omnetpp/simple"
 
 const input = "/Users/patrick/Desktop/xxx/tictoc"
 const mirror = "/Users/patrick/Desktop/xxx/tictoc-mirror"
@@ -18,6 +15,8 @@ func main() {
 	//fmt.Println("ext", strings.TrimSuffix("hallooo", "o"))
 	//fmt.Println("Base", filepath.Base("/Users/patrick/github/project.go.omnetpp"))
 
+	//fmt.Println("Base", filepath.Base("/Users/patrick/github/project.go.omnetpp"))
+
 	//_ = os.RemoveAll(mirror)
 	//_ = os.MkdirAll(mirror, 0755)
 
@@ -30,10 +29,10 @@ func main() {
 	//	panic(err)
 	//}
 
-	_ = os.RemoveAll("data/xxx")
-	_ = os.MkdirAll("data/xxx", 0755)
+	//_ = os.RemoveAll("data/xxx")
+	//_ = os.MkdirAll("data/xxx", 0755)
 
-	_, err := simple.TarGz("../TaskletSimulator", "test")
+	_, err := simple.TarGz("../TaskletSimulator", "test", ".git/")
 	if err != nil {
 		panic(err)
 	}

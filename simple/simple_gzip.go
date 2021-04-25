@@ -8,9 +8,10 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"strings"
 )
 
-func TarGz(path, dirname string) (buffer bytes.Buffer, err error) {
+func TarGz(path, dirname string, exclude ...string) (buffer bytes.Buffer, err error) {
 
 	zr := gzip.NewWriter(&buffer)
 	defer func() {
@@ -67,6 +68,13 @@ func TarGz(path, dirname string) (buffer bytes.Buffer, err error) {
 		relPath, err := filepath.Rel(path, walkPath)
 		if err != nil {
 			return
+		}
+
+		for _, ignore := range exclude {
+			if strings.HasPrefix(relPath, ignore) {
+				logger.Println("exclude", relPath)
+				return
+			}
 		}
 
 		header.Name = filepath.Join(dirname, relPath)

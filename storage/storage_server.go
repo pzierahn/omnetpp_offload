@@ -12,11 +12,11 @@ import (
 	"path/filepath"
 )
 
-type storage struct {
+type Storage struct {
 	pb.UnimplementedStorageServer
 }
 
-func (server *storage) Get(req *pb.StorageRef, stream pb.Storage_GetServer) (err error) {
+func (server *Storage) Get(req *pb.StorageRef, stream pb.Storage_GetServer) (err error) {
 
 	filename := filepath.Join(storagePath, req.Bucket, req.Filename)
 
@@ -59,7 +59,7 @@ func (server *storage) Get(req *pb.StorageRef, stream pb.Storage_GetServer) (err
 	return
 }
 
-func (server *storage) Put(stream pb.Storage_PutServer) (err error) {
+func (server *Storage) Put(stream pb.Storage_PutServer) (err error) {
 
 	var filename string
 	var bucket string
@@ -125,7 +125,7 @@ func (server *storage) Put(stream pb.Storage_PutServer) (err error) {
 
 func StartServer() {
 
-	logger.Println("start storage server")
+	logger.Println("start Storage server")
 
 	lis, err := net.Listen("tcp", storageAddress)
 	if err != nil {
@@ -133,7 +133,7 @@ func StartServer() {
 	}
 
 	server := grpc.NewServer()
-	pb.RegisterStorageServer(server, &storage{})
+	pb.RegisterStorageServer(server, &Storage{})
 	if err = server.Serve(lis); err != nil {
 		logger.Fatalf("failed to serve: %v", err)
 	}
