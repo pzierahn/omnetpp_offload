@@ -28,8 +28,13 @@ func (project *OmnetProject) MakeMake() (err error) {
 
 	logger.Printf("creating makefile in %s\n", src)
 
-	makemake := shell.Command("opp_makemake",
-		"-f", "--deep", "-u", "Cmdenv", "-o", obj)
+	args := []string{"-f", "--deep", "-u", "Cmdenv", "-o", obj}
+
+	if project.UseLib {
+		args = append(args, "--make-so")
+	}
+
+	makemake := shell.Command("opp_makemake", args...)
 
 	makemake.Dir = filepath.Join(project.Path, src)
 	makemake.Stdout = os.Stdout
