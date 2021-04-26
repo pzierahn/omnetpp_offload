@@ -6,15 +6,11 @@ import (
 	"github.com/patrickz98/project.go.omnetpp/storage"
 )
 
-var excludePrefix = []string{
-	".git/",
-}
-
 func Upload(config *Config) (ref *pb.StorageRef, err error) {
 
 	logger.Println("zipping", config.Path)
 
-	buf, err := simple.TarGz(config.Path, config.SimulationId, excludePrefix...)
+	buf, err := simple.TarGz(config.Path, config.SimulationId, config.Exclude...)
 	if err != nil {
 		return
 	}

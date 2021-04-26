@@ -11,7 +11,7 @@ type Config struct {
 	Tag             string   `json:"tag"`
 	SimulationId    string   `json:"-"`
 	SimulateConfigs []string `json:"simulateConfigs"`
-	ExcludeFile     []string `json:"excludeFile"`
+	Exclude         []string `json:"exclude"`
 }
 
 func (config *Config) GenerateId() {

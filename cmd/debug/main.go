@@ -7,6 +7,12 @@ const mirror = "/Users/patrick/Desktop/xxx/tictoc-mirror"
 
 func main() {
 
+	_, err := simple.TarGz("../TaskletSimulator", "test",
+		"\\.git", ".DS_Store", ".idea", "out/clang-release/src/messages/DataRequestMessage_m.o")
+	if err != nil {
+		panic(err)
+	}
+
 	//path := "src/libTaskletSimulator.dylib"
 	//
 	//ext := filepath.Ext(path)
@@ -31,11 +37,6 @@ func main() {
 
 	//_ = os.RemoveAll("data/xxx")
 	//_ = os.MkdirAll("data/xxx", 0755)
-
-	_, err := simple.TarGz("../TaskletSimulator", "test", ".git/")
-	if err != nil {
-		panic(err)
-	}
 
 	//err = ioutil.WriteFile("data/xxx/xxx.tgz", buf.Bytes(), 0644)
 	//if err != nil {

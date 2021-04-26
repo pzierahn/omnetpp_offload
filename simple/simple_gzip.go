@@ -8,7 +8,7 @@ import (
 	"io"
 	"os"
 	"path/filepath"
-	"strings"
+	"regexp"
 )
 
 func TarGz(path, dirname string, exclude ...string) (buffer bytes.Buffer, err error) {
@@ -71,7 +71,7 @@ func TarGz(path, dirname string, exclude ...string) (buffer bytes.Buffer, err er
 		}
 
 		for _, ignore := range exclude {
-			if strings.HasPrefix(relPath, ignore) {
+			if regexp.MustCompile(ignore).MatchString(relPath) {
 				logger.Println("exclude", relPath)
 				return
 			}
