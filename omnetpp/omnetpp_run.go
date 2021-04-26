@@ -20,6 +20,12 @@ func (project *OmnetProject) command(args ...string) (cmd *exec.Cmd, err error) 
 	iniDir, iniFile := filepath.Split(project.IniFile)
 	iniDir = filepath.Join(project.Path, iniDir)
 
+	args = append([]string{
+		"-u", "Cmdenv",
+		// Ini filepath
+		"-f", iniFile,
+	}, args...)
+
 	nedPaths := make([]string, len(project.NedPaths))
 
 	for inx, nedpath := range project.NedPaths {
@@ -29,13 +35,11 @@ func (project *OmnetProject) command(args ...string) (cmd *exec.Cmd, err error) 
 		}
 	}
 
-	args = append([]string{
-		"-u", "Cmdenv",
-		// Ini filepath
-		"-f", iniFile,
-		// Ned paths
-		"-n", strings.Join(nedPaths, ":"),
-	}, args...)
+	if len(nedPaths) > 0 {
+		args = append([]string{
+			"-n", strings.Join(nedPaths, ":"),
+		}, args...)
+	}
 
 	if project.UseLib {
 
