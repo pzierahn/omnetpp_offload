@@ -17,28 +17,32 @@ import (
 // or simulationLib in conjunction with opp_run
 func (project *OmnetProject) command(args ...string) (cmd *exec.Cmd, err error) {
 
-	iniDir, iniFile := filepath.Split(project.IniFile)
-	iniDir = filepath.Join(project.Path, iniDir)
+	base := filepath.Join(project.Path, project.BasePath)
 
-	args = append([]string{
-		"-u", "Cmdenv",
-		// Ini filepath
-		"-f", iniFile,
-	}, args...)
+	args = append(args, "-u", "Cmdenv")
+
+	for _, ini := range project.IniFiles {
+		ini = filepath.Join(project.Path, ini)
+		ini, err = filepath.Rel(base, ini)
+		if err != nil {
+			return
+		}
+
+		args = append(args, "-f", ini)
+	}
 
 	nedPaths := make([]string, len(project.NedPaths))
 
 	for inx, nedpath := range project.NedPaths {
-		nedPaths[inx], err = filepath.Rel(iniDir, filepath.Join(project.Path, nedpath))
+		nedpath = filepath.Join(project.Path, nedpath)
+		nedPaths[inx], err = filepath.Rel(base, nedpath)
 		if err != nil {
 			return
 		}
 	}
 
 	if len(nedPaths) > 0 {
-		args = append([]string{
-			"-n", strings.Join(nedPaths, ":"),
-		}, args...)
+		args = append(args, "-n", strings.Join(nedPaths, ":"))
 	}
 
 	if project.UseLib {
@@ -47,18 +51,16 @@ func (project *OmnetProject) command(args ...string) (cmd *exec.Cmd, err error) 
 		// Use simulation shared library
 		//
 
-		var lib string
-		lib, err = filepath.Rel(iniDir, filepath.Join(project.Path, project.Simulation))
+		lib := filepath.Join(project.Path, project.Simulation)
+		lib, err = filepath.Rel(base, lib)
 		if err != nil {
 			return
 		}
 
-		args = append([]string{
-			"-l", lib,
-		}, args...)
+		args = append(args, "-l", lib)
 
 		cmd = shell.Command("opp_run", args...)
-		cmd.Dir = iniDir
+		cmd.Dir = base
 	} else {
 
 		//
@@ -72,7 +74,7 @@ func (project *OmnetProject) command(args ...string) (cmd *exec.Cmd, err error) 
 		}
 
 		cmd = exec.Command(exe, args...)
-		cmd.Dir = iniDir
+		cmd.Dir = base
 	}
 
 	return

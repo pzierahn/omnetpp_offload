@@ -1,6 +1,8 @@
 package main
 
-import "github.com/patrickz98/project.go.omnetpp/simple"
+import (
+	"github.com/patrickz98/project.go.omnetpp/simple"
+)
 
 const input = "/Users/patrick/Desktop/xxx/tictoc"
 const mirror = "/Users/patrick/Desktop/xxx/tictoc-mirror"

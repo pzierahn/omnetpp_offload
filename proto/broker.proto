@@ -49,10 +49,13 @@ message Tasks {
 
 message OppConfig {
   // buildscript
-  string buildScript = 2;
+  string buildScript = 1;
 
-  // Simulation ini file
-  string iniFile = 3;
+  // This is the directory in which the simulation will be executed
+  string basePath = 2;
+
+  // Simulation ini files
+  repeated string iniFiles = 3;
 
   // Ned include directories
   repeated string nedPaths = 4;
@@ -66,7 +69,7 @@ message OppConfig {
   // Source code directory
   string sourcePath = 7;
 
-  // Results directory
+  // Results directory (default is basePath/results)
   string resultsPath = 8;
 }
 
