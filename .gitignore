@@ -19,3 +19,4 @@ vendor/
 *.zip
 
 data/
+debug
