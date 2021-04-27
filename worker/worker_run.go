@@ -20,7 +20,7 @@ var copyIgnores = map[string]bool{
 	"results/": true,
 }
 
-func setup(job *pb.Task) (project omnetpp.OmnetProject, err error) {
+func (client *workerConnection) setup(job *pb.Task) (project omnetpp.OmnetProject, err error) {
 
 	// Prevent that a simulation will be downloaded multiple times
 	setupSync.Lock()
@@ -66,7 +66,7 @@ func setup(job *pb.Task) (project omnetpp.OmnetProject, err error) {
 
 	logger.Printf("download %s to %s\n", job.SimulationId, simulationBase)
 
-	byt, err := storage.Download(job.Source)
+	byt, err := client.storage.Download(job.Source)
 	if err != nil {
 		return
 	}
@@ -113,7 +113,7 @@ func (client *workerConnection) uploadResults(project omnetpp.OmnetProject, job 
 		return
 	}
 
-	ref, err := storage.Upload(&buf, storage.FileMeta{
+	ref, err := client.storage.Upload(&buf, storage.FileMeta{
 		Bucket:   job.SimulationId,
 		Filename: fmt.Sprintf("results_%s_%s.tar.gz", job.Config, job.RunNumber),
 	})
@@ -126,7 +126,7 @@ func (client *workerConnection) uploadResults(project omnetpp.OmnetProject, job 
 		Results: ref,
 	}
 
-	aff, err := client.client.CommitResults(context.Background(), &results)
+	aff, err := client.broker.CommitResults(context.Background(), &results)
 	if err != nil {
 		// TODO: Delete storage upload
 		// _ = storage.Delete(ref)
@@ -147,7 +147,7 @@ func (client *workerConnection) runTasks(job *pb.Task) {
 	// Includes downloading and compiling the simulation
 	//
 
-	opp, err := setup(job)
+	opp, err := client.setup(job)
 	if err != nil {
 		logger.Fatalln(err)
 	}

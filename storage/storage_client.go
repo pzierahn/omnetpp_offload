@@ -1,6 +1,7 @@
 package storage
 
 import (
+	"github.com/patrickz98/project.go.omnetpp/gconfig"
 	pb "github.com/patrickz98/project.go.omnetpp/proto"
 	"google.golang.org/grpc"
 )
@@ -14,8 +15,8 @@ func (client *Client) Close() {
 	_ = client.conn.Close()
 }
 
-func InitClient() (client Client) {
-	conn, err := grpc.Dial(storageAddress, grpc.WithInsecure(), grpc.WithBlock())
+func InitClient(server gconfig.GRPCConnection) (client Client) {
+	conn, err := grpc.Dial(server.DialAddr(), grpc.WithInsecure(), grpc.WithBlock())
 	if err != nil {
 		return
 	}

@@ -11,10 +11,10 @@ import (
 
 func (client *workerConnection) StartLink(ctx context.Context) (err error) {
 
-	logger.Println("start worker", client.config.workerId)
+	logger.Println("start worker", client.workerId)
 
 	md := metadata.New(map[string]string{
-		"workerId": client.config.workerId,
+		"workerId": client.workerId,
 		"os":       runtime.GOOS,
 		"arch":     runtime.GOARCH,
 		"numCPU":   fmt.Sprint(runtime.NumCPU()),
@@ -23,7 +23,7 @@ func (client *workerConnection) StartLink(ctx context.Context) (err error) {
 	ctx = metadata.NewOutgoingContext(ctx, md)
 
 	// Link to the work stream
-	link, err := client.client.TaskSubscription(ctx)
+	link, err := client.broker.TaskSubscription(ctx)
 	if err != nil {
 		return
 	}

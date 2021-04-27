@@ -2,15 +2,19 @@ package worker
 
 import (
 	"fmt"
+	"github.com/patrickz98/project.go.omnetpp/gconfig"
 	pb "github.com/patrickz98/project.go.omnetpp/proto"
 	"github.com/patrickz98/project.go.omnetpp/simple"
+	"github.com/patrickz98/project.go.omnetpp/storage"
 	"google.golang.org/grpc"
 )
 
 type workerConnection struct {
-	config        Config
+	workerId      string
+	config        gconfig.Worker
 	conn          *grpc.ClientConn
-	client        pb.BrokerClient
+	broker        pb.BrokerClient
+	storage       storage.Client
 	freeResources int
 }
 
@@ -19,9 +23,7 @@ func (client *workerConnection) Close() (err error) {
 	return
 }
 
-func Connect(config Config) (worker *workerConnection, err error) {
-
-	config.workerId = simple.NamedId(config.WorkerName, 8)
+func Init(config gconfig.Config) (worker *workerConnection, err error) {
 
 	//
 	// Setup a connection to the server
@@ -33,13 +35,12 @@ func Connect(config Config) (worker *workerConnection, err error) {
 		return
 	}
 
-	client := pb.NewBrokerClient(conn)
-
 	worker = &workerConnection{
-		config:        config,
+		workerId:      simple.NamedId(config.Worker.Name, 8),
 		conn:          conn,
-		client:        client,
-		freeResources: config.DevoteCPUs,
+		broker:        pb.NewBrokerClient(conn),
+		storage:       storage.InitClient(config.Broker),
+		freeResources: config.Worker.DevoteCPUs,
 	}
 
 	return

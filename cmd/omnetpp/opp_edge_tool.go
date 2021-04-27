@@ -31,7 +31,7 @@ func init() {
 	//
 
 	flag.StringVar(&path, "path", ".", "simulation path")
-	flag.StringVar(&configPath, "config", "opp-edge-config.json", "simulation config JSON")
+	flag.StringVar(&configPath, "configfile", "opp-edge-config.json", "simulation config JSON")
 
 	//
 	// Actions

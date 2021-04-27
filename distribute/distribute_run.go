@@ -3,6 +3,7 @@ package distribute
 import (
 	"context"
 	"fmt"
+	"github.com/patrickz98/project.go.omnetpp/gconfig"
 	"github.com/patrickz98/project.go.omnetpp/omnetpp"
 	pb "github.com/patrickz98/project.go.omnetpp/proto"
 	"google.golang.org/grpc"
@@ -10,9 +11,9 @@ import (
 )
 
 // Connect to broker to commit a new simulation
-func commitSimulation(config *Config, simulation *pb.Simulation) (err error) {
+func commitSimulation(config gconfig.GRPCConnection, simulation *pb.Simulation) (err error) {
 
-	conn, err := grpc.Dial(config.Broker.DialAddr(), grpc.WithInsecure(), grpc.WithBlock())
+	conn, err := grpc.Dial(config.DialAddr(), grpc.WithInsecure(), grpc.WithBlock())
 	if err != nil {
 		err = fmt.Errorf("did not connect: %v", err)
 		return
@@ -34,7 +35,7 @@ func commitSimulation(config *Config, simulation *pb.Simulation) (err error) {
 	return
 }
 
-func Run(config *Config) (err error) {
+func Run(conn gconfig.GRPCConnection, config *Config) (err error) {
 
 	config.generateId()
 
@@ -113,7 +114,7 @@ func Run(config *Config) (err error) {
 
 	//simple.WritePretty("debug/simulation.json", &simulation)
 
-	err = commitSimulation(config, &simulation)
+	err = commitSimulation(conn, &simulation)
 
 	return
 }

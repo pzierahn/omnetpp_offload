@@ -35,7 +35,7 @@ func (client *workerConnection) SendResourceCapacity(link pb.Broker_TaskSubscrip
 	logger.Printf("sending info freeResources=%d\n", client.freeResources)
 
 	info := pb.ResourceCapacity{
-		WorkerId:      client.config.workerId,
+		WorkerId:      client.workerId,
 		Timestamp:     timestamppb.Now(),
 		FreeResources: int32(client.freeResources),
 	}
