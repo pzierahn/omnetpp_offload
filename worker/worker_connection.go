@@ -1,13 +1,10 @@
 package worker
 
 import (
-	"context"
 	"fmt"
 	pb "github.com/patrickz98/project.go.omnetpp/proto"
 	"github.com/patrickz98/project.go.omnetpp/simple"
 	"google.golang.org/grpc"
-	"google.golang.org/grpc/metadata"
-	"runtime"
 )
 
 type workerConnection struct {
@@ -23,13 +20,14 @@ func (client *workerConnection) Close() (err error) {
 }
 
 func Connect(config Config) (worker *workerConnection, err error) {
-	logger.Println("config", simple.PrettyString(config))
+
+	config.workerId = simple.NamedId(config.WorkerName, 8)
 
 	//
 	// Setup a connection to the server
 	//
 
-	conn, err := grpc.Dial(config.BrokerAddress, grpc.WithInsecure(), grpc.WithBlock())
+	conn, err := grpc.Dial(config.Broker.DialAddr(), grpc.WithInsecure(), grpc.WithBlock())
 	if err != nil {
 		err = fmt.Errorf("did not connect: %v", err)
 		return
@@ -37,21 +35,11 @@ func Connect(config Config) (worker *workerConnection, err error) {
 
 	client := pb.NewBrokerClient(conn)
 
-	md := metadata.New(map[string]string{
-		"workerId": config.WorkerId,
-		"os":       runtime.GOOS,
-		"arch":     runtime.GOARCH,
-		"numCPU":   fmt.Sprint(runtime.NumCPU()),
-	})
-
-	ctx := context.Background()
-	ctx = metadata.NewOutgoingContext(ctx, md)
-
 	worker = &workerConnection{
 		config:        config,
 		conn:          conn,
 		client:        client,
-		freeResources: config.NumCPU,
+		freeResources: config.DevoteCPUs,
 	}
 
 	return

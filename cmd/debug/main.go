@@ -1,7 +1,9 @@
 package main
 
 import (
-	"github.com/patrickz98/project.go.omnetpp/simple"
+	"flag"
+	"fmt"
+	"google.golang.org/grpc/benchmark/flags"
 )
 
 const input = "/Users/patrick/Desktop/xxx/tictoc"
@@ -9,11 +11,32 @@ const mirror = "/Users/patrick/Desktop/xxx/tictoc-mirror"
 
 func main() {
 
-	_, err := simple.TarGz("../TaskletSimulator", "test",
-		"\\.git", ".DS_Store", ".idea", "out/clang-release/src/messages/DataRequestMessage_m.o")
-	if err != nil {
-		panic(err)
-	}
+	//_, err := simple.TarGz("../TaskletSimulator", "test",
+	//	"\\.git", ".DS_Store", ".idea", "out/clang-release/src/messages/DataRequestMessage_m.o")
+	//if err != nil {
+	//	panic(err)
+	//}
+
+	//name, err := os.Hostname()
+	//if err != nil {
+	//	panic(err)
+	//}
+
+	test := flags.StringSlice("list", []string{"1", "2"}, "")
+
+	flag.Parse()
+
+	fmt.Println("test", *test)
+	//fmt.Println("name", simple.GetHostnameShort())
+	//
+	//dir, _ := os.UserCacheDir()
+	//fmt.Println("UserCacheDir", dir)
+	//
+	//dir, _ = os.UserHomeDir()
+	//fmt.Println("UserHomeDir", dir)
+	//
+	//dir, _ = os.UserConfigDir()
+	//fmt.Println("UserConfigDir", dir)
 
 	//path := "src/libTaskletSimulator.dylib"
 	//

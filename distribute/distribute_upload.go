@@ -1,4 +1,4 @@
-package simulation
+package distribute
 
 import (
 	pb "github.com/patrickz98/project.go.omnetpp/proto"
@@ -21,9 +21,6 @@ func Upload(config *Config) (ref *pb.StorageRef, err error) {
 		Bucket:   config.SimulationId,
 		Filename: "source.tar.gz",
 	})
-	if err != nil {
-		return
-	}
 
 	return
 }

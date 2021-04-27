@@ -1,8 +1,10 @@
 package worker
 
+import "github.com/patrickz98/project.go.omnetpp/common"
+
 type Config struct {
-	WorkerId      string `json:"workerId,omitempty"`
-	DeviceName    string `json:"deviceName,omitempty"`
-	BrokerAddress string `json:"brokerAddress,omitempty"`
-	NumCPU        int    `json:"numCPU,omitempty"`
+	workerId   string
+	WorkerName string                `json:"workerName,omitempty"`
+	Broker     common.GRPCConnection `json:"broker,omitempty"`
+	DevoteCPUs int                   `json:"devoteCPUs,omitempty"`
 }

@@ -1,20 +1,18 @@
-package simulation
+package distribute
 
 import (
 	"context"
 	"fmt"
-	"github.com/patrickz98/project.go.omnetpp/defines"
 	"github.com/patrickz98/project.go.omnetpp/omnetpp"
 	pb "github.com/patrickz98/project.go.omnetpp/proto"
-	"github.com/patrickz98/project.go.omnetpp/simple"
 	"google.golang.org/grpc"
 	"sort"
 )
 
 // Connect to broker to commit a new simulation
-func commitSimulation(simulation *pb.Simulation) (err error) {
+func commitSimulation(config *Config, simulation *pb.Simulation) (err error) {
 
-	conn, err := grpc.Dial(defines.Address, grpc.WithInsecure(), grpc.WithBlock())
+	conn, err := grpc.Dial(config.Broker.DialAddr(), grpc.WithInsecure(), grpc.WithBlock())
 	if err != nil {
 		err = fmt.Errorf("did not connect: %v", err)
 		return
@@ -38,15 +36,15 @@ func commitSimulation(simulation *pb.Simulation) (err error) {
 
 func Run(config *Config) (err error) {
 
-	if config.SimulationId == "" {
-		err = fmt.Errorf("no SimulationId in config")
-		return
-	}
+	config.generateId()
+
+	logger.Println("simulationId", config.SimulationId)
 
 	//
 	// Extract configurations and clean the project afterwards
 	//
 
+	// Todo: change config.Config.Config
 	omnet := omnetpp.New(&config.Config)
 
 	err = omnet.Setup()
@@ -113,9 +111,9 @@ func Run(config *Config) (err error) {
 		Run:          confs,
 	}
 
-	simple.WritePretty("debug/simulation.json", &simulation)
+	//simple.WritePretty("debug/simulation.json", &simulation)
 
-	err = commitSimulation(&simulation)
+	err = commitSimulation(config, &simulation)
 
 	return
 }

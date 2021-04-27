@@ -11,8 +11,10 @@ import (
 
 func (client *workerConnection) StartLink(ctx context.Context) (err error) {
 
+	logger.Println("start worker", client.config.workerId)
+
 	md := metadata.New(map[string]string{
-		"workerId": client.config.WorkerId,
+		"workerId": client.config.workerId,
 		"os":       runtime.GOOS,
 		"arch":     runtime.GOARCH,
 		"numCPU":   fmt.Sprint(runtime.NumCPU()),

@@ -3,7 +3,7 @@ package main
 import (
 	"encoding/json"
 	"flag"
-	"github.com/patrickz98/project.go.omnetpp/simulation"
+	"github.com/patrickz98/project.go.omnetpp/distribute"
 	"io/ioutil"
 	"log"
 	"path/filepath"
@@ -26,7 +26,7 @@ func main() {
 		log.Panicln(err)
 	}
 
-	var config simulation.Config
+	var config distribute.Config
 	config.Path = path
 
 	byt, err := ioutil.ReadFile(configPath)
@@ -39,9 +39,7 @@ func main() {
 		log.Panicln(err)
 	}
 
-	config.GenerateId()
-
-	err = simulation.Run(&config)
+	err = distribute.Run(&config)
 	if err != nil {
 		panic(err)
 	}
