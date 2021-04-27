@@ -13,6 +13,25 @@ import (
 )
 
 func Source() (config Config) {
+
+	defer func() {
+		//
+		// Set default values
+		//
+
+		if config.Broker.Port == 0 {
+			config.Broker.Port = defines.DefaultPort
+		}
+
+		if config.Worker.Name == "" {
+			config.Worker.Name = simple.GetHostnameShort()
+		}
+
+		if config.Worker.DevoteCPUs == 0 {
+			config.Worker.DevoteCPUs = runtime.NumCPU()
+		}
+	}()
+
 	configPath := defines.ConfigDir()
 	configFile := filepath.Join(configPath, "configuration.json")
 
@@ -28,22 +47,6 @@ func Source() (config Config) {
 	err = json.Unmarshal(byt, &config)
 	if err != nil {
 		panic(err)
-	}
-
-	//
-	// Set default values
-	//
-
-	if config.Broker.Port == 0 {
-		config.Broker.Port = defines.DefaultPort
-	}
-
-	if config.Worker.Name == "" {
-		config.Worker.Name = simple.GetHostnameShort()
-	}
-
-	if config.Worker.DevoteCPUs == 0 {
-		config.Worker.DevoteCPUs = runtime.NumCPU()
 	}
 
 	return
