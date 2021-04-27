@@ -1,140 +1,46 @@
 package storage
 
 import (
-	"fmt"
+	"context"
 	pb "github.com/patrickz98/project.go.omnetpp/proto"
-	"github.com/patrickz98/project.go.omnetpp/utils"
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/metadata"
-	"io"
-	"net"
+	"io/ioutil"
 	"os"
 	"path/filepath"
 )
 
-type Storage struct {
+type Server struct {
 	pb.UnimplementedStorageServer
 }
 
-func (server *Storage) Get(req *pb.StorageRef, stream pb.Storage_GetServer) (err error) {
+func (server *Server) List(_ context.Context, req *pb.StorageRef) (list *pb.StorageList, err error) {
 
-	filename := filepath.Join(storagePath, req.Bucket, req.Filename)
+	logger.Println("list", req.Bucket)
 
-	logger.Println("get", req.Bucket, req.Filename)
+	dirname := filepath.Join(storagePath, req.Bucket)
 
-	file, err := os.Open(filename)
-	if err != nil {
-		return
-	}
-	defer func() { _ = file.Close() }()
-
-	stat, err := file.Stat()
+	files, err := ioutil.ReadDir(dirname)
 	if err != nil {
 		return
 	}
 
-	var packages int
-
-	reader := streamReader(file)
-
-	for chunk := range reader {
-		parcel := pb.StorageParcel{
-			Size:    int32(chunk.size),
-			Offset:  int64(chunk.offset),
-			Payload: chunk.payload,
-		}
-
-		err = stream.Send(&parcel)
-		if err != nil {
-			logger.Fatalln(err)
-		}
-
-		packages++
-
-		logger.Printf("packages %s->%s send %0.2f%%\n", req.Bucket, req.Filename, 100.0*(float64(chunk.offset+chunk.size)/float64(stat.Size())))
+	list = &pb.StorageList{}
+	for _, file := range files {
+		list.Files = append(list.Files, file.Name())
 	}
-
-	logger.Println("packages send", packages)
 
 	return
 }
 
-func (server *Storage) Put(stream pb.Storage_PutServer) (err error) {
+func (server *Server) Delete(_ context.Context, req *pb.StorageRef) (res *pb.StorageStatus, err error) {
 
-	var filename string
-	var bucket string
+	logger.Println("delete", req.Bucket)
 
-	md, ok := metadata.FromIncomingContext(stream.Context())
+	dirname := filepath.Join(storagePath, req.Bucket, req.Filename)
+	err = os.RemoveAll(dirname)
 
-	if !ok {
-		err = fmt.Errorf("metadata missing")
-		logger.Println(err)
-		return
+	res = &pb.StorageStatus{
+		Deleted: err == nil,
 	}
-
-	filename, err = utils.MetaString(md, "filename")
-	if err != nil {
-		logger.Println(err)
-		return
-	}
-
-	bucket, err = utils.MetaString(md, "bucket")
-	if err != nil {
-		logger.Println(err)
-		return
-	}
-
-	dataFile := filepath.Join(storagePath, bucket, filename)
-
-	_ = os.MkdirAll(filepath.Join(storagePath, bucket), 0755)
-
-	logger.Println("put", bucket, "-->", filename)
-
-	file, err := os.OpenFile(dataFile, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0644)
-	if err != nil {
-		return
-	}
-	defer func() {
-		_ = file.Close()
-	}()
-
-	for {
-		var parcel *pb.StorageParcel
-		parcel, err = stream.Recv()
-		if err == io.EOF {
-			break
-		}
-
-		if err != nil {
-			return
-		}
-
-		_, err = file.WriteAt(parcel.Payload, parcel.Offset)
-		if err != nil {
-			return
-		}
-	}
-
-	err = stream.SendAndClose(&pb.StorageRef{
-		Bucket:   bucket,
-		Filename: filename,
-	})
 
 	return
-}
-
-func StartServer() {
-
-	logger.Println("start Storage server")
-
-	lis, err := net.Listen("tcp", storageAddress)
-	if err != nil {
-		logger.Fatalf("failed to listen: %v", err)
-	}
-
-	server := grpc.NewServer()
-	pb.RegisterStorageServer(server, &Storage{})
-	if err = server.Serve(lis); err != nil {
-		logger.Fatalf("failed to serve: %v", err)
-	}
 }

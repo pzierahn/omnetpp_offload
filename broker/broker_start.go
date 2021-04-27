@@ -33,7 +33,7 @@ func Start(conf Config) (err error) {
 
 	server := grpc.NewServer()
 	pb.RegisterBrokerServer(server, &brk)
-	pb.RegisterStorageServer(server, &storage.Storage{})
+	pb.RegisterStorageServer(server, &storage.Server{})
 
 	err = server.Serve(lis)
 

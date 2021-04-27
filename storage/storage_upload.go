@@ -3,20 +3,12 @@ package storage
 import (
 	"context"
 	pb "github.com/patrickz98/project.go.omnetpp/proto"
-	"google.golang.org/grpc"
 	"google.golang.org/grpc/metadata"
 	"io"
 	"time"
 )
 
-func Upload(data io.Reader, meta FileMeta) (ref *pb.StorageRef, err error) {
-
-	conn, err := grpc.Dial(storageAddress, grpc.WithInsecure(), grpc.WithBlock())
-	if err != nil {
-		return
-	}
-
-	defer func() { _ = conn.Close() }()
+func (client *Client) Upload(data io.Reader, meta FileMeta) (ref *pb.StorageRef, err error) {
 
 	md := metadata.New(map[string]string{
 		"bucket":   meta.Bucket,
@@ -26,8 +18,7 @@ func Upload(data io.Reader, meta FileMeta) (ref *pb.StorageRef, err error) {
 	ctx := context.Background()
 	ctx = metadata.NewOutgoingContext(ctx, md)
 
-	client := pb.NewStorageClient(conn)
-	stream, err := client.Put(ctx)
+	stream, err := client.storage.Push(ctx)
 	if err != nil {
 		return
 	}

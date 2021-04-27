@@ -4,9 +4,14 @@ package service;
 option go_package = "./proto";
 
 service Storage {
-  rpc Get    (StorageRef)           returns (stream StorageParcel) {}
-  rpc Put    (stream StorageParcel) returns (StorageRef)           {}
+  rpc Pull   (StorageRef)           returns (stream StorageParcel) {}
+  rpc Push   (stream StorageParcel) returns (StorageRef)           {}
   rpc Delete (StorageRef)           returns (StorageStatus)        {}
+  rpc List   (StorageRef)           returns (StorageList)          {}
+}
+
+message StorageList {
+  repeated string files = 1;
 }
 
 message StorageStatus {

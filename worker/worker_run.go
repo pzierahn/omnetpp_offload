@@ -73,7 +73,7 @@ func setup(job *pb.Task) (project omnetpp.OmnetProject, err error) {
 
 	logger.Printf("unzip %s\n", job.SimulationId)
 
-	err = simple.UnTarGz(defines.SimulationPath, byt)
+	err = simple.UnTarGz(defines.SimulationPath, &byt)
 	if err != nil {
 		_ = os.RemoveAll(simulationBase)
 		return
