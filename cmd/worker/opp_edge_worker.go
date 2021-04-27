@@ -29,8 +29,8 @@ func init() {
 	//flag.BoolVar(&loadConfig, "useDefaultConfig", false, "set worker name")
 
 	flag.StringVar(&config.WorkerName, "workerName", workerName, "set worker name")
-	flag.StringVar(&config.BrokerAddress, "brokerAddress", "", "set broker address")
-	flag.IntVar(&config.BrokerPort, "brokerPort", defines.DefaultPort, "set broker port")
+	flag.StringVar(&config.Broker.Address, "brokerAddress", "", "set broker address")
+	flag.IntVar(&config.Broker.Port, "brokerPort", defines.DefaultPort, "set broker port")
 	flag.IntVar(&config.DevoteCPUs, "devoteCPUs", runtime.NumCPU(), "set number of CPU cores")
 }
 
