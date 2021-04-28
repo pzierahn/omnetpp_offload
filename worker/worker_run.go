@@ -129,7 +129,7 @@ func (client *workerConnection) uploadResults(project omnetpp.OmnetProject, job 
 	aff, err := client.broker.CommitResults(context.Background(), &results)
 	if err != nil {
 		// TODO: Delete storage upload
-		// _ = storage.Delete(ref)
+		_, _ = client.storage.Delete(ref)
 		return
 	}
 
