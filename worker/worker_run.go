@@ -7,7 +7,6 @@ import (
 	pb "github.com/patrickz98/project.go.omnetpp/proto"
 	"github.com/patrickz98/project.go.omnetpp/simple"
 	"github.com/patrickz98/project.go.omnetpp/storage"
-	"log"
 	"os"
 	"path/filepath"
 	"sync"
@@ -28,8 +27,6 @@ func (client *workerConnection) setup(job *pb.Task) (project omnetpp.OmnetProjec
 
 	// Simulation directory with simulation source code
 	simulationBase := filepath.Join(cachePath, job.SimulationId)
-
-	log.Printf("setup new simulatin %s\n", simulationBase)
 
 	// This will be the working directory, that contains the results for the job
 	// A symbolic copy is created to use all configs, ned files and ini files
