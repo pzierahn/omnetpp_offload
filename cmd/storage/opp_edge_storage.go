@@ -33,6 +33,8 @@ func main() {
 
 	flag.Parse()
 
+	fmt.Printf("connecting to %s\n", config.Broker.DialAddr())
+
 	client := storage.InitClient(config.Broker)
 	defer client.Close()
 

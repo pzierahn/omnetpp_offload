@@ -12,7 +12,7 @@ func (server *broker) ExecuteSimulation(_ context.Context, req *pb.Simulation) (
 	// Todo: synchronize queue!
 
 	var jsonBytes []byte
-	jsonBytes, err = json.MarshalIndent(req, "", "    ")
+	jsonBytes, err = json.MarshalIndent(req, "", "  ")
 	if err != nil {
 		return
 	}
@@ -35,11 +35,11 @@ func (server *broker) ExecuteSimulation(_ context.Context, req *pb.Simulation) (
 					RunNumber:    runNum,
 				}
 
-				server.queue.jobs.Push(&work)
+				server.db.AddTasks(&work)
 			}
 		}
 
-		server.distributeWork()
+		server.db.DistributeWork()
 	}()
 
 	reply = &pb.SimulationReply{

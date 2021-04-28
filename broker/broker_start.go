@@ -10,8 +10,9 @@ import (
 
 type broker struct {
 	pb.UnimplementedBrokerServer
-	workers workerList
-	queue   queue
+	//workers workerList
+	//queue   queue
+	db taskState
 }
 
 func Start(conf Config) (err error) {
@@ -27,8 +28,9 @@ func Start(conf Config) (err error) {
 	defer func() { _ = lis.Close() }()
 
 	brk := broker{
-		workers: initWorkerList(),
-		queue:   initQueue(),
+		//workers: initWorkerList(),
+		//queue:   initQueue(),
+		db: initTasksDB(),
 	}
 
 	server := grpc.NewServer()

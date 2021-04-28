@@ -1,7 +1,6 @@
 package broker
 
 import (
-	"encoding/json"
 	"fmt"
 	pb "github.com/patrickz98/project.go.omnetpp/proto"
 	"github.com/patrickz98/project.go.omnetpp/utils"
@@ -18,35 +17,30 @@ func (server *broker) TaskSubscription(stream pb.Broker_TaskSubscriptionServer) 
 		return
 	}
 
-	var id string
-	id, err = utils.MetaString(md, "workerId")
+	var workerId string
+	workerId, err = utils.MetaString(md, "workerId")
 	if err != nil {
 		return
 	}
-
-	logger.Println("linked", id)
 
 	//
 	// Send work to clients
 	//
 
-	work := make(chan *pb.Tasks)
+	workStream := server.db.NewWorker(workerId)
 	defer func() {
-		server.queue.Unlink(id)
-		close(work)
+		server.db.RemoveWorker(workerId)
 	}()
-
-	server.queue.Link(id, work)
 
 	go func() {
 		for {
-			job, ok := <-work
+			job, ok := <-workStream
 			if !ok {
-				logger.Println("exit work mode for", id)
+				logger.Printf("exit work subscription for %s\n", workerId)
 				break
 			}
 
-			logger.Println("send work to", id)
+			logger.Println("send work to", workerId)
 
 			err := stream.Send(job)
 			if err != nil {
@@ -67,19 +61,14 @@ func (server *broker) TaskSubscription(stream pb.Broker_TaskSubscriptionServer) 
 			break
 		}
 
-		if id == "" {
-			id = info.WorkerId
-		}
+		server.db.SetCapacities(workerId, info)
 
-		server.workers.Put(info.WorkerId, info)
+		logger.Printf("%s freeResources=%v\n", workerId, info.FreeResources)
 
-		jsonBytes, _ := json.MarshalIndent(info, "", "    ")
-		logger.Println("link", string(jsonBytes))
-
-		server.distributeWork()
+		server.db.DistributeWork()
 	}
 
-	logger.Println("unlinked", id)
+	logger.Printf("lost connection to %s\n", workerId)
 
 	return
 }

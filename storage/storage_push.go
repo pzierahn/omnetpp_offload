@@ -39,7 +39,7 @@ func (server *Server) Push(stream pb.Storage_PushServer) (err error) {
 
 	_ = os.MkdirAll(filepath.Join(storagePath, bucket), 0755)
 
-	logger.Println("put", bucket, "-->", filename)
+	logger.Println("put", bucket, filename)
 
 	file, err := os.OpenFile(dataFile, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0644)
 	if err != nil {

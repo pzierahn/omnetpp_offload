@@ -72,7 +72,7 @@ func (client *workerConnection) StartLink(ctx context.Context) (err error) {
 
 		//
 		// Send every 23 seconds the resource capacity
-		// This will prevent the connection from closing the connection
+		// This will prevent the connection from closing
 		//
 
 		for {

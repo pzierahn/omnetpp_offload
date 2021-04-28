@@ -16,5 +16,6 @@ var storagePath = filepath.Join(defines.DataPath, "storage")
 var logger *log.Logger
 
 func init() {
-	logger = log.New(os.Stderr, "Server ", log.LstdFlags|log.Lshortfile)
+	logger = log.New(os.Stderr, "Storage ", log.LstdFlags|log.Lshortfile)
+	_ = os.MkdirAll(storagePath, 0755)
 }

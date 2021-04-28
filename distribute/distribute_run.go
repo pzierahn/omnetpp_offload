@@ -98,7 +98,7 @@ func Run(conn gconfig.GRPCConnection, config *Config) (err error) {
 		return
 	}
 
-	ref, err := Upload(config)
+	ref, err := Upload(conn, config)
 	if err != nil {
 		err = fmt.Errorf("couldn't upload simulation: %v", err)
 		return
