@@ -5,6 +5,8 @@ import (
 	"github.com/patrickz98/project.go.omnetpp/broker"
 	"github.com/patrickz98/project.go.omnetpp/defines"
 	"github.com/patrickz98/project.go.omnetpp/storage"
+	"os"
+	"os/signal"
 )
 
 var (
@@ -23,7 +25,17 @@ func main() {
 
 	if clean {
 		storage.Clean()
+		return
 	}
+
+	ch := make(chan os.Signal)
+	signal.Notify(ch, os.Interrupt)
+
+	go func() {
+		<-ch
+		storage.Clean()
+		os.Exit(1)
+	}()
 
 	if err := broker.Start(config); err != nil {
 		panic(err)
