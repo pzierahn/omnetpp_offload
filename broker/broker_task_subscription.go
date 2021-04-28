@@ -61,7 +61,7 @@ func (server *broker) TaskSubscription(stream pb.Broker_TaskSubscriptionServer) 
 			break
 		}
 
-		server.db.SetCapacities(workerId, info)
+		server.db.SetCapacity(workerId, info)
 
 		logger.Printf("%s freeResources=%v\n", workerId, info.FreeResources)
 

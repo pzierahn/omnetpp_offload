@@ -21,7 +21,6 @@ type BrokerClient interface {
 	ExecuteSimulation(ctx context.Context, in *Simulation, opts ...grpc.CallOption) (*SimulationReply, error)
 	TaskSubscription(ctx context.Context, opts ...grpc.CallOption) (Broker_TaskSubscriptionClient, error)
 	CommitResults(ctx context.Context, in *TaskResult, opts ...grpc.CallOption) (*WorkAffirmation, error)
-	StatusSubscription(ctx context.Context, in *StatusRequest, opts ...grpc.CallOption) (Broker_StatusSubscriptionClient, error)
 }
 
 type brokerClient struct {
@@ -81,38 +80,6 @@ func (c *brokerClient) CommitResults(ctx context.Context, in *TaskResult, opts .
 	return out, nil
 }
 
-func (c *brokerClient) StatusSubscription(ctx context.Context, in *StatusRequest, opts ...grpc.CallOption) (Broker_StatusSubscriptionClient, error) {
-	stream, err := c.cc.NewStream(ctx, &Broker_ServiceDesc.Streams[1], "/service.Broker/StatusSubscription", opts...)
-	if err != nil {
-		return nil, err
-	}
-	x := &brokerStatusSubscriptionClient{stream}
-	if err := x.ClientStream.SendMsg(in); err != nil {
-		return nil, err
-	}
-	if err := x.ClientStream.CloseSend(); err != nil {
-		return nil, err
-	}
-	return x, nil
-}
-
-type Broker_StatusSubscriptionClient interface {
-	Recv() (*StatusReply, error)
-	grpc.ClientStream
-}
-
-type brokerStatusSubscriptionClient struct {
-	grpc.ClientStream
-}
-
-func (x *brokerStatusSubscriptionClient) Recv() (*StatusReply, error) {
-	m := new(StatusReply)
-	if err := x.ClientStream.RecvMsg(m); err != nil {
-		return nil, err
-	}
-	return m, nil
-}
-
 // BrokerServer is the server API for Broker service.
 // All implementations must embed UnimplementedBrokerServer
 // for forward compatibility
@@ -120,7 +87,6 @@ type BrokerServer interface {
 	ExecuteSimulation(context.Context, *Simulation) (*SimulationReply, error)
 	TaskSubscription(Broker_TaskSubscriptionServer) error
 	CommitResults(context.Context, *TaskResult) (*WorkAffirmation, error)
-	StatusSubscription(*StatusRequest, Broker_StatusSubscriptionServer) error
 	mustEmbedUnimplementedBrokerServer()
 }
 
@@ -136,9 +102,6 @@ func (UnimplementedBrokerServer) TaskSubscription(Broker_TaskSubscriptionServer)
 }
 func (UnimplementedBrokerServer) CommitResults(context.Context, *TaskResult) (*WorkAffirmation, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CommitResults not implemented")
-}
-func (UnimplementedBrokerServer) StatusSubscription(*StatusRequest, Broker_StatusSubscriptionServer) error {
-	return status.Errorf(codes.Unimplemented, "method StatusSubscription not implemented")
 }
 func (UnimplementedBrokerServer) mustEmbedUnimplementedBrokerServer() {}
 
@@ -215,27 +178,6 @@ func _Broker_CommitResults_Handler(srv interface{}, ctx context.Context, dec fun
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Broker_StatusSubscription_Handler(srv interface{}, stream grpc.ServerStream) error {
-	m := new(StatusRequest)
-	if err := stream.RecvMsg(m); err != nil {
-		return err
-	}
-	return srv.(BrokerServer).StatusSubscription(m, &brokerStatusSubscriptionServer{stream})
-}
-
-type Broker_StatusSubscriptionServer interface {
-	Send(*StatusReply) error
-	grpc.ServerStream
-}
-
-type brokerStatusSubscriptionServer struct {
-	grpc.ServerStream
-}
-
-func (x *brokerStatusSubscriptionServer) Send(m *StatusReply) error {
-	return x.ServerStream.SendMsg(m)
-}
-
 // Broker_ServiceDesc is the grpc.ServiceDesc for Broker service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -258,11 +200,6 @@ var Broker_ServiceDesc = grpc.ServiceDesc{
 			Handler:       _Broker_TaskSubscription_Handler,
 			ServerStreams: true,
 			ClientStreams: true,
-		},
-		{
-			StreamName:    "StatusSubscription",
-			Handler:       _Broker_StatusSubscription_Handler,
-			ServerStreams: true,
 		},
 	},
 	Metadata: "broker.proto",

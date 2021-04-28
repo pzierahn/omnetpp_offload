@@ -25,6 +25,8 @@ func (client *workerConnection) Close() (err error) {
 
 func Init(config gconfig.Config) (worker *workerConnection, err error) {
 
+	logger.Printf("connecting to %s\n", config.Broker.DialAddr())
+
 	//
 	// Setup a connection to the server
 	//

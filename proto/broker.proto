@@ -9,10 +9,9 @@ import "google/protobuf/timestamp.proto";
 import "storage.proto";
 
 service Broker {
-  rpc ExecuteSimulation  (Simulation)              returns (SimulationReply)    {}
-  rpc TaskSubscription   (stream ResourceCapacity) returns (stream Tasks)       {}
-  rpc CommitResults      (TaskResult)              returns (WorkAffirmation)    {}
-  rpc StatusSubscription (StatusRequest)           returns (stream StatusReply) {}
+  rpc ExecuteSimulation (Simulation)              returns (SimulationReply) {}
+  rpc TaskSubscription  (stream ResourceCapacity) returns (stream Tasks)    {}
+  rpc CommitResults     (TaskResult)              returns (WorkAffirmation) {}
 }
 
 message ResourceCapacity {
@@ -124,12 +123,3 @@ message WorkAffirmation {
   // Check this var for error handling
   string error = 2;
 }
-
-message StatusRequest {
-  string simulationId = 1;
-}
-
-message StatusReply {
-  string simulationId = 1;
-}
-

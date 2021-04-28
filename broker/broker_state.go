@@ -25,7 +25,7 @@ func initTasksDB() (state taskState) {
 	return
 }
 
-func (state *taskState) SetCapacities(id string, cap *pb.ResourceCapacity) {
+func (state *taskState) SetCapacity(id string, cap *pb.ResourceCapacity) {
 	state.Lock()
 	defer state.Unlock()
 
@@ -61,7 +61,7 @@ func (state *taskState) RemoveWorker(id string) {
 		// Connection lost without finishing all assigned tasks!
 		//
 
-		logger.Printf("%s has %d unfinished jobs in queue; rescheduling\n", id, len(tasks))
+		logger.Printf("reassign %d unfinished jobs from %s\n", len(tasks), id)
 
 		state.tasks.Push(tasks...)
 	}

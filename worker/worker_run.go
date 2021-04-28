@@ -3,11 +3,11 @@ package worker
 import (
 	"context"
 	"fmt"
-	"github.com/patrickz98/project.go.omnetpp/defines"
 	"github.com/patrickz98/project.go.omnetpp/omnetpp"
 	pb "github.com/patrickz98/project.go.omnetpp/proto"
 	"github.com/patrickz98/project.go.omnetpp/simple"
 	"github.com/patrickz98/project.go.omnetpp/storage"
+	"log"
 	"os"
 	"path/filepath"
 	"sync"
@@ -27,12 +27,14 @@ func (client *workerConnection) setup(job *pb.Task) (project omnetpp.OmnetProjec
 	defer setupSync.Unlock()
 
 	// Simulation directory with simulation source code
-	simulationBase := filepath.Join(defines.SimulationPath, job.SimulationId)
+	simulationBase := filepath.Join(cachePath, job.SimulationId)
+
+	log.Printf("setup new simulatin %s\n", simulationBase)
 
 	// This will be the working directory, that contains the results for the job
 	// A symbolic copy is created to use all configs, ned files and ini files
 	simulationPath := filepath.Join(
-		defines.SimulationPath,
+		cachePath,
 		"mirrors",
 		simple.NamedId(job.SimulationId, 8),
 	)
@@ -73,7 +75,7 @@ func (client *workerConnection) setup(job *pb.Task) (project omnetpp.OmnetProjec
 
 	logger.Printf("unzip %s\n", job.SimulationId)
 
-	err = simple.UnTarGz(defines.SimulationPath, &byt)
+	err = simple.UnTarGz(cachePath, &byt)
 	if err != nil {
 		_ = os.RemoveAll(simulationBase)
 		return
@@ -93,7 +95,8 @@ func (client *workerConnection) setup(job *pb.Task) (project omnetpp.OmnetProjec
 		return
 	}
 
-	// Create a new symbolic copy
+	// Create a new symbolic copy to get
+	// results for each individual simulation run
 	err = simple.SymbolicCopy(simulationBase, simulationPath, copyIgnores)
 	if err != nil {
 		return
