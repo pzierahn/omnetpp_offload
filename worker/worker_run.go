@@ -14,11 +14,6 @@ import (
 
 var setupSync sync.Mutex
 
-var copyIgnores = map[string]bool{
-	// Don't copy results
-	"results/": true,
-}
-
 func (client *workerConnection) setup(job *pb.Task) (project omnetpp.OmnetProject, err error) {
 
 	// Prevent that a simulation will be downloaded multiple times
@@ -44,7 +39,7 @@ func (client *workerConnection) setup(job *pb.Task) (project omnetpp.OmnetProjec
 
 		logger.Printf("simulation %s already downloaded\n", job.SimulationId)
 
-		err = simple.SymbolicCopy(simulationBase, simulationPath, copyIgnores)
+		err = simple.SymbolicCopy(simulationBase, simulationPath, job.Simulation.ResultsPath)
 		if err != nil {
 			return
 		}
@@ -94,7 +89,7 @@ func (client *workerConnection) setup(job *pb.Task) (project omnetpp.OmnetProjec
 
 	// Create a new symbolic copy to get
 	// results for each individual simulation run
-	err = simple.SymbolicCopy(simulationBase, simulationPath, copyIgnores)
+	err = simple.SymbolicCopy(simulationBase, simulationPath, job.Simulation.ResultsPath)
 	if err != nil {
 		return
 	}

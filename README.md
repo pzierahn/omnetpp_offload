@@ -48,15 +48,5 @@ go run cmd/worker/worker.go
 Start a new simulation
 
 ```shell
-go run cmd/simulation/simulation.go --name TicToc --path ~/Desktop/tictoc --configs TicToc18
-```
-
-Options:
-
-```
-```
-
-Create a config file:
-
-```JSON5
+go run cmd/simulation/simulation.go --path ~/Desktop/tictoc --configs TicToc18
 ```

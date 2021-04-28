@@ -10,7 +10,13 @@ import (
 // This function creates a new directory (target). Afterwards it
 // will create symlinks that point to all files in source.
 // Think of this as a copy function that creates a symlink instead of a copy.
-func SymbolicCopy(source, target string, ignoreDirs map[string]bool) (err error) {
+func SymbolicCopy(source, target string, ignores ...string) (err error) {
+
+	ignoreDirs := make(map[string]bool)
+
+	for _, ignore := range ignores {
+		ignoreDirs[ignore] = true
+	}
 
 	_ = os.RemoveAll(target)
 	err = os.MkdirAll(target, 0755)
