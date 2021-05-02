@@ -34,7 +34,7 @@ func main() {
 	go func() {
 		<-ch
 		storage.Clean()
-		os.Exit(1)
+		os.Exit(0)
 	}()
 
 	if err := broker.Start(config); err != nil {

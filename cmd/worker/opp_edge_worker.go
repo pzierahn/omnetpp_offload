@@ -30,7 +30,7 @@ func main() {
 	go func() {
 		<-ch
 		worker.Clean()
-		os.Exit(1)
+		os.Exit(0)
 	}()
 
 	conn, err := worker.Init(config)
