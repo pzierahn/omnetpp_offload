@@ -168,5 +168,5 @@ func (client *workerConnection) runTasks(job *pb.Task) {
 	// Todo: Cleanup simulationBase
 
 	// Cleanup symbolic mirrors
-	_ = os.RemoveAll(opp.SourcePath)
+	_ = os.RemoveAll(opp.Path)
 }
