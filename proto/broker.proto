@@ -11,7 +11,36 @@ import "storage.proto";
 service Broker {
   rpc ExecuteSimulation (Simulation)              returns (SimulationReply) {}
   rpc TaskSubscription  (stream ResourceCapacity) returns (stream Tasks)    {}
-  rpc CommitResults     (TaskResult)              returns (WorkAffirmation) {}
+  rpc PutResults        (TaskResult)              returns (WorkAffirmation) {}
+  rpc Status            (ResultsRequest)          returns (StatusReply)     {}
+  rpc GetResults        (ResultsRequest)          returns (TaskResults)     {}
+}
+
+message ResultsRequest {
+  string simulationId = 1;
+}
+
+message StatusReply {
+  string simulationId = 1;
+
+  message QueueInfo {
+    string config = 1;
+    string runNum = 2;
+  }
+
+  repeated QueueInfo queue = 2;
+
+  message Assignment {
+    QueueInfo config = 1;
+    string workerId = 2;
+  }
+
+  repeated Assignment assigned = 3;
+  repeated QueueInfo finished = 4;
+}
+
+message TaskResults {
+  repeated TaskResult results = 1;
 }
 
 message ResourceCapacity {
@@ -30,7 +59,7 @@ message Task {
   string simulationId = 1;
 
   // Simulation Config
-  OppConfig simulation = 2;
+  OppConfig oppConfig = 2;
 
   // Path to simulation source code
   StorageRef source = 3;

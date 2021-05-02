@@ -2,38 +2,107 @@ package broker
 
 import (
 	pb "github.com/patrickz98/project.go.omnetpp/proto"
+	"strings"
 )
 
-// An Item is something we manage in a priority queue.
-type Item struct {
-	value    *pb.Task
-	priority int
-	index    int
+func taskId(task *pb.Task) (id string) {
+
+	id = strings.Join([]string{
+		task.SimulationId,
+		task.Config,
+		task.RunNumber,
+	}, ".")
+
+	return
 }
 
-// An IntHeap is a min-heap of ints.
-type WorkHeap []*pb.Task
-
-func (h WorkHeap) Len() int {
-	return len(h)
+type taskSet struct {
+	list map[string]*pb.Task
 }
 
-func (h WorkHeap) Less(i, j int) bool {
-	return h[i].Config+h[i].RunNumber < h[j].Config+h[j].RunNumber
+func (set *taskSet) pop(length int) (tasks []*pb.Task) {
+	for key, elem := range set.list {
+
+		if length == 0 {
+			break
+		}
+
+		tasks = append(tasks, elem)
+		delete(set.list, key)
+
+		length--
+	}
+
+	return
 }
 
-func (h WorkHeap) Swap(i, j int) { h[i], h[j] = h[j], h[i] }
-
-func (h *WorkHeap) Push(x ...*pb.Task) {
-	// Push and Pop use pointer receivers because they modify the slice's length,
-	// not just its contents.
-	*h = append(*h, x...)
+func (set *taskSet) len() (length int) {
+	length = len(set.list)
+	return
 }
 
-func (h *WorkHeap) Pop() *pb.Task {
-	old := *h
-	n := len(old)
-	x := old[n-1]
-	*h = old[0 : n-1]
-	return x
+func (set *taskSet) merge(set2 *taskSet) {
+
+	if set.list == nil {
+		set.list = make(map[string]*pb.Task)
+	}
+
+	set.add(set2.pop(-1)...)
+}
+
+func (set *taskSet) add(tasks ...*pb.Task) {
+
+	if set.list == nil {
+		set.list = make(map[string]*pb.Task)
+	}
+
+	for _, task := range tasks {
+		set.list[taskId(task)] = task
+	}
+}
+
+func (set *taskSet) remove(tasks ...*pb.Task) {
+	for _, task := range tasks {
+		delete(set.list, taskId(task))
+	}
+}
+
+type simulationState struct {
+	queue    taskSet
+	assigned map[string]*taskSet // workerId --> tasks
+	finished []*pb.TaskResult
+}
+
+func newSimulationState() (state simulationState) {
+
+	state = simulationState{
+		assigned: make(map[string]*taskSet),
+	}
+
+	return
+}
+
+func (state *simulationState) assign(workerId string, tasks ...*pb.Task) {
+
+	assignments, ok := state.assigned[workerId]
+
+	if !ok {
+		assignments = &taskSet{}
+	}
+
+	assignments.add(tasks...)
+
+	state.assigned[workerId] = assignments
+
+	return
+}
+
+func (state *simulationState) finish(result *pb.TaskResult) {
+	state.finished = append(state.finished, result)
+
+	for _, set := range state.assigned {
+		set.remove(result.Task)
+	}
+
+	return
 }

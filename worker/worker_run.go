@@ -39,13 +39,13 @@ func (client *workerConnection) setup(job *pb.Task) (project omnetpp.OmnetProjec
 
 		logger.Printf("simulation %s already downloaded\n", job.SimulationId)
 
-		err = simple.SymbolicCopy(simulationBase, simulationPath, job.Simulation.ResultsPath)
+		err = simple.SymbolicCopy(simulationBase, simulationPath, job.OppConfig.ResultsPath)
 		if err != nil {
 			return
 		}
 
 		oppConf := omnetpp.Config{
-			OppConfig: job.Simulation,
+			OppConfig: job.OppConfig,
 			Path:      simulationPath,
 		}
 
@@ -76,7 +76,7 @@ func (client *workerConnection) setup(job *pb.Task) (project omnetpp.OmnetProjec
 	logger.Printf("running setup %s\n", job.SimulationId)
 
 	oppConf := omnetpp.Config{
-		OppConfig: job.Simulation,
+		OppConfig: job.OppConfig,
 		Path:      simulationBase,
 	}
 
@@ -89,7 +89,7 @@ func (client *workerConnection) setup(job *pb.Task) (project omnetpp.OmnetProjec
 
 	// Create a new symbolic copy to get
 	// results for each individual simulation run
-	err = simple.SymbolicCopy(simulationBase, simulationPath, job.Simulation.ResultsPath)
+	err = simple.SymbolicCopy(simulationBase, simulationPath, job.OppConfig.ResultsPath)
 	if err != nil {
 		return
 	}
@@ -121,7 +121,7 @@ func (client *workerConnection) uploadResults(project omnetpp.OmnetProject, job 
 		Results: ref,
 	}
 
-	aff, err := client.broker.CommitResults(context.Background(), &results)
+	aff, err := client.broker.PutResults(context.Background(), &results)
 	if err != nil {
 		_, _ = client.storage.Delete(ref)
 		return

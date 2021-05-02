@@ -9,8 +9,6 @@ import (
 
 func (server *broker) ExecuteSimulation(_ context.Context, req *pb.Simulation) (reply *pb.SimulationReply, err error) {
 
-	// Todo: synchronize queue!
-
 	var jsonBytes []byte
 	jsonBytes, err = json.MarshalIndent(req, "", "  ")
 	if err != nil {
@@ -25,20 +23,7 @@ func (server *broker) ExecuteSimulation(_ context.Context, req *pb.Simulation) (
 	}
 
 	go func() {
-		for _, run := range req.Run {
-			for _, runNum := range run.RunNumbers {
-				work := pb.Task{
-					SimulationId: req.SimulationId,
-					Simulation:   req.OppConfig,
-					Source:       req.Source,
-					Config:       run.Config,
-					RunNumber:    runNum,
-				}
-
-				server.db.AddTasks(&work)
-			}
-		}
-
+		server.db.NewSimulation(req)
 		server.db.DistributeWork()
 	}()
 

@@ -12,7 +12,7 @@ type broker struct {
 	pb.UnimplementedBrokerServer
 	//workers workerList
 	//queue   queue
-	db taskState
+	db distributor
 }
 
 func Start(conf Config) (err error) {

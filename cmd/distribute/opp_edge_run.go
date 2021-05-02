@@ -12,6 +12,7 @@ import (
 
 var path string
 var configPath string
+var status string
 
 var config gconfig.Config
 
@@ -19,10 +20,17 @@ func init() {
 	flag.StringVar(&path, "path", ".", "simulation path")
 	flag.StringVar(&configPath, "config", "opp-edge-config.json", "simulation config JSON")
 
-	config = gconfig.SourceAndParse()
+	flag.StringVar(&status, "status", "", "status for simulationId")
+
+	config = gconfig.SourceAndParse(gconfig.ParseBroker)
 }
 
 func main() {
+
+	if status != "" {
+		distribute.Status(config.Broker, status)
+		return
+	}
 
 	path, err := filepath.Abs(path)
 	if err != nil {

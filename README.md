@@ -1,8 +1,16 @@
 # OMNeT++ simulation distributor
 
-## Omnetpp
+## Install tools
 
-```
+```shell
+rm -rf ~/go/bin/opp_edge_*
+
+go install cmd/broker/opp_edge_broker.go
+go install cmd/broker/opp_edge_config.go
+go install cmd/broker/opp_edge_run.go
+go install cmd/broker/opp_edge_opp.go
+go install cmd/broker/opp_edge_storage.go
+go install cmd/broker/opp_edge_worker.go
 ```
 
 ## Developer Notes
@@ -28,14 +36,6 @@ protoc --go_out=. --go_opt=paths=source_relative \
 ```
 
 ## Worker
-
-First configure your working client:
-
-```shell
-go run cmd/worker/worker.go --deviceName $(hostname -s) \
-    --brokerAddress 192.168.0.11:50051 \
-    --configure
-```
 
 Start a worker
 

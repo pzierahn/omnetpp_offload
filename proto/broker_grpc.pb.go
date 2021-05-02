@@ -20,7 +20,9 @@ const _ = grpc.SupportPackageIsVersion7
 type BrokerClient interface {
 	ExecuteSimulation(ctx context.Context, in *Simulation, opts ...grpc.CallOption) (*SimulationReply, error)
 	TaskSubscription(ctx context.Context, opts ...grpc.CallOption) (Broker_TaskSubscriptionClient, error)
-	CommitResults(ctx context.Context, in *TaskResult, opts ...grpc.CallOption) (*WorkAffirmation, error)
+	PutResults(ctx context.Context, in *TaskResult, opts ...grpc.CallOption) (*WorkAffirmation, error)
+	Status(ctx context.Context, in *ResultsRequest, opts ...grpc.CallOption) (*StatusReply, error)
+	GetResults(ctx context.Context, in *ResultsRequest, opts ...grpc.CallOption) (*TaskResults, error)
 }
 
 type brokerClient struct {
@@ -71,9 +73,27 @@ func (x *brokerTaskSubscriptionClient) Recv() (*Tasks, error) {
 	return m, nil
 }
 
-func (c *brokerClient) CommitResults(ctx context.Context, in *TaskResult, opts ...grpc.CallOption) (*WorkAffirmation, error) {
+func (c *brokerClient) PutResults(ctx context.Context, in *TaskResult, opts ...grpc.CallOption) (*WorkAffirmation, error) {
 	out := new(WorkAffirmation)
-	err := c.cc.Invoke(ctx, "/service.Broker/CommitResults", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/service.Broker/PutResults", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *brokerClient) Status(ctx context.Context, in *ResultsRequest, opts ...grpc.CallOption) (*StatusReply, error) {
+	out := new(StatusReply)
+	err := c.cc.Invoke(ctx, "/service.Broker/Status", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *brokerClient) GetResults(ctx context.Context, in *ResultsRequest, opts ...grpc.CallOption) (*TaskResults, error) {
+	out := new(TaskResults)
+	err := c.cc.Invoke(ctx, "/service.Broker/GetResults", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -86,7 +106,9 @@ func (c *brokerClient) CommitResults(ctx context.Context, in *TaskResult, opts .
 type BrokerServer interface {
 	ExecuteSimulation(context.Context, *Simulation) (*SimulationReply, error)
 	TaskSubscription(Broker_TaskSubscriptionServer) error
-	CommitResults(context.Context, *TaskResult) (*WorkAffirmation, error)
+	PutResults(context.Context, *TaskResult) (*WorkAffirmation, error)
+	Status(context.Context, *ResultsRequest) (*StatusReply, error)
+	GetResults(context.Context, *ResultsRequest) (*TaskResults, error)
 	mustEmbedUnimplementedBrokerServer()
 }
 
@@ -100,8 +122,14 @@ func (UnimplementedBrokerServer) ExecuteSimulation(context.Context, *Simulation)
 func (UnimplementedBrokerServer) TaskSubscription(Broker_TaskSubscriptionServer) error {
 	return status.Errorf(codes.Unimplemented, "method TaskSubscription not implemented")
 }
-func (UnimplementedBrokerServer) CommitResults(context.Context, *TaskResult) (*WorkAffirmation, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method CommitResults not implemented")
+func (UnimplementedBrokerServer) PutResults(context.Context, *TaskResult) (*WorkAffirmation, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method PutResults not implemented")
+}
+func (UnimplementedBrokerServer) Status(context.Context, *ResultsRequest) (*StatusReply, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Status not implemented")
+}
+func (UnimplementedBrokerServer) GetResults(context.Context, *ResultsRequest) (*TaskResults, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetResults not implemented")
 }
 func (UnimplementedBrokerServer) mustEmbedUnimplementedBrokerServer() {}
 
@@ -160,20 +188,56 @@ func (x *brokerTaskSubscriptionServer) Recv() (*ResourceCapacity, error) {
 	return m, nil
 }
 
-func _Broker_CommitResults_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _Broker_PutResults_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(TaskResult)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(BrokerServer).CommitResults(ctx, in)
+		return srv.(BrokerServer).PutResults(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/service.Broker/CommitResults",
+		FullMethod: "/service.Broker/PutResults",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(BrokerServer).CommitResults(ctx, req.(*TaskResult))
+		return srv.(BrokerServer).PutResults(ctx, req.(*TaskResult))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Broker_Status_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ResultsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BrokerServer).Status(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/service.Broker/Status",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BrokerServer).Status(ctx, req.(*ResultsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Broker_GetResults_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ResultsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BrokerServer).GetResults(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/service.Broker/GetResults",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BrokerServer).GetResults(ctx, req.(*ResultsRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -190,8 +254,16 @@ var Broker_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _Broker_ExecuteSimulation_Handler,
 		},
 		{
-			MethodName: "CommitResults",
-			Handler:    _Broker_CommitResults_Handler,
+			MethodName: "PutResults",
+			Handler:    _Broker_PutResults_Handler,
+		},
+		{
+			MethodName: "Status",
+			Handler:    _Broker_Status_Handler,
+		},
+		{
+			MethodName: "GetResults",
+			Handler:    _Broker_GetResults_Handler,
 		},
 	},
 	Streams: []grpc.StreamDesc{
