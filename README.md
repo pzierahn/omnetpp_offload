@@ -6,11 +6,11 @@
 rm -rf ~/go/bin/opp_edge_*
 
 go install cmd/broker/opp_edge_broker.go
-go install cmd/broker/opp_edge_config.go
-go install cmd/broker/opp_edge_run.go
-go install cmd/broker/opp_edge_opp.go
-go install cmd/broker/opp_edge_storage.go
-go install cmd/broker/opp_edge_worker.go
+go install cmd/config/opp_edge_config.go
+go install cmd/distribute/opp_edge_run.go
+go install cmd/omnetpp/opp_edge_opp.go
+go install cmd/storage/opp_edge_storage.go
+go install cmd/worker/opp_edge_worker.go
 ```
 
 ## Developer Notes
@@ -49,4 +49,12 @@ Start a new simulation
 
 ```shell
 go run cmd/simulation/simulation.go --path ~/Desktop/tictoc --configs TicToc18
+```
+
+
+## Example simulations
+
+```
+go run cmd/distribute/opp_edge_run.go -path ../TaskletSimulator -config ../TaskletSimulator/opp-edge-config.json
+go run cmd/distribute/opp_edge_run.go -path ~/Desktop/tictoc -config ~/Desktop/tictoc/opp-edge-config.json
 ```

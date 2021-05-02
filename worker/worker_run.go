@@ -17,6 +17,7 @@ var setupSync sync.Mutex
 func (client *workerConnection) setup(job *pb.Task) (project omnetpp.OmnetProject, err error) {
 
 	// Prevent that a simulation will be downloaded multiple times
+	// todo: check simulation
 	setupSync.Lock()
 	defer setupSync.Unlock()
 

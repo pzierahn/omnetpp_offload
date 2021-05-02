@@ -142,11 +142,19 @@ func (state *distributor) DistributeWork() {
 
 		for _, sim := range state.simulations {
 			simulation = sim
-			break
+
+			if sim.queue.len() > 0 {
+				break
+			}
 		}
 
 		if simulation == nil {
-			continue
+
+			//
+			// No simulations left
+			//
+
+			break
 		}
 
 		logger.Printf("%s capacity %d\n", workerId, capacity.FreeResources)
