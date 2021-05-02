@@ -20,5 +20,8 @@ func init() {
 
 func Clean() {
 	logger.Printf("cleaning worker cache %s\n", cachePath)
-	_ = os.RemoveAll(cachePath)
+	err := os.RemoveAll(cachePath)
+	if err != nil {
+		panic(err)
+	}
 }

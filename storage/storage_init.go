@@ -20,5 +20,8 @@ func init() {
 
 func Clean() {
 	logger.Printf("cleaning storage %s\n", storagePath)
-	_ = os.RemoveAll(storagePath)
+	err := os.RemoveAll(storagePath)
+	if err != nil {
+		panic(err)
+	}
 }
