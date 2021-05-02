@@ -21,7 +21,7 @@ type BrokerClient interface {
 	ExecuteSimulation(ctx context.Context, in *Simulation, opts ...grpc.CallOption) (*SimulationReply, error)
 	TaskSubscription(ctx context.Context, opts ...grpc.CallOption) (Broker_TaskSubscriptionClient, error)
 	PutResults(ctx context.Context, in *TaskResult, opts ...grpc.CallOption) (*WorkAffirmation, error)
-	Status(ctx context.Context, in *ResultsRequest, opts ...grpc.CallOption) (*StatusReply, error)
+	Status(ctx context.Context, in *StatusRequest, opts ...grpc.CallOption) (*StatusReply, error)
 	GetResults(ctx context.Context, in *ResultsRequest, opts ...grpc.CallOption) (*TaskResults, error)
 }
 
@@ -82,7 +82,7 @@ func (c *brokerClient) PutResults(ctx context.Context, in *TaskResult, opts ...g
 	return out, nil
 }
 
-func (c *brokerClient) Status(ctx context.Context, in *ResultsRequest, opts ...grpc.CallOption) (*StatusReply, error) {
+func (c *brokerClient) Status(ctx context.Context, in *StatusRequest, opts ...grpc.CallOption) (*StatusReply, error) {
 	out := new(StatusReply)
 	err := c.cc.Invoke(ctx, "/service.Broker/Status", in, out, opts...)
 	if err != nil {
@@ -107,7 +107,7 @@ type BrokerServer interface {
 	ExecuteSimulation(context.Context, *Simulation) (*SimulationReply, error)
 	TaskSubscription(Broker_TaskSubscriptionServer) error
 	PutResults(context.Context, *TaskResult) (*WorkAffirmation, error)
-	Status(context.Context, *ResultsRequest) (*StatusReply, error)
+	Status(context.Context, *StatusRequest) (*StatusReply, error)
 	GetResults(context.Context, *ResultsRequest) (*TaskResults, error)
 	mustEmbedUnimplementedBrokerServer()
 }
@@ -125,7 +125,7 @@ func (UnimplementedBrokerServer) TaskSubscription(Broker_TaskSubscriptionServer)
 func (UnimplementedBrokerServer) PutResults(context.Context, *TaskResult) (*WorkAffirmation, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method PutResults not implemented")
 }
-func (UnimplementedBrokerServer) Status(context.Context, *ResultsRequest) (*StatusReply, error) {
+func (UnimplementedBrokerServer) Status(context.Context, *StatusRequest) (*StatusReply, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Status not implemented")
 }
 func (UnimplementedBrokerServer) GetResults(context.Context, *ResultsRequest) (*TaskResults, error) {
@@ -207,7 +207,7 @@ func _Broker_PutResults_Handler(srv interface{}, ctx context.Context, dec func(i
 }
 
 func _Broker_Status_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ResultsRequest)
+	in := new(StatusRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -219,7 +219,7 @@ func _Broker_Status_Handler(srv interface{}, ctx context.Context, dec func(inter
 		FullMethod: "/service.Broker/Status",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(BrokerServer).Status(ctx, req.(*ResultsRequest))
+		return srv.(BrokerServer).Status(ctx, req.(*StatusRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }

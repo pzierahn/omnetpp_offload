@@ -12,7 +12,7 @@ service Broker {
   rpc ExecuteSimulation (Simulation)              returns (SimulationReply) {}
   rpc TaskSubscription  (stream ResourceCapacity) returns (stream Task)     {}
   rpc PutResults        (TaskResult)              returns (WorkAffirmation) {}
-  rpc Status            (ResultsRequest)          returns (StatusReply)     {}
+  rpc Status            (StatusRequest)           returns (StatusReply)     {}
   rpc GetResults        (ResultsRequest)          returns (TaskResults)     {}
 }
 
@@ -20,7 +20,15 @@ message ResultsRequest {
   string simulationId = 1;
 }
 
-message StatusReply {
+message TaskResults {
+  repeated TaskResult results = 1;
+}
+
+message StatusRequest {
+  repeated string simulationIds = 1;
+}
+
+message SimulationStatus {
   string simulationId = 1;
 
   message QueueInfo {
@@ -39,8 +47,8 @@ message StatusReply {
   repeated QueueInfo finished = 4;
 }
 
-message TaskResults {
-  repeated TaskResult results = 1;
+message StatusReply {
+  repeated SimulationStatus items = 1;
 }
 
 message ResourceCapacity {

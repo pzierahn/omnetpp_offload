@@ -185,45 +185,64 @@ func (state *distributor) DistributeWork() {
 	}
 }
 
-func (state *distributor) Status(req *pb.ResultsRequest) (reply *pb.StatusReply, err error) {
+func (state *distributor) Status(req *pb.StatusRequest) (reply *pb.StatusReply, err error) {
 	state.RLock()
 	defer state.RUnlock()
 
-	reply = &pb.StatusReply{
-		SimulationId: req.SimulationId,
-	}
+	ids := req.SimulationIds
 
-	sim, ok := state.simulations[req.SimulationId]
-
-	if !ok {
-		return
-	}
-
-	for _, elem := range sim.queue.list {
-		reply.Queue = append(reply.Queue, &pb.StatusReply_QueueInfo{
-			Config: elem.Config,
-			RunNum: elem.RunNumber,
-		})
-	}
-
-	for workerId, ass := range sim.assigned {
-		for _, elem := range ass.list {
-			info := &pb.StatusReply_QueueInfo{
-				Config: elem.Config,
-				RunNum: elem.RunNumber,
-			}
-
-			reply.Assigned = append(reply.Assigned, &pb.StatusReply_Assignment{
-				Config:   info,
-				WorkerId: workerId,
-			})
+	if len(ids) == 0 {
+		for id := range state.simulations {
+			ids = append(ids, id)
 		}
 	}
 
-	for _, elem := range sim.finished {
-		reply.Finished = append(reply.Finished, &pb.StatusReply_QueueInfo{
-			Config: elem.Task.Config,
-			RunNum: elem.Task.RunNumber,
+	reply = &pb.StatusReply{}
+
+	for _, id := range ids {
+		sim, ok := state.simulations[id]
+
+		if !ok {
+			continue
+		}
+
+		var queue []*pb.SimulationStatus_QueueInfo
+		var assignments []*pb.SimulationStatus_Assignment
+		var finished []*pb.SimulationStatus_QueueInfo
+
+		for _, elem := range sim.queue.list {
+			queue = append(queue, &pb.SimulationStatus_QueueInfo{
+				Config: elem.Config,
+				RunNum: elem.RunNumber,
+			})
+		}
+
+		for workerId, ass := range sim.assigned {
+			for _, elem := range ass.list {
+				info := &pb.SimulationStatus_QueueInfo{
+					Config: elem.Config,
+					RunNum: elem.RunNumber,
+				}
+
+				assignments = append(assignments, &pb.SimulationStatus_Assignment{
+					Config:   info,
+					WorkerId: workerId,
+				})
+			}
+		}
+
+		for _, elem := range sim.finished {
+			finished = append(finished, &pb.SimulationStatus_QueueInfo{
+				Config: elem.Task.Config,
+				RunNum: elem.Task.RunNumber,
+			})
+		}
+
+		reply.Items = append(reply.Items, &pb.SimulationStatus{
+			SimulationId: id,
+			Queue:        queue,
+			Assigned:     assignments,
+			Finished:     finished,
 		})
 	}
 

@@ -5,9 +5,9 @@ import (
 	pb "github.com/patrickz98/project.go.omnetpp/proto"
 )
 
-func (server *broker) Status(_ context.Context, req *pb.ResultsRequest) (reply *pb.StatusReply, err error) {
+func (server *broker) Status(_ context.Context, req *pb.StatusRequest) (reply *pb.StatusReply, err error) {
 
-	logger.Println("status", req.SimulationId)
+	logger.Printf("status %v\n", req.SimulationIds)
 	reply, err = server.db.Status(req)
 
 	return

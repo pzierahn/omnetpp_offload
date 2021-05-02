@@ -12,23 +12,22 @@ import (
 
 var path string
 var configPath string
-var status string
+var status bool
 
 var config gconfig.Config
 
 func init() {
 	flag.StringVar(&path, "path", ".", "simulation path")
 	flag.StringVar(&configPath, "config", "opp-edge-config.json", "simulation config JSON")
-
-	flag.StringVar(&status, "status", "", "status for simulationId")
+	flag.BoolVar(&status, "status", false, "status for simulationIds")
 
 	config = gconfig.SourceAndParse(gconfig.ParseBroker)
 }
 
 func main() {
 
-	if status != "" {
-		distribute.Status(config.Broker, status)
+	if status {
+		distribute.Status(config.Broker, nil)
 		return
 	}
 
