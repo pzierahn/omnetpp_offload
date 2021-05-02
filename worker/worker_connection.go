@@ -15,6 +15,7 @@ type workerConnection struct {
 	conn          *grpc.ClientConn
 	broker        pb.BrokerClient
 	storage       storage.Client
+	agents        int
 	freeResources int
 }
 
@@ -42,6 +43,7 @@ func Init(config gconfig.Config) (worker *workerConnection, err error) {
 		conn:          conn,
 		broker:        pb.NewBrokerClient(conn),
 		storage:       storage.InitClient(config.Broker),
+		agents:        config.Worker.DevoteCPUs,
 		freeResources: config.Worker.DevoteCPUs,
 	}
 

@@ -9,14 +9,14 @@ import (
 type distributor struct {
 	sync.RWMutex
 	capacities  map[string]*pb.ResourceCapacity // workerId --> ResourceCapacity
-	workers     map[string]chan<- *pb.Tasks     // workerId --> task channel
+	workers     map[string]chan<- *pb.Task      // workerId --> task channel
 	simulations map[string]*simulationState     // simulationId --> state
 }
 
 func initTasksDB() (state distributor) {
 	state = distributor{
 		capacities:  make(map[string]*pb.ResourceCapacity),
-		workers:     make(map[string]chan<- *pb.Tasks),
+		workers:     make(map[string]chan<- *pb.Task),
 		simulations: make(map[string]*simulationState),
 	}
 
@@ -40,12 +40,12 @@ func (state *distributor) SetCapacity(id string, cap *pb.ResourceCapacity) {
 	return
 }
 
-func (state *distributor) NewWorker(id string) (worker chan *pb.Tasks) {
+func (state *distributor) NewWorker(id string) (worker chan *pb.Task) {
 	state.Lock()
 	defer state.Unlock()
 
 	logger.Printf("new worker %v\n", id)
-	worker = make(chan *pb.Tasks)
+	worker = make(chan *pb.Task)
 	state.workers[id] = worker
 
 	return
@@ -165,12 +165,20 @@ func (state *distributor) DistributeWork() {
 		)
 
 		tasks := simulation.queue.pop(packages)
+
+		for _, task := range tasks {
+			stream <- task
+		}
+
 		simulation.assign(workerId, tasks...)
 
-		logger.Printf("sending %v %v tasks\n", workerId, len(tasks))
-
-		// Send data to worker
-		stream <- &pb.Tasks{Items: tasks}
+		//tasks := simulation.queue.pop(packages)
+		//simulation.assign(workerId, tasks...)
+		//
+		//logger.Printf("sending %v %v tasks\n", workerId, len(tasks))
+		//
+		//// Send data to worker
+		//stream <- &pb.Tasks{Items: tasks}
 
 		// Remove client info from worker queue
 		delete(state.capacities, workerId)

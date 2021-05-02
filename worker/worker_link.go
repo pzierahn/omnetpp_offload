@@ -28,66 +28,50 @@ func (client *workerConnection) StartLink(ctx context.Context) (err error) {
 		return
 	}
 
-	// channel for thread safe error communication
-	done := make(chan bool)
-	defer close(done)
-
-	go func() {
+	for idx := 0; idx < client.agents; idx++ {
 
 		//
-		// Receive task from the broker
+		// Start worker agents
 		//
 
-		for {
-			var tasks *pb.Tasks
-			tasks, err = link.Recv()
-			if err != nil {
-				break
+		go func(idx int) {
+			for {
+				logger.Printf("agent %d waiting for work\n", idx)
+
+				var task *pb.Task
+				task, err = link.Recv()
+				if err != nil {
+					break
+				}
+
+				logger.Printf("agent %d received work (%s_%s_%s)\n",
+					idx, task.SimulationId, task.Config, task.RunNumber)
+
+				client.OccupyResource(1)
+				client.runTasks(task)
+				client.FeeResource()
+
+				err = client.SendResourceCapacity(link)
+				if err != nil {
+					logger.Fatalln(err)
+				}
 			}
+		}(idx)
+	}
 
-			client.OccupyResource(len(tasks.Items))
+	//
+	// Send every 23 seconds the resource capacity
+	// This will prevent the connection from closing
+	//
 
-			//logger.Printf("received task %v\n", tasks)
-
-			for _, job := range tasks.Items {
-				go func(job *pb.Task) {
-					logger.Printf("running task %v_%v_%v\n", job.SimulationId, job.Config, job.RunNumber)
-					client.runTasks(job)
-
-					logger.Printf("free resource %v_%v_%v\n", job.SimulationId, job.Config, job.RunNumber)
-					client.FeeResource()
-
-					err = client.SendResourceCapacity(link)
-					if err != nil {
-						logger.Fatalln(err)
-					}
-				}(job)
-			}
+	for {
+		err = client.SendResourceCapacity(link)
+		if err != nil {
+			break
 		}
 
-		done <- true
-	}()
-
-	go func() {
-
-		//
-		// Send every 23 seconds the resource capacity
-		// This will prevent the connection from closing
-		//
-
-		for {
-			err = client.SendResourceCapacity(link)
-			if err != nil {
-				break
-			}
-
-			time.Sleep(time.Second * 23)
-		}
-
-		done <- true
-	}()
-
-	<-done
+		time.Sleep(time.Second * 23)
+	}
 
 	return
 }

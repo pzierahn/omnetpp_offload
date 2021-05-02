@@ -10,7 +10,7 @@ import "storage.proto";
 
 service Broker {
   rpc ExecuteSimulation (Simulation)              returns (SimulationReply) {}
-  rpc TaskSubscription  (stream ResourceCapacity) returns (stream Tasks)    {}
+  rpc TaskSubscription  (stream ResourceCapacity) returns (stream Task)     {}
   rpc PutResults        (TaskResult)              returns (WorkAffirmation) {}
   rpc Status            (ResultsRequest)          returns (StatusReply)     {}
   rpc GetResults        (ResultsRequest)          returns (TaskResults)     {}
@@ -69,10 +69,6 @@ message Task {
 
   // Simulation run (-r argument)
   string runNumber = 5;
-}
-
-message Tasks {
-  repeated Task items = 3;
 }
 
 message OppConfig {
