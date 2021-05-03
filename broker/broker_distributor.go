@@ -172,14 +172,6 @@ func (state *distributor) DistributeWork() {
 
 		simulation.assign(workerId, tasks...)
 
-		//tasks := simulation.queue.pop(packages)
-		//simulation.assign(workerId, tasks...)
-		//
-		//logger.Printf("sending %v %v tasks\n", workerId, len(tasks))
-		//
-		//// Send data to worker
-		//stream <- &pb.Tasks{Items: tasks}
-
 		// Remove client info from worker queue
 		delete(state.capacities, workerId)
 	}

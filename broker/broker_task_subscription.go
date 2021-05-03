@@ -28,9 +28,7 @@ func (server *broker) TaskSubscription(stream pb.Broker_TaskSubscriptionServer) 
 	//
 
 	workStream := server.db.NewWorker(workerId)
-	defer func() {
-		server.db.RemoveWorker(workerId)
-	}()
+	defer server.db.RemoveWorker(workerId)
 
 	go func() {
 		for {
