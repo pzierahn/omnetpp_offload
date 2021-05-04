@@ -33,7 +33,7 @@ func Status(config gconfig.GRPCConnection, simulationIds []string) {
 		fmt.Printf("  Queue:    %5d\n", len(item.Queue))
 		fmt.Printf("  Finished: %5d\n", len(item.Finished))
 
-		fmt.Printf("  Assigned: %5d\n", len(item.Assigned))
+		fmt.Printf("  Assigned: %5d\n\n", len(item.Assigned))
 		for _, elem := range item.Assigned {
 			fmt.Printf("    %s %-3s %s\n", elem.Config.Config, elem.Config.RunNum, elem.WorkerId)
 		}

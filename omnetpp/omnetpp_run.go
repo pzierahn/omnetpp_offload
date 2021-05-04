@@ -48,7 +48,7 @@ func (project *OmnetProject) command(args ...string) (cmd *exec.Cmd, err error) 
 	if project.UseLib {
 
 		//
-		// Use simulation shared library
+		// Use simulation library
 		//
 
 		lib := filepath.Join(project.Path, project.Simulation)

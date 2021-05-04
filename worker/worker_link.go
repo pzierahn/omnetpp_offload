@@ -6,7 +6,6 @@ import (
 	pb "github.com/patrickz98/project.go.omnetpp/proto"
 	"google.golang.org/grpc/metadata"
 	"runtime"
-	"time"
 )
 
 func (client *workerConnection) StartLink(ctx context.Context) (err error) {
@@ -28,6 +27,9 @@ func (client *workerConnection) StartLink(ctx context.Context) (err error) {
 		return
 	}
 
+	exit := make(chan bool)
+	defer close(exit)
+
 	for idx := 0; idx < client.agents; idx++ {
 
 		//
@@ -41,6 +43,7 @@ func (client *workerConnection) StartLink(ctx context.Context) (err error) {
 				var task *pb.Task
 				task, err = link.Recv()
 				if err != nil {
+					logger.Println(err)
 					break
 				}
 
@@ -53,25 +56,30 @@ func (client *workerConnection) StartLink(ctx context.Context) (err error) {
 
 				err = client.SendResourceCapacity(link)
 				if err != nil {
-					logger.Fatalln(err)
+					logger.Println(err)
+					break
 				}
 			}
+
+			logger.Printf("agent %d exiting\n", idx)
+			exit <- true
 		}(idx)
 	}
 
-	//
-	// Send every 23 seconds the resource capacity
-	// This will prevent the connection from closing
-	//
-
-	for {
-		err = client.SendResourceCapacity(link)
-		if err != nil {
-			break
-		}
-
-		time.Sleep(time.Second * 23)
+	err = client.SendResourceCapacity(link)
+	if err != nil {
+		return
 	}
+
+	logger.Println("waiting for agents to exit")
+
+	for idx := 0; idx < client.agents; idx++ {
+		<-exit
+	}
+
+	logger.Println("closing connection to broker")
+
+	err = client.Close()
 
 	return
 }
