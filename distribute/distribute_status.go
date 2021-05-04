@@ -6,6 +6,7 @@ import (
 	"github.com/patrickz98/project.go.omnetpp/gconfig"
 	pb "github.com/patrickz98/project.go.omnetpp/proto"
 	"google.golang.org/grpc"
+	"time"
 )
 
 func Status(config gconfig.GRPCConnection, simulationIds []string) {
@@ -27,6 +28,8 @@ func Status(config gconfig.GRPCConnection, simulationIds []string) {
 	if err != nil {
 		panic(err)
 	}
+
+	fmt.Println(time.Now())
 
 	for _, item := range status.Items {
 		fmt.Println(item.SimulationId)

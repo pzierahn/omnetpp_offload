@@ -38,7 +38,7 @@ func (server *broker) TaskSubscription(stream pb.Broker_TaskSubscriptionServer) 
 				break
 			}
 
-			logger.Println("send work to", workerId)
+			logger.Printf("send %v work to", taskId(job), workerId)
 
 			err := stream.Send(job)
 			if err != nil {
@@ -59,10 +59,9 @@ func (server *broker) TaskSubscription(stream pb.Broker_TaskSubscriptionServer) 
 			break
 		}
 
-		server.db.SetCapacity(workerId, info)
-
 		logger.Printf("%s freeResources=%v\n", workerId, info.FreeResources)
 
+		server.db.SetCapacity(workerId, info)
 		server.db.DistributeWork()
 	}
 

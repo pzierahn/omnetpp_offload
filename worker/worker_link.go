@@ -43,7 +43,7 @@ func (client *workerConnection) StartLink(ctx context.Context) (err error) {
 				var task *pb.Task
 				task, err = link.Recv()
 				if err != nil {
-					logger.Println(err)
+					logger.Printf("agent %d: %v", idx, err)
 					break
 				}
 
@@ -56,7 +56,7 @@ func (client *workerConnection) StartLink(ctx context.Context) (err error) {
 
 				err = client.SendResourceCapacity(link)
 				if err != nil {
-					logger.Println(err)
+					logger.Printf("agent %d: %v", idx, err)
 					break
 				}
 			}

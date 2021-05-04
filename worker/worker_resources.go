@@ -6,7 +6,7 @@ import (
 	"sync"
 )
 
-var resourceMutex sync.Mutex
+var resourceMutex sync.RWMutex
 
 func (client *workerConnection) OccupyResource(num int) {
 	resourceMutex.Lock()
@@ -29,8 +29,8 @@ func (client *workerConnection) FeeResource() {
 }
 
 func (client *workerConnection) SendResourceCapacity(link pb.Broker_TaskSubscriptionClient) (err error) {
-	resourceMutex.Lock()
-	defer resourceMutex.Unlock()
+	resourceMutex.RLock()
+	defer resourceMutex.RUnlock()
 
 	logger.Printf("sending info freeResources=%d\n", client.freeResources)
 

@@ -166,12 +166,16 @@ func (state *distributor) DistributeWork() {
 
 		tasks := simulation.queue.pop(packages)
 
+		logger.Printf("sending %d tasks to %s\n", packages, workerId)
+
 		for _, task := range tasks {
 			stream <- task
 		}
 
+		logger.Printf("assign tasks to %s\n", workerId)
 		simulation.assign(workerId, tasks...)
 
+		logger.Printf("remove capacities reference %s\n", workerId)
 		// Remove client info from worker queue
 		delete(state.capacities, workerId)
 	}
