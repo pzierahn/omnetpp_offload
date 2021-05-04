@@ -71,8 +71,6 @@ func (client *workerConnection) StartLink(ctx context.Context) (err error) {
 		return
 	}
 
-	logger.Println("waiting for agents to exit")
-
 	for idx := 0; idx < client.agents; idx++ {
 		<-exit
 	}
