@@ -41,4 +41,8 @@ func main() {
 	if err = conn.StartLink(context.Background()); err != nil {
 		panic(err)
 	}
+
+	if err = conn.Close(); err != nil {
+		panic(err)
+	}
 }

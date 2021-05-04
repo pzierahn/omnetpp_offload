@@ -38,7 +38,7 @@ func (server *broker) TaskSubscription(stream pb.Broker_TaskSubscriptionServer) 
 				break
 			}
 
-			logger.Printf("send %v work to", taskId(job), workerId)
+			logger.Printf("send %v work to %s", taskId(job), workerId)
 
 			err := stream.Send(job)
 			if err != nil {

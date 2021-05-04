@@ -26,9 +26,29 @@ func (client *workerConnection) StartLink(ctx context.Context) (err error) {
 	if err != nil {
 		return
 	}
+	defer func() { _ = link.CloseSend() }()
 
 	exit := make(chan bool)
 	defer close(exit)
+
+	work := make(chan *pb.Task)
+
+	go func() {
+		for {
+			var task *pb.Task
+			task, err = link.Recv()
+			if err != nil {
+				logger.Printf("work receiver: %v", err)
+				break
+			}
+
+			logger.Printf("receive work %v_%v_%v", task.SimulationId, task.Config, task.RunNumber)
+			work <- task
+		}
+
+		logger.Printf("closing work receiver")
+		close(work)
+	}()
 
 	for idx := 0; idx < client.agents; idx++ {
 
@@ -38,16 +58,14 @@ func (client *workerConnection) StartLink(ctx context.Context) (err error) {
 
 		go func(idx int) {
 			for {
-				logger.Printf("agent %d waiting for work\n", idx)
+				logger.Printf("agent %d waiting for work", idx)
 
-				var task *pb.Task
-				task, err = link.Recv()
-				if err != nil {
-					logger.Printf("agent %d: %v", idx, err)
+				task, ok := <-work
+				if !ok {
 					break
 				}
 
-				logger.Printf("agent %d received work (%s_%s_%s)\n",
+				logger.Printf("agent %d received work (%s_%s_%s)",
 					idx, task.SimulationId, task.Config, task.RunNumber)
 
 				client.OccupyResource(1)
@@ -61,7 +79,7 @@ func (client *workerConnection) StartLink(ctx context.Context) (err error) {
 				}
 			}
 
-			logger.Printf("agent %d exiting\n", idx)
+			logger.Printf("agent %d exiting", idx)
 			exit <- true
 		}(idx)
 	}
@@ -76,8 +94,6 @@ func (client *workerConnection) StartLink(ctx context.Context) (err error) {
 	}
 
 	logger.Println("closing connection to broker")
-
-	err = client.Close()
 
 	return
 }
