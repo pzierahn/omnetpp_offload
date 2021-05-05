@@ -2,23 +2,16 @@ package worker
 
 import (
 	"context"
-	"fmt"
 	pb "github.com/patrickz98/project.go.omnetpp/proto"
 	"google.golang.org/grpc/metadata"
-	"runtime"
+	"sync"
 )
 
 func (client *workerConnection) StartLink(ctx context.Context) (err error) {
 
 	logger.Println("start worker", client.workerId)
 
-	md := metadata.New(map[string]string{
-		"workerId": client.workerId,
-		"os":       runtime.GOOS,
-		"arch":     runtime.GOARCH,
-		"numCPU":   fmt.Sprint(runtime.NumCPU()),
-	})
-
+	md := NewDeviceInfo(client.workerId).MarshallMeta()
 	ctx = metadata.NewOutgoingContext(ctx, md)
 
 	// Link to the work stream
@@ -32,7 +25,6 @@ func (client *workerConnection) StartLink(ctx context.Context) (err error) {
 	defer close(exit)
 
 	work := make(chan *pb.Task)
-	defer close(work)
 	go func() {
 
 		//
@@ -40,8 +32,7 @@ func (client *workerConnection) StartLink(ctx context.Context) (err error) {
 		//
 
 		for {
-			var task *pb.Task
-			task, err = link.Recv()
+			task, err := link.Recv()
 			if err != nil {
 				logger.Printf("work receiver: %v", err)
 				break
@@ -52,30 +43,10 @@ func (client *workerConnection) StartLink(ctx context.Context) (err error) {
 		}
 
 		logger.Printf("exit work receiver")
+		close(work)
 	}()
 
-	sendWorkReq := make(chan bool)
-	defer close(sendWorkReq)
-	go func() {
-		for {
-			send, ok := <-sendWorkReq
-			if !ok {
-				break
-			}
-
-			if !send {
-				continue
-			}
-
-			err = client.SendWorkRequest(link)
-			if err != nil {
-				logger.Printf("send work request: %v", err)
-				break
-			}
-		}
-
-		logger.Printf("exit work request sender")
-	}()
+	var sendMu sync.Mutex
 
 	for idx := 0; idx < client.agents; idx++ {
 
@@ -86,7 +57,14 @@ func (client *workerConnection) StartLink(ctx context.Context) (err error) {
 		go func(idx int) {
 			for {
 				logger.Printf("agent %d send work request", idx)
-				sendWorkReq <- true
+
+				sendMu.Lock()
+				err = client.SendWorkRequest(link)
+				if err != nil {
+					logger.Printf("agent %d: %v", idx, err)
+					break
+				}
+				sendMu.Unlock()
 
 				logger.Printf("agent %d waiting for work", idx)
 				task, ok := <-work
