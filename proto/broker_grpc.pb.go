@@ -52,7 +52,7 @@ func (c *brokerClient) TaskSubscription(ctx context.Context, opts ...grpc.CallOp
 }
 
 type Broker_TaskSubscriptionClient interface {
-	Send(*ResourceCapacity) error
+	Send(*WorkRequest) error
 	Recv() (*Task, error)
 	grpc.ClientStream
 }
@@ -61,7 +61,7 @@ type brokerTaskSubscriptionClient struct {
 	grpc.ClientStream
 }
 
-func (x *brokerTaskSubscriptionClient) Send(m *ResourceCapacity) error {
+func (x *brokerTaskSubscriptionClient) Send(m *WorkRequest) error {
 	return x.ClientStream.SendMsg(m)
 }
 
@@ -168,7 +168,7 @@ func _Broker_TaskSubscription_Handler(srv interface{}, stream grpc.ServerStream)
 
 type Broker_TaskSubscriptionServer interface {
 	Send(*Task) error
-	Recv() (*ResourceCapacity, error)
+	Recv() (*WorkRequest, error)
 	grpc.ServerStream
 }
 
@@ -180,8 +180,8 @@ func (x *brokerTaskSubscriptionServer) Send(m *Task) error {
 	return x.ServerStream.SendMsg(m)
 }
 
-func (x *brokerTaskSubscriptionServer) Recv() (*ResourceCapacity, error) {
-	m := new(ResourceCapacity)
+func (x *brokerTaskSubscriptionServer) Recv() (*WorkRequest, error) {
+	m := new(WorkRequest)
 	if err := x.ServerStream.RecvMsg(m); err != nil {
 		return nil, err
 	}

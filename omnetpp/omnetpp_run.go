@@ -110,7 +110,7 @@ func (project *OmnetProject) Run(config, run string) (err error) {
 			match := regex.FindStringSubmatch(scanner.Text())
 
 			if len(match) == 2 {
-				logger.Printf("base=%s config=%s run=%3s (%s%%)\n",
+				logger.Printf("base=%s config=%s run=%-3s (%s%%)\n",
 					filepath.Base(project.Path), config, run, match[1])
 			}
 		}

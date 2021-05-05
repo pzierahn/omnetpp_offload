@@ -8,14 +8,14 @@ import (
 
 type distributor struct {
 	sync.RWMutex
-	capacities  map[string]*pb.ResourceCapacity // workerId --> ResourceCapacity
-	workers     map[string]chan<- *pb.Task      // workerId --> task channel
-	simulations map[string]*simulationState     // simulationId --> state
+	capacities  map[string]int              // workerId --> ResourceCapacity
+	workers     map[string]chan<- *pb.Task  // workerId --> task channel
+	simulations map[string]*simulationState // simulationId --> state
 }
 
 func initTasksDB() (state distributor) {
 	state = distributor{
-		capacities:  make(map[string]*pb.ResourceCapacity),
+		capacities:  make(map[string]int),
 		workers:     make(map[string]chan<- *pb.Task),
 		simulations: make(map[string]*simulationState),
 	}
@@ -31,11 +31,11 @@ func (state *distributor) ReceiveResult(result *pb.TaskResult) {
 	sim.finish(result)
 }
 
-func (state *distributor) SetCapacity(id string, cap *pb.ResourceCapacity) {
-	state.Lock()
-	defer state.Unlock()
+func (state *distributor) IncreaseCapacity(id string) {
 
-	state.capacities[id] = cap
+	state.Lock()
+	state.capacities[id]++
+	state.Unlock()
 
 	return
 }
@@ -126,9 +126,9 @@ func (state *distributor) DistributeWork() {
 
 	for workerId, stream := range state.workers {
 
-		capacity, ok := state.capacities[workerId]
+		capacity := state.capacities[workerId]
 
-		if !ok || capacity.FreeResources <= 0 {
+		if capacity <= 0 {
 			//
 			// Client is busy
 			//
@@ -157,11 +157,11 @@ func (state *distributor) DistributeWork() {
 			break
 		}
 
-		logger.Printf("%s capacity %d\n", workerId, capacity.FreeResources)
+		logger.Printf("%s capacity %d\n", workerId, capacity)
 
 		packages := simple.MathMin(
 			simulation.queue.len(),
-			int(capacity.FreeResources),
+			capacity,
 		)
 
 		tasks := simulation.queue.pop(packages)
@@ -175,9 +175,12 @@ func (state *distributor) DistributeWork() {
 		logger.Printf("assign tasks to %s\n", workerId)
 		simulation.assign(workerId, tasks...)
 
-		logger.Printf("remove capacities reference %s\n", workerId)
-		// Remove client info from worker queue
-		delete(state.capacities, workerId)
+		state.capacities[workerId] -= packages
+		logger.Printf("set %s capacity to %d", workerId, state.capacities[workerId])
+
+		//logger.Printf("remove capacities reference %s\n", workerId)
+		//// Remove client info from worker queue
+		//delete(state.capacities, workerId)
 	}
 }
 

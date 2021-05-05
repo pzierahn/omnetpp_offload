@@ -53,15 +53,15 @@ func (server *broker) TaskSubscription(stream pb.Broker_TaskSubscriptionServer) 
 	//
 
 	for {
-		var info *pb.ResourceCapacity
-		info, err = stream.Recv()
+		var workReq *pb.WorkRequest
+		workReq, err = stream.Recv()
 		if err != nil {
 			break
 		}
 
-		logger.Printf("%s freeResources=%v\n", workerId, info.FreeResources)
+		logger.Printf("work request from %s\n", workReq.WorkerId)
 
-		server.db.SetCapacity(workerId, info)
+		server.db.IncreaseCapacity(workReq.WorkerId)
 		server.db.DistributeWork()
 	}
 

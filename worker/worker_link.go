@@ -58,8 +58,14 @@ func (client *workerConnection) StartLink(ctx context.Context) (err error) {
 
 		go func(idx int) {
 			for {
-				logger.Printf("agent %d waiting for work", idx)
+				logger.Printf("agent %d send work request", idx)
+				err = client.SendWorkRequest(link)
+				if err != nil {
+					logger.Printf("agent %d: %v", idx, err)
+					break
+				}
 
+				logger.Printf("agent %d waiting for work", idx)
 				task, ok := <-work
 				if !ok {
 					break
@@ -68,25 +74,12 @@ func (client *workerConnection) StartLink(ctx context.Context) (err error) {
 				logger.Printf("agent %d received work (%s_%s_%s)",
 					idx, task.SimulationId, task.Config, task.RunNumber)
 
-				client.OccupyResource(1)
 				client.runTasks(task)
-				client.FeeResource()
-
-				err = client.SendResourceCapacity(link)
-				if err != nil {
-					logger.Printf("agent %d: %v", idx, err)
-					break
-				}
 			}
 
 			logger.Printf("agent %d exiting", idx)
 			exit <- true
 		}(idx)
-	}
-
-	err = client.SendResourceCapacity(link)
-	if err != nil {
-		return
 	}
 
 	for idx := 0; idx < client.agents; idx++ {

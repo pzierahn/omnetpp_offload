@@ -1,4 +1,4 @@
-package distribute
+package stateinfo
 
 import (
 	"context"

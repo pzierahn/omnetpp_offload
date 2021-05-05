@@ -3,17 +3,14 @@ package service;
 
 option go_package = "./proto";
 
-import "google/protobuf/duration.proto";
-import "google/protobuf/timestamp.proto";
-
 import "storage.proto";
 
 service Broker {
-  rpc ExecuteSimulation (Simulation)              returns (SimulationReply) {}
-  rpc TaskSubscription  (stream ResourceCapacity) returns (stream Task)     {}
-  rpc PutResults        (TaskResult)              returns (WorkAffirmation) {}
-  rpc Status            (StatusRequest)           returns (StatusReply)     {}
-  rpc GetResults        (ResultsRequest)          returns (TaskResults)     {}
+  rpc ExecuteSimulation (Simulation)         returns (SimulationReply) {}
+  rpc TaskSubscription  (stream WorkRequest) returns (stream Task)     {}
+  rpc PutResults        (TaskResult)         returns (WorkAffirmation) {}
+  rpc Status            (StatusRequest)      returns (StatusReply)     {}
+  rpc GetResults        (ResultsRequest)     returns (TaskResults)     {}
 }
 
 message ResultsRequest {
@@ -51,15 +48,9 @@ message StatusReply {
   repeated SimulationStatus items = 1;
 }
 
-message ResourceCapacity {
+message WorkRequest {
   // Workers id
   string workerId = 1;
-
-  // Time
-  google.protobuf.Timestamp timestamp = 2;
-
-  // Number of available cores
-  int32 freeResources = 3;
 }
 
 message Task {
