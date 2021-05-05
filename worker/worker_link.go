@@ -32,8 +32,13 @@ func (client *workerConnection) StartLink(ctx context.Context) (err error) {
 	defer close(exit)
 
 	work := make(chan *pb.Task)
-
+	defer close(work)
 	go func() {
+
+		//
+		// Single thread to receive tasks
+		//
+
 		for {
 			var task *pb.Task
 			task, err = link.Recv()
@@ -46,8 +51,30 @@ func (client *workerConnection) StartLink(ctx context.Context) (err error) {
 			work <- task
 		}
 
-		logger.Printf("closing work receiver")
-		close(work)
+		logger.Printf("exit work receiver")
+	}()
+
+	sendWorkReq := make(chan bool)
+	defer close(sendWorkReq)
+	go func() {
+		for {
+			send, ok := <-sendWorkReq
+			if !ok {
+				break
+			}
+
+			if !send {
+				continue
+			}
+
+			err = client.SendWorkRequest(link)
+			if err != nil {
+				logger.Printf("send work request: %v", err)
+				break
+			}
+		}
+
+		logger.Printf("exit work request sender")
 	}()
 
 	for idx := 0; idx < client.agents; idx++ {
@@ -59,11 +86,7 @@ func (client *workerConnection) StartLink(ctx context.Context) (err error) {
 		go func(idx int) {
 			for {
 				logger.Printf("agent %d send work request", idx)
-				err = client.SendWorkRequest(link)
-				if err != nil {
-					logger.Printf("agent %d: %v", idx, err)
-					break
-				}
+				sendWorkReq <- true
 
 				logger.Printf("agent %d waiting for work", idx)
 				task, ok := <-work
