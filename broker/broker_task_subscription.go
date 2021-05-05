@@ -3,7 +3,7 @@ package broker
 import (
 	"fmt"
 	pb "github.com/patrickz98/project.go.omnetpp/proto"
-	"github.com/patrickz98/project.go.omnetpp/utils"
+	"github.com/patrickz98/project.go.omnetpp/worker"
 	"google.golang.org/grpc/metadata"
 )
 
@@ -17,11 +17,17 @@ func (server *broker) TaskSubscription(stream pb.Broker_TaskSubscriptionServer) 
 		return
 	}
 
-	var workerId string
-	workerId, err = utils.MetaString(md, "workerId")
-	if err != nil {
+	var workerInfo worker.DeviceInfo
+	workerInfo.UnMarshallMeta(md)
+
+	workerId := workerInfo.WorkerId
+	if workerId == "" {
+		err = fmt.Errorf("missing workerId in metadata")
 		return
 	}
+
+	logger.Printf("connected worker %s (%v, %v, %v)",
+		workerId, workerInfo.Os, workerInfo.Arch, workerInfo.NumCPUs)
 
 	//
 	// Send work to clients

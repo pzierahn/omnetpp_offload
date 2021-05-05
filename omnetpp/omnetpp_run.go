@@ -101,10 +101,10 @@ func (project *OmnetProject) Run(config, run string) (err error) {
 	if err != nil {
 		return
 	}
+	scanner := bufio.NewScanner(pipe)
 
 	go func() {
 		regex := regexp.MustCompile(`\(([0-9]{1,3})% total\)`)
-		scanner := bufio.NewScanner(pipe)
 
 		for scanner.Scan() {
 			match := regex.FindStringSubmatch(scanner.Text())
