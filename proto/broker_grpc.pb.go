@@ -21,8 +21,9 @@ type BrokerClient interface {
 	ExecuteSimulation(ctx context.Context, in *Simulation, opts ...grpc.CallOption) (*SimulationReply, error)
 	TaskSubscription(ctx context.Context, opts ...grpc.CallOption) (Broker_TaskSubscriptionClient, error)
 	PutResults(ctx context.Context, in *TaskResult, opts ...grpc.CallOption) (*WorkAffirmation, error)
-	Status(ctx context.Context, in *StatusRequest, opts ...grpc.CallOption) (*StatusReply, error)
 	GetResults(ctx context.Context, in *ResultsRequest, opts ...grpc.CallOption) (*TaskResults, error)
+	SimulationStatus(ctx context.Context, in *StatusRequest, opts ...grpc.CallOption) (*StatusReply, error)
+	WorkerInfo(ctx context.Context, in *WorkerInfoRequest, opts ...grpc.CallOption) (*WorkerInfoReply, error)
 }
 
 type brokerClient struct {
@@ -82,18 +83,27 @@ func (c *brokerClient) PutResults(ctx context.Context, in *TaskResult, opts ...g
 	return out, nil
 }
 
-func (c *brokerClient) Status(ctx context.Context, in *StatusRequest, opts ...grpc.CallOption) (*StatusReply, error) {
-	out := new(StatusReply)
-	err := c.cc.Invoke(ctx, "/service.Broker/Status", in, out, opts...)
+func (c *brokerClient) GetResults(ctx context.Context, in *ResultsRequest, opts ...grpc.CallOption) (*TaskResults, error) {
+	out := new(TaskResults)
+	err := c.cc.Invoke(ctx, "/service.Broker/GetResults", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *brokerClient) GetResults(ctx context.Context, in *ResultsRequest, opts ...grpc.CallOption) (*TaskResults, error) {
-	out := new(TaskResults)
-	err := c.cc.Invoke(ctx, "/service.Broker/GetResults", in, out, opts...)
+func (c *brokerClient) SimulationStatus(ctx context.Context, in *StatusRequest, opts ...grpc.CallOption) (*StatusReply, error) {
+	out := new(StatusReply)
+	err := c.cc.Invoke(ctx, "/service.Broker/SimulationStatus", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *brokerClient) WorkerInfo(ctx context.Context, in *WorkerInfoRequest, opts ...grpc.CallOption) (*WorkerInfoReply, error) {
+	out := new(WorkerInfoReply)
+	err := c.cc.Invoke(ctx, "/service.Broker/WorkerInfo", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -107,8 +117,9 @@ type BrokerServer interface {
 	ExecuteSimulation(context.Context, *Simulation) (*SimulationReply, error)
 	TaskSubscription(Broker_TaskSubscriptionServer) error
 	PutResults(context.Context, *TaskResult) (*WorkAffirmation, error)
-	Status(context.Context, *StatusRequest) (*StatusReply, error)
 	GetResults(context.Context, *ResultsRequest) (*TaskResults, error)
+	SimulationStatus(context.Context, *StatusRequest) (*StatusReply, error)
+	WorkerInfo(context.Context, *WorkerInfoRequest) (*WorkerInfoReply, error)
 	mustEmbedUnimplementedBrokerServer()
 }
 
@@ -125,11 +136,14 @@ func (UnimplementedBrokerServer) TaskSubscription(Broker_TaskSubscriptionServer)
 func (UnimplementedBrokerServer) PutResults(context.Context, *TaskResult) (*WorkAffirmation, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method PutResults not implemented")
 }
-func (UnimplementedBrokerServer) Status(context.Context, *StatusRequest) (*StatusReply, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method Status not implemented")
-}
 func (UnimplementedBrokerServer) GetResults(context.Context, *ResultsRequest) (*TaskResults, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetResults not implemented")
+}
+func (UnimplementedBrokerServer) SimulationStatus(context.Context, *StatusRequest) (*StatusReply, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method SimulationStatus not implemented")
+}
+func (UnimplementedBrokerServer) WorkerInfo(context.Context, *WorkerInfoRequest) (*WorkerInfoReply, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method WorkerInfo not implemented")
 }
 func (UnimplementedBrokerServer) mustEmbedUnimplementedBrokerServer() {}
 
@@ -206,24 +220,6 @@ func _Broker_PutResults_Handler(srv interface{}, ctx context.Context, dec func(i
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Broker_Status_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(StatusRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(BrokerServer).Status(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/service.Broker/Status",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(BrokerServer).Status(ctx, req.(*StatusRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
 func _Broker_GetResults_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(ResultsRequest)
 	if err := dec(in); err != nil {
@@ -238,6 +234,42 @@ func _Broker_GetResults_Handler(srv interface{}, ctx context.Context, dec func(i
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(BrokerServer).GetResults(ctx, req.(*ResultsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Broker_SimulationStatus_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(StatusRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BrokerServer).SimulationStatus(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/service.Broker/SimulationStatus",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BrokerServer).SimulationStatus(ctx, req.(*StatusRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Broker_WorkerInfo_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(WorkerInfoRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BrokerServer).WorkerInfo(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/service.Broker/WorkerInfo",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BrokerServer).WorkerInfo(ctx, req.(*WorkerInfoRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -258,12 +290,16 @@ var Broker_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _Broker_PutResults_Handler,
 		},
 		{
-			MethodName: "Status",
-			Handler:    _Broker_Status_Handler,
-		},
-		{
 			MethodName: "GetResults",
 			Handler:    _Broker_GetResults_Handler,
+		},
+		{
+			MethodName: "SimulationStatus",
+			Handler:    _Broker_SimulationStatus_Handler,
+		},
+		{
+			MethodName: "WorkerInfo",
+			Handler:    _Broker_WorkerInfo_Handler,
 		},
 	},
 	Streams: []grpc.StreamDesc{

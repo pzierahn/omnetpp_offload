@@ -3,19 +3,22 @@ package broker
 import (
 	pb "github.com/patrickz98/project.go.omnetpp/proto"
 	"github.com/patrickz98/project.go.omnetpp/simple"
+	"github.com/patrickz98/project.go.omnetpp/worker"
 	"sync"
 )
 
 type distributor struct {
 	sync.RWMutex
-	capacities  map[string]int              // workerId --> ResourceCapacity
-	workers     map[string]chan<- *pb.Task  // workerId --> task channel
-	simulations map[string]*simulationState // simulationId --> state
+	capacities  map[string]int               // workerId --> ResourceCapacity
+	workerInfo  map[string]worker.DeviceInfo // workerId --> ResourceCapacity
+	workers     map[string]chan<- *pb.Task   // workerId --> task channel
+	simulations map[string]*simulationState  // simulationId --> state
 }
 
 func initTasksDB() (state distributor) {
 	state = distributor{
 		capacities:  make(map[string]int),
+		workerInfo:  make(map[string]worker.DeviceInfo),
 		workers:     make(map[string]chan<- *pb.Task),
 		simulations: make(map[string]*simulationState),
 	}

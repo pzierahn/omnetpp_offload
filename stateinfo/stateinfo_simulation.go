@@ -22,7 +22,7 @@ func Status(config gconfig.GRPCConnection, simulationIds []string) {
 
 	client := pb.NewBrokerClient(conn)
 
-	status, err := client.Status(context.Background(), &pb.StatusRequest{
+	status, err := client.SimulationStatus(context.Background(), &pb.StatusRequest{
 		SimulationIds: simulationIds,
 	})
 	if err != nil {

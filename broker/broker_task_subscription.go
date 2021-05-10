@@ -26,6 +26,9 @@ func (server *broker) TaskSubscription(stream pb.Broker_TaskSubscriptionServer) 
 		return
 	}
 
+	// Todo: sync! and remove
+	server.db.workerInfo[workerId] = workerInfo
+
 	logger.Printf("connected worker %s (%v, %v, %v)",
 		workerId, workerInfo.Os, workerInfo.Arch, workerInfo.NumCPUs)
 

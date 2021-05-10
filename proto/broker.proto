@@ -9,8 +9,9 @@ service Broker {
   rpc ExecuteSimulation (Simulation)         returns (SimulationReply) {}
   rpc TaskSubscription  (stream WorkRequest) returns (stream Task)     {}
   rpc PutResults        (TaskResult)         returns (WorkAffirmation) {}
-  rpc Status            (StatusRequest)      returns (StatusReply)     {}
   rpc GetResults        (ResultsRequest)     returns (TaskResults)     {}
+  rpc SimulationStatus  (StatusRequest)      returns (StatusReply)     {}
+  rpc WorkerInfo        (WorkerInfoRequest)  returns (WorkerInfoReply) {}
 }
 
 message ResultsRequest {
@@ -19,6 +20,21 @@ message ResultsRequest {
 
 message TaskResults {
   repeated TaskResult results = 1;
+}
+
+message WorkerInfoRequest {
+}
+
+message WorkerInfoReply {
+  message WorkerInfo {
+    string workerId = 1;
+    string os = 2;
+    string arch = 3;
+    uint32 numCPUs = 4;
+    uint32 freeResource = 5;
+  }
+
+  repeated WorkerInfo items = 1;
 }
 
 message StatusRequest {
