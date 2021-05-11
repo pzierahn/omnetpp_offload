@@ -13,8 +13,7 @@ ENV MODE release
 # Get essential dependencies
 #
 
-RUN ln -fs /usr/share/zoneinfo/Europe/Berlin /etc/localtime; \
-    dpkg-reconfigure --frontend noninteractive tzdata
+RUN ln -fs /usr/share/zoneinfo/Europe/Berlin /etc/localtime
 
 RUN apt-get update; \
     apt-get upgrade -y; \
