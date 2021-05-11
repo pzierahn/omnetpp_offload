@@ -40,12 +40,12 @@ func main() {
 	//var avg float64
 	avg := newAverage(30)
 
-	for inx := 0; inx < 30*100; inx++ {
+	for inx := 0; inx < 1000000; inx++ {
 
 		usage := sysinfo.GetCPUUsage()
-		log.Printf("usage=%7.3f avg=%7.3f", usage, avg.push(usage))
+		log.Printf("usage=%7.3f idle=%7.3f avg=%7.3f", usage, 100-usage, avg.push(100-usage))
 
-		time.Sleep(time.Second * 2)
+		time.Sleep(time.Millisecond * 500)
 		//break
 	}
 }
