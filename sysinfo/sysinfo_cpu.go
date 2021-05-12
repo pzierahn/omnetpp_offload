@@ -49,6 +49,8 @@ func getCPUUsageUnix() (usage float64) {
 		usage += us
 	}
 
+	usage /= float64(runtime.NumCPU())
+
 	return
 }
 
@@ -56,7 +58,7 @@ func GetCPUUsage() (usage float64) {
 	if runtime.GOOS == "windows" {
 		usage = getCPUUsageWindows()
 	} else {
-		usage = getCPUUsageUnix() / float64(runtime.NumCPU())
+		usage = getCPUUsageUnix()
 	}
 
 	return
