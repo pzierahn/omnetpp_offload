@@ -3,6 +3,7 @@ package main
 import (
 	"github.com/patrickz98/project.go.omnetpp/sysinfo"
 	"log"
+	"runtime"
 	"time"
 )
 
@@ -33,11 +34,10 @@ func newAverage(size int) (avg rollingAverage) {
 
 func main() {
 
-	// wmic cpu get loadpercentage
-	// ps aux
-	// ps -A -o user,%cpu,command
+	log.Println("OS:", runtime.GOOS)
+	log.Println("ARCH:", runtime.GOARCH)
+	log.Println("NumCPU:", runtime.NumCPU())
 
-	//var avg float64
 	avg := newAverage(30)
 
 	for inx := 0; inx < 1000000; inx++ {
