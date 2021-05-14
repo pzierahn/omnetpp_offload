@@ -58,3 +58,7 @@ go run cmd/simulation/simulation.go --path ~/Desktop/tictoc --configs TicToc18
 go run cmd/distribute/opp_edge_run.go -path ../TaskletSimulator -config ../TaskletSimulator/opp-edge-config.json
 go run cmd/distribute/opp_edge_run.go -path ~/Desktop/tictoc -config ~/Desktop/tictoc/opp-edge-config.json
 ```
+
+```
+GOOS=linux GOARCH=amd64 go build cmd/ice/ice.go
+```

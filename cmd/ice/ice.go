@@ -1,118 +1,205 @@
 package main
 
 import (
+	"bytes"
+	"context"
 	"encoding/json"
+	"flag"
 	"fmt"
-	"github.com/pion/webrtc/v3"
-	"net"
+	"github.com/pion/randutil"
 	"net/http"
 	"time"
+
+	"github.com/pion/ice/v2"
 )
 
-var peerConnection *webrtc.PeerConnection
+type ICEInfo struct {
+	LocalUfrag    string
+	LocalPwd      string
+	Candidates    []string
+	IsControlling bool
+}
 
-func doSignaling(w http.ResponseWriter, r *http.Request) {
+type Controlling struct {
+	IsControlling bool
+}
+
+var (
+	isControlling bool
+	iceAgent      *ice.Agent
+)
+
+func main() {
 	var err error
 
-	if peerConnection == nil {
-		settingEngine := webrtc.SettingEngine{}
+	flag.BoolVar(&isControlling, "controlling", false, "is ICE Agent controlling")
+	flag.Parse()
 
-		// Enable support only for TCP ICE candidates.
-		settingEngine.SetNetworkTypes([]webrtc.NetworkType{
-			webrtc.NetworkTypeTCP4,
-			webrtc.NetworkTypeTCP6,
-		})
+	//if isControlling {
+	//	fmt.Println("Local Agent is controlling")
+	//} else {
+	//	fmt.Println("Local Agent is controlled")
+	//}
+	//fmt.Print("Press 'Enter' when both processes have started")
+	//if _, err = bufio.NewReader(os.Stdin).ReadBytes('\n'); err != nil {
+	//	panic(err)
+	//}
 
-		var tcpListener net.Listener
-		tcpListener, err = net.ListenTCP("tcp", &net.TCPAddr{
-			IP:   net.IP{0, 0, 0, 0},
-			Port: 8443,
-		})
+	iceAgent, err = ice.NewAgent(&ice.AgentConfig{
+		PortMax: 51088,
+		PortMin: 51088,
+		NetworkTypes: []ice.NetworkType{
+			//ice.NetworkTypeTCP4,
+			//ice.NetworkTypeTCP6,
+			ice.NetworkTypeUDP4,
+			ice.NetworkTypeUDP6,
+		},
+		NAT1To1IPs: []string{
+			"31.18.129.212",
+			//"2a02:8108:3cbf:f718:9dee:dd20:e44:58e3",
+		},
+	})
+	if err != nil {
+		panic(err)
+	}
 
+	var candidates ICEInfo
+	candidates.IsControlling = isControlling
+
+	// When we have gathered a new ICE Candidate send it to the remote peer
+	err = iceAgent.OnCandidate(func(c ice.Candidate) {
+		if c == nil {
+			return
+		}
+
+		fmt.Printf("######## OnCandidate: '%s' --> '%s'\n", c.String(), c.Marshal())
+
+		candidates.Candidates = append(candidates.Candidates, c.Marshal())
+	})
+
+	if err != nil {
+		panic(err)
+	}
+
+	// When ICE Connection state has change print to stdout
+	err = iceAgent.OnConnectionStateChange(func(c ice.ConnectionState) {
+		fmt.Printf("ICE Connection State has changed: %s\n", c.String())
+	})
+
+	if err != nil {
+		panic(err)
+	}
+
+	// Get the local auth details and send to remote peer
+	localUfrag, localPwd, err := iceAgent.GetLocalUserCredentials()
+	if err != nil {
+		panic(err)
+	}
+
+	fmt.Println("localUfrag:", localUfrag)
+	fmt.Println("localPwd:", localPwd)
+
+	candidates.LocalUfrag = localUfrag
+	candidates.LocalPwd = localPwd
+
+	if err = iceAgent.GatherCandidates(); err != nil {
+		panic(err)
+	}
+
+	fmt.Println("GatherCandidates done")
+
+	time.Sleep(time.Second * 3)
+
+	jbyt, _ := json.MarshalIndent(candidates, "", "  ")
+	fmt.Println(string(jbyt))
+
+	_, err = http.Post(
+		"https://8ca70b82a4b0.ngrok.io/candidate",
+		"application/json",
+		bytes.NewReader(jbyt))
+
+	if err != nil {
+		panic(err)
+	}
+
+	time.Sleep(time.Second * 4)
+
+	other, _ := json.MarshalIndent(Controlling{IsControlling: isControlling}, "", "  ")
+	resp, err := http.Post(
+		"https://8ca70b82a4b0.ngrok.io/exchange",
+		"application/json",
+		bytes.NewReader(other))
+	if err != nil {
+		panic(err)
+	}
+
+	var remote ICEInfo
+	err = json.NewDecoder(resp.Body).Decode(&remote)
+	if err != nil {
+		panic(err)
+	}
+
+	fmt.Println("exchange: ", remote)
+
+	//remoteUfrag := <-remoteAuthChannel
+	//remotePwd := <-remoteAuthChannel
+
+	for _, itm := range remote.Candidates {
+		can, err := ice.UnmarshalCandidate(itm)
 		if err != nil {
 			panic(err)
 		}
 
-		fmt.Printf("Listening for ICE TCP at %s\n", tcpListener.Addr())
+		err = iceAgent.AddRemoteCandidate(can)
+		if err != nil {
+			panic(err)
+		}
+	}
 
-		tcpMux := webrtc.NewICETCPMux(nil, tcpListener, 8)
-		settingEngine.SetICETCPMux(tcpMux)
+	var conn *ice.Conn
 
-		api := webrtc.NewAPI(webrtc.WithSettingEngine(settingEngine))
-		if peerConnection, err = api.NewPeerConnection(webrtc.Configuration{}); err != nil {
+	// Start the ICE Agent. One side must be controlled, and the other must be controlling
+	if isControlling {
+		conn, err = iceAgent.Dial(context.Background(), remote.LocalUfrag, remote.LocalPwd)
+	} else {
+		conn, err = iceAgent.Accept(context.Background(), remote.LocalUfrag, remote.LocalPwd)
+	}
+	if err != nil {
+		panic(err)
+	}
+
+	fmt.Println("RemoteAddr:", conn.RemoteAddr())
+
+	//server := grpc.NewServer()
+	//pb.RegisterBrokerServer(server, &brk)
+	//pb.RegisterStorageServer(server, &storage.Server{})
+	//err = server.Serve(conn)
+
+	// Send messages in a loop to the remote peer
+	go func() {
+		for {
+			time.Sleep(time.Second * 3)
+
+			val, err := randutil.GenerateCryptoRandomString(15, "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
+			if err != nil {
+				panic(err)
+			}
+			if _, err = conn.Write([]byte(val)); err != nil {
+				panic(err)
+			}
+
+			fmt.Printf("Sent: '%s'\n", val)
+		}
+	}()
+
+	// Receive messages in a loop from the remote peer
+	buf := make([]byte, 1500)
+	for {
+		n, err := conn.Read(buf)
+		if err != nil {
 			panic(err)
 		}
 
-		// Set the handler for ICE connection state
-		// This will notify you when the peer has connected/disconnected
-		peerConnection.OnICEConnectionStateChange(func(connectionState webrtc.ICEConnectionState) {
-			fmt.Printf("ICE Connection State has changed: %s\n", connectionState.String())
-		})
-
-		// Send the current time via a DataChannel to the remote peer every 3 seconds
-		peerConnection.OnDataChannel(func(d *webrtc.DataChannel) {
-			d.OnOpen(func() {
-				for range time.Tick(time.Second * 3) {
-					if err = d.SendText(time.Now().String()); err != nil {
-						panic(err)
-					}
-				}
-			})
-
-			d.OnMessage(func(msg webrtc.DataChannelMessage) {
-				fmt.Println("msg.Data", string(msg.Data))
-			})
-		})
+		fmt.Printf("Received: '%s'\n", string(buf[:n]))
 	}
-
-	var offer webrtc.SessionDescription
-	if err = json.NewDecoder(r.Body).Decode(&offer); err != nil {
-		panic(err)
-	}
-
-	offByt, err := json.MarshalIndent(offer, "", "  ")
-	if err != nil {
-		panic(err)
-	}
-
-	fmt.Println("offer:", string(offByt))
-
-	if err = peerConnection.SetRemoteDescription(offer); err != nil {
-		panic(err)
-	}
-
-	// Create channel that is blocked until ICE Gathering is complete
-	gatherComplete := webrtc.GatheringCompletePromise(peerConnection)
-
-	answer, err := peerConnection.CreateAnswer(nil)
-	if err != nil {
-		panic(err)
-	} else if err = peerConnection.SetLocalDescription(answer); err != nil {
-		panic(err)
-	}
-
-	// Block until ICE Gathering is complete, disabling trickle ICE
-	// we do this because we only can exchange one signaling message
-	// in a production application you should exchange ICE Candidates via OnICECandidate
-	<-gatherComplete
-
-	response, err := json.MarshalIndent(*peerConnection.LocalDescription(), "", "  ")
-	if err != nil {
-		panic(err)
-	}
-
-	fmt.Println("response:", string(response))
-
-	w.Header().Set("Content-Type", "application/json")
-	if _, err := w.Write(response); err != nil {
-		panic(err)
-	}
-}
-
-func main() {
-	http.Handle("/", http.FileServer(http.Dir(".")))
-	http.HandleFunc("/doSignaling", doSignaling)
-
-	fmt.Println("Open http://localhost:8080 to access this demo")
-	panic(http.ListenAndServe(":8080", nil))
 }
