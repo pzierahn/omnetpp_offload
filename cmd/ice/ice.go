@@ -1,13 +1,17 @@
 package main
 
 import (
+	"bufio"
 	"bytes"
 	"context"
 	"encoding/json"
 	"flag"
 	"fmt"
 	"github.com/pion/randutil"
+	"net"
 	"net/http"
+	"os"
+	"strings"
 	"time"
 
 	"github.com/pion/ice/v2"
@@ -29,7 +33,7 @@ var (
 	iceAgent      *ice.Agent
 )
 
-func main() {
+func main2() {
 	var err error
 
 	flag.BoolVar(&isControlling, "controlling", false, "is ICE Agent controlling")
@@ -62,6 +66,8 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
+
+	//fmt.Println("localUfrag:", iceAgent.Local)
 
 	var candidates ICEInfo
 	candidates.IsControlling = isControlling
@@ -201,5 +207,83 @@ func main() {
 		}
 
 		fmt.Printf("Received: '%s'\n", string(buf[:n]))
+	}
+}
+
+var serverAddress string
+var connect string
+
+func server() {
+
+	fmt.Println("[SERVER] Start server listener on", serverAddress)
+
+	//list, err := net.Listen("tcp", "31.18.129.212:51088")
+	list, err := net.Listen("tcp", serverAddress)
+	if err != nil {
+		panic(err)
+	}
+
+	fmt.Println("[SERVER] Wait for accept...")
+
+	c, err := list.Accept()
+	if err != nil {
+		panic(err)
+	}
+
+	fmt.Println("[SERVER] Wait for accepted from", c.RemoteAddr())
+
+	for {
+		netData, err := bufio.NewReader(c).ReadString('\n')
+		if err != nil {
+			panic(err)
+		}
+		if strings.TrimSpace(netData) == "STOP" {
+			panic("Exiting TCP server!")
+		}
+
+		fmt.Print("-> ", string(netData))
+		t := time.Now()
+		myTime := t.Format(time.RFC3339) + "\n"
+		_, err = c.Write([]byte(myTime))
+		if err != nil {
+			panic(err)
+		}
+	}
+}
+
+func main() {
+
+	flag.StringVar(&serverAddress, "localAddr", "", "")
+	flag.StringVar(&connect, "connect", "", "")
+	flag.Parse()
+
+	go server()
+
+	time.Sleep(time.Second * 2)
+
+	c, err := net.Dial("tcp", connect)
+	if err != nil {
+		panic(err)
+	}
+
+	for {
+		reader := bufio.NewReader(os.Stdin)
+		fmt.Print(">> ")
+		text, err := reader.ReadString('\n')
+		if err != nil {
+			panic(err)
+		}
+
+		_, err = fmt.Fprintf(c, text+"\n")
+		if err != nil {
+			panic(err)
+		}
+
+		message, _ := bufio.NewReader(c).ReadString('\n')
+		fmt.Print("->: " + message)
+		if strings.TrimSpace(string(text)) == "STOP" {
+			fmt.Println("TCP client exiting...")
+			return
+		}
 	}
 }

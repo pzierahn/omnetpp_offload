@@ -1,0 +1,9 @@
+{
+    "iniFile": "omnetpp.ini",
+    "simulation": "simulation",
+    "useLib": true,
+    "resultsPath": "results/",
+    "run": [
+        "TicToc18"
+    ]
+}

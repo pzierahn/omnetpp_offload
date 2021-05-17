@@ -1,15 +1,22 @@
 package main
 
-import (
-	"flag"
-	"fmt"
-	"google.golang.org/grpc/benchmark/flags"
-)
+import "fmt"
 
 const input = "/Users/patrick/Desktop/xxx/tictoc"
 const mirror = "/Users/patrick/Desktop/xxx/tictoc-mirror"
 
+type set map[string]bool
+
+func (set set) Add(str string) {
+	set[str] = true
+}
+
 func main() {
+
+	test := make(set)
+	test.Add("hallo")
+
+	fmt.Println(test)
 
 	//_, err := simple.TarGz("../TaskletSimulator", "test",
 	//	"\\.git", ".DS_Store", ".idea", "out/clang-release/src/messages/DataRequestMessage_m.o")
@@ -22,11 +29,11 @@ func main() {
 	//	panic(err)
 	//}
 
-	test := flags.StringSlice("list", []string{"1", "2"}, "")
-
-	flag.Parse()
-
-	fmt.Println("test", *test)
+	//test := flags.StringSlice("list", []string{"1", "2"}, "")
+	//
+	//flag.Parse()
+	//
+	//fmt.Println("test", *test)
 	//fmt.Println("name", simple.GetHostnameShort())
 	//
 	//dir, _ := os.UserCacheDir()
