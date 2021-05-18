@@ -52,7 +52,7 @@ func (c *brokerClient) ProviderLoad(ctx context.Context, in *ProviderId, opts ..
 }
 
 type Broker_ProviderLoadClient interface {
-	Recv() (*ProviderState, error)
+	Recv() (*ProviderOverview, error)
 	grpc.ClientStream
 }
 
@@ -60,8 +60,8 @@ type brokerProviderLoadClient struct {
 	grpc.ClientStream
 }
 
-func (x *brokerProviderLoadClient) Recv() (*ProviderState, error) {
-	m := new(ProviderState)
+func (x *brokerProviderLoadClient) Recv() (*ProviderOverview, error) {
+	m := new(ProviderOverview)
 	if err := x.ClientStream.RecvMsg(m); err != nil {
 		return nil, err
 	}
@@ -218,7 +218,7 @@ func _Broker_ProviderLoad_Handler(srv interface{}, stream grpc.ServerStream) err
 }
 
 type Broker_ProviderLoadServer interface {
-	Send(*ProviderState) error
+	Send(*ProviderOverview) error
 	grpc.ServerStream
 }
 
@@ -226,7 +226,7 @@ type brokerProviderLoadServer struct {
 	grpc.ServerStream
 }
 
-func (x *brokerProviderLoadServer) Send(m *ProviderState) error {
+func (x *brokerProviderLoadServer) Send(m *ProviderOverview) error {
 	return x.ServerStream.SendMsg(m)
 }
 

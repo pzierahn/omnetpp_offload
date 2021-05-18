@@ -17,6 +17,7 @@ var (
 func init() {
 	flag.BoolVar(&clean, "clean", false, "clean broker")
 	flag.IntVar(&config.Port, "port", defines.DefaultPort, "set broker port")
+	flag.BoolVar(&config.WebInterface, "web", true, "start web service")
 }
 
 func main() {

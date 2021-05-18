@@ -10,7 +10,7 @@ import "storage.proto";
 import "opp_config.proto";
 
 service Broker {
-  rpc ProviderLoad     (ProviderId)           returns (stream ProviderState) {}
+  rpc ProviderLoad     (ProviderId)           returns (stream ProviderOverview) {}
   rpc WorkSubscription (stream ProviderState) returns (stream Work)          {}
 
   rpc SimNew      (Simulation)   returns (SimulationId) {}
@@ -94,4 +94,8 @@ message Simulation {
   string simulationId = 1;
   string tag = 2;
   OppConfig oppConfig = 3;
+}
+
+message ProviderOverview {
+  repeated ProviderState providers = 1;
 }

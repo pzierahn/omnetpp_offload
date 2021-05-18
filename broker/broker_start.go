@@ -32,6 +32,10 @@ func Start(conf Config) (err error) {
 		simulations: newSimulationManager(),
 	}
 
+	if conf.WebInterface {
+		go brk.startWebService()
+	}
+
 	server := grpc.NewServer()
 	pb.RegisterBrokerServer(server, &brk)
 	pb.RegisterStorageServer(server, &storage.Server{})
