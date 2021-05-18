@@ -11,6 +11,9 @@ func (server *broker) pStatusHandle(writer http.ResponseWriter, request *http.Re
 	server.providers.RLock()
 	defer server.providers.RUnlock()
 
+	writer.Header().Set("Content-Type", "application/json")
+	writer.Header().Set("Access-Control-Allow-Origin", "*")
+
 	providers := make([]*pb.ProviderState, len(server.providers.provider))
 
 	inx := 0
