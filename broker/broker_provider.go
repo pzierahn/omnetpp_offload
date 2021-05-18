@@ -45,17 +45,13 @@ func (pm *providerManager) update(state *pb.ProviderState) {
 	pm.RUnlock()
 }
 
-func (pm *providerManager) remove(state *pb.ProviderState) {
+func (pm *providerManager) remove(id providerId) {
 
-	if state == nil {
-		return
-	}
-
-	id := pId(state)
 	logger.Printf("remove: id=%v", id)
 
 	pm.Lock()
 	delete(pm.provider, id)
+	delete(pm.listener, id)
 	delete(pm.work, id)
 	pm.Unlock()
 }

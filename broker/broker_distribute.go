@@ -3,11 +3,11 @@ package broker
 import pb "github.com/patrickz98/project.go.omnetpp/proto"
 
 func (server *broker) distribute() {
-	logger.Printf("distribute work!")
+	// logger.Printf("distribute work!")
 
 	for id, providerState := range server.providers.provider {
-		arch := osArchId(providerState.Arch)
-		logger.Printf("%s arch=%s usage=%3.0f%%", id, arch, providerState.CpuUsage)
+		// arch := osArchId(providerState.Arch)
+		// logger.Printf("%s arch=%s usage=%3.0f%%", id, arch, providerState.CpuUsage)
 
 		if providerState.CpuUsage >= 50.0 {
 			//

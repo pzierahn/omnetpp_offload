@@ -26,6 +26,8 @@ func (server *broker) WorkSubscription(stream pb.Broker_WorkSubscriptionServer) 
 		return
 	}
 
+	logger.Printf("connected %s", workerId)
+
 	workStream := make(chan *pb.Work)
 	defer close(workStream)
 
@@ -58,7 +60,9 @@ func (server *broker) WorkSubscription(stream pb.Broker_WorkSubscriptionServer) 
 		server.providers.update(state)
 	}
 
-	server.providers.remove(state)
+	logger.Printf("disconnect %s", workerId)
+
+	server.providers.remove(workerId)
 
 	return
 }
