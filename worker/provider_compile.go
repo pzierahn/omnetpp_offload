@@ -1,7 +1,6 @@
 package worker
 
 import (
-	"github.com/patrickz98/project.go.omnetpp/compile"
 	pb "github.com/patrickz98/project.go.omnetpp/proto"
 )
 
@@ -14,7 +13,7 @@ func (client *workerConnection) compile(compileJob *pb.Work_Compile) {
 		panic(err)
 	}
 
-	compiler := compile.Compiler{
+	compiler := Compiler{
 		Broker:         client.broker,
 		Storage:        client.storage,
 		SimulationId:   simulation.SimulationId,
@@ -27,7 +26,7 @@ func (client *workerConnection) compile(compileJob *pb.Work_Compile) {
 		panic(err)
 	}
 
-	err = compiler.Checkin()
+	err = compiler.CheckinBinary()
 	if err != nil {
 		panic(err)
 	}

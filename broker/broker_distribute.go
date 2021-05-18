@@ -5,9 +5,9 @@ import pb "github.com/patrickz98/project.go.omnetpp/proto"
 func (server *broker) distribute() {
 	logger.Printf("distribute work!")
 
-	for providerId, providerState := range server.providers.provider {
-		osArch := osArchId(providerState.Arch)
-		logger.Printf("%s arch=%s usage=%3.0f%%", providerId, osArch, providerState.CpuUsage)
+	for id, providerState := range server.providers.provider {
+		arch := osArchId(providerState.Arch)
+		logger.Printf("%s arch=%s usage=%3.0f%%", id, arch, providerState.CpuUsage)
 
 		if providerState.CpuUsage >= 50.0 {
 			//
@@ -23,7 +23,7 @@ func (server *broker) distribute() {
 
 			logger.Printf("--> compile='%s'", compile)
 
-			server.providers.work[providerId] <- &pb.Work{
+			server.providers.work[id] <- &pb.Work{
 				Work: &pb.Work_Compile{Compile: compile},
 			}
 
@@ -42,7 +42,7 @@ func (server *broker) distribute() {
 
 		logger.Printf("--> task='%v'", task)
 
-		server.providers.work[providerId] <- &pb.Work{
+		server.providers.work[id] <- &pb.Work{
 			Work: &pb.Work_Task{Task: task},
 		}
 	}

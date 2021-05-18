@@ -6,6 +6,7 @@ import (
 	"github.com/patrickz98/project.go.omnetpp/storage"
 	"google.golang.org/grpc"
 	"net"
+	"time"
 )
 
 type broker struct {
@@ -34,6 +35,12 @@ func Start(conf Config) (err error) {
 	server := grpc.NewServer()
 	pb.RegisterBrokerServer(server, &brk)
 	pb.RegisterStorageServer(server, &storage.Server{})
+
+	go func() {
+		for range time.Tick(time.Second * 4) {
+			brk.distribute()
+		}
+	}()
 
 	err = server.Serve(lis)
 

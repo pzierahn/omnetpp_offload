@@ -24,8 +24,6 @@ func (server *broker) SimAddTasks(_ context.Context, tasks *pb.Tasks) (resp *pb.
 	sState := server.simulations.getSimulationState(tasks.SimulationId)
 	sState.addTasks(tasks.Items...)
 
-	go server.distribute()
-
 	resp = &pb.Empty{}
 
 	return

@@ -3,10 +3,10 @@ package distribute
 import (
 	"context"
 	"fmt"
-	"github.com/patrickz98/project.go.omnetpp/compile"
 	"github.com/patrickz98/project.go.omnetpp/gconfig"
 	pb "github.com/patrickz98/project.go.omnetpp/proto"
 	"github.com/patrickz98/project.go.omnetpp/storage"
+	"github.com/patrickz98/project.go.omnetpp/worker"
 	"google.golang.org/grpc"
 	"path/filepath"
 )
@@ -46,7 +46,7 @@ func Run(gConf gconfig.GRPCConnection, config *Config) (err error) {
 	// Clean source folder and upload source
 	//
 
-	compiler := compile.Compiler{
+	compiler := worker.Compiler{
 		Broker:         broker,
 		Storage:        storage.ConnectClient(conn),
 		SimulationId:   simulationId.Id,
@@ -88,7 +88,7 @@ func Run(gConf gconfig.GRPCConnection, config *Config) (err error) {
 		return
 	}
 
-	err = compiler.Checkin()
+	err = compiler.CheckinBinary()
 	if err != nil {
 		err = fmt.Errorf("couldn't checkin simulation binary: %v", err)
 		return
