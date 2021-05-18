@@ -3,88 +3,83 @@ package worker
 import (
 	"context"
 	pb "github.com/patrickz98/project.go.omnetpp/proto"
+	"github.com/patrickz98/project.go.omnetpp/sysinfo"
 	"google.golang.org/grpc/metadata"
-	"sync"
+	"google.golang.org/protobuf/types/known/timestamppb"
+	"runtime"
+	"time"
 )
 
 func (client *workerConnection) StartLink(ctx context.Context) (err error) {
 
-	logger.Println("start worker", client.workerId)
+	logger.Println("start worker", client.providerId)
 
-	md := NewDeviceInfo(client.workerId).MarshallMeta()
+	md := NewDeviceInfo(client.providerId).MarshallMeta()
 	ctx = metadata.NewOutgoingContext(ctx, md)
 
-	// Link to the work stream
-	link, err := client.broker.TaskSubscription(ctx)
+	stream, err := client.broker.WorkSubscription(ctx)
 	if err != nil {
 		return
 	}
-	defer func() { _ = link.CloseSend() }()
 
-	exit := make(chan bool)
-	defer close(exit)
+	workStream := make(chan *pb.Work)
 
-	work := make(chan *pb.Task)
-	go func() {
+	for inx := 0; inx < client.agents; inx++ {
+		go func(inx int) {
+			for work := range workStream {
+				switch task := work.Work.(type) {
+				case *pb.Work_Task:
+					logger.Printf("(%d) Run simulation %v", inx, task)
+					client.runTasks(task)
 
-		//
-		// Single thread to receive tasks
-		//
-
-		for {
-			task, err := link.Recv()
-			if err != nil {
-				logger.Printf("work receiver: %v", err)
-				break
-			}
-
-			logger.Printf("receive work %v_%v_%v", task.SimulationId, task.Config, task.RunNumber)
-			work <- task
-		}
-
-		logger.Printf("exit work receiver")
-		close(work)
-	}()
-
-	var sendMu sync.Mutex
-
-	for idx := 0; idx < client.agents; idx++ {
-
-		//
-		// Start worker agents
-		//
-
-		go func(idx int) {
-			for {
-				logger.Printf("agent %d send work request", idx)
-
-				sendMu.Lock()
-				err = client.SendWorkRequest(link)
-				if err != nil {
-					logger.Printf("agent %d: %v", idx, err)
-					break
+				case *pb.Work_Compile:
+					logger.Printf("(%d) Compile simulation %v", inx, task)
+					client.compile(task)
 				}
-				sendMu.Unlock()
-
-				logger.Printf("agent %d waiting for work", idx)
-				task, ok := <-work
-				if !ok {
-					break
-				}
-
-				logger.Printf("agent %d received work (%s_%s_%s)",
-					idx, task.SimulationId, task.Config, task.RunNumber)
-
-				client.runTasks(task)
 			}
-
-			logger.Printf("agent %d exiting", idx)
-			exit <- true
-		}(idx)
+		}(inx)
 	}
 
-	for idx := 0; idx < client.agents; idx++ {
-		<-exit
+	go func() {
+		var work *pb.Work
+
+		for {
+			logger.Printf("Waiting for work...")
+
+			work, err = stream.Recv()
+			if err != nil {
+				panic(err)
+			}
+
+			logger.Printf("Received work %v", work)
+			workStream <- work
+		}
+
+	}()
+
+	for range time.Tick(time.Second) {
+		usage := sysinfo.GetCPUUsage()
+
+		// logger.Printf("Sending usage=%f", usage)
+
+		state := &pb.ProviderState{
+			ProviderId:  client.providerId,
+			CpuUsage:    float32(usage),
+			MemoryUsage: 0,
+			Arch: &pb.OsArch{
+				Os:   runtime.GOOS,
+				Arch: runtime.GOARCH,
+			},
+			NumCPUs: uint32(runtime.NumCPU()),
+			Tasks:   nil,
+			Compile: "",
+			Updated: timestamppb.Now(),
+		}
+
+		err = stream.Send(state)
+		if err != nil {
+			return
+		}
 	}
 
 	logger.Println("closing connection to broker")

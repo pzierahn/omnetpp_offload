@@ -103,10 +103,13 @@ func (project *OmnetProject) Clean() (err error) {
 	return
 }
 
-func (project *OmnetProject) Setup() (err error) {
-	err = project.Clean()
-	if err != nil {
-		return
+func (project *OmnetProject) Setup(clean bool) (err error) {
+
+	if clean {
+		err = project.Clean()
+		if err != nil {
+			return
+		}
 	}
 
 	err = project.MakeMake()

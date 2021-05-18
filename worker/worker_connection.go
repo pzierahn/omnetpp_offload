@@ -10,12 +10,12 @@ import (
 )
 
 type workerConnection struct {
-	workerId string
-	config   gconfig.Worker
-	conn     *grpc.ClientConn
-	broker   pb.BrokerClient
-	storage  storage.Client
-	agents   int
+	providerId string
+	config     gconfig.Worker
+	conn       *grpc.ClientConn
+	broker     pb.BrokerClient
+	storage    storage.Client
+	agents     int
 }
 
 func (client *workerConnection) Close() (err error) {
@@ -38,11 +38,11 @@ func Init(config gconfig.Config) (worker *workerConnection, err error) {
 	}
 
 	worker = &workerConnection{
-		workerId: simple.NamedId(config.Worker.Name, 8),
-		conn:     conn,
-		broker:   pb.NewBrokerClient(conn),
-		storage:  storage.InitClient(config.Broker),
-		agents:   config.Worker.DevoteCPUs,
+		providerId: simple.NamedId(config.Worker.Name, 8),
+		conn:       conn,
+		broker:     pb.NewBrokerClient(conn),
+		storage:    storage.InitClient(config.Broker),
+		agents:     config.Worker.DevoteCPUs,
 	}
 
 	return

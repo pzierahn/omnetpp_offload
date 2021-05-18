@@ -1,0 +1,30 @@
+syntax = "proto3";
+package service;
+
+option go_package = "./proto";
+
+message OppConfig {
+  // buildscript
+  string buildScript = 1;
+
+  // This is the directory in which the simulation will be executed
+  string basePath = 2;
+
+  // Simulation ini files
+  repeated string iniFiles = 3;
+
+  // Ned include directories
+  repeated string nedPaths = 4;
+
+  // Run opp_run -l ... instead of running the simulation directly
+  bool useLib = 5;
+
+  // Simulation exe or lib
+  string simulation = 6;
+
+  // Source code directory
+  string sourcePath = 7;
+
+  // Results directory (default is basePath/results)
+  string resultsPath = 8;
+}

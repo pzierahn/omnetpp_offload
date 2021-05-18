@@ -11,8 +11,7 @@ import (
 	"regexp"
 )
 
-func TarGz(path, dirname string, exclude ...string) (buffer bytes.Buffer, err error) {
-
+func TarGzFiles(path, dirname string, files map[string]bool) (buffer bytes.Buffer, err error) {
 	zr := gzip.NewWriter(&buffer)
 	defer func() {
 		_ = zr.Close()
@@ -23,19 +22,19 @@ func TarGz(path, dirname string, exclude ...string) (buffer bytes.Buffer, err er
 		_ = tw.Close()
 	}()
 
-	walker := func(walkPath string, info os.FileInfo, inErr error) (err error) {
+	for walkPath := range files {
 
-		err = inErr
+		info, err := os.Stat(walkPath)
 
 		if err != nil || info.IsDir() {
-			return
+			continue
 		}
 
 		isSymlink := (info.Mode() & os.ModeSymlink) == os.ModeSymlink
 
 		if !info.Mode().IsRegular() && !isSymlink {
 			logger.Printf("skipping '%s', it has unknown file type '%v'\n", walkPath, info.Mode())
-			return
+			continue
 		}
 
 		var link string
@@ -43,7 +42,7 @@ func TarGz(path, dirname string, exclude ...string) (buffer bytes.Buffer, err er
 		if isSymlink {
 			link, err = filepath.EvalSymlinks(walkPath)
 			if err != nil {
-				return
+				break
 			}
 
 			wDir, _ := filepath.Split(walkPath)
@@ -51,7 +50,7 @@ func TarGz(path, dirname string, exclude ...string) (buffer bytes.Buffer, err er
 
 			link, err = filepath.Rel(wDir, lDir)
 			if err != nil {
-				return
+				break
 			}
 			link = filepath.Join(link, linkFile)
 		}
@@ -60,10 +59,49 @@ func TarGz(path, dirname string, exclude ...string) (buffer bytes.Buffer, err er
 		header, err := tar.FileInfoHeader(info, link)
 		if err != nil {
 			err = fmt.Errorf("error creating header for %s: %v", walkPath, err)
-			return
+			break
 		}
 
 		//logger.Println("############", info.Name(), header.Linkname)
+
+		relPath, err := filepath.Rel(path, walkPath)
+		if err != nil {
+			break
+		}
+
+		header.Name = filepath.Join(dirname, relPath)
+
+		if err = tw.WriteHeader(header); err != nil {
+			err = fmt.Errorf("error writing file %s: %v", walkPath, err)
+			break
+		}
+
+		if info.Mode().IsRegular() {
+			var input *os.File
+			input, err = os.Open(walkPath)
+			if err != nil {
+				err = fmt.Errorf("error open file %s: %v", walkPath, err)
+				break
+			}
+
+			_, err = io.Copy(tw, input)
+			if err != nil {
+				err = fmt.Errorf("error copying file %s: %v", walkPath, err)
+				break
+			}
+
+			err = input.Close()
+		}
+	}
+
+	return
+}
+
+func TarGz(path, dirname string, exclude ...string) (buffer bytes.Buffer, err error) {
+
+	files := make(map[string]bool)
+
+	walker := func(walkPath string, info os.FileInfo, inErr error) (err error) {
 
 		relPath, err := filepath.Rel(path, walkPath)
 		if err != nil {
@@ -77,34 +115,14 @@ func TarGz(path, dirname string, exclude ...string) (buffer bytes.Buffer, err er
 			}
 		}
 
-		header.Name = filepath.Join(dirname, relPath)
-
-		if err = tw.WriteHeader(header); err != nil {
-			err = fmt.Errorf("error writing file %s: %v", walkPath, err)
-			return
-		}
-
-		if info.Mode().IsRegular() {
-			var input *os.File
-			input, err = os.Open(walkPath)
-			if err != nil {
-				err = fmt.Errorf("error open file %s: %v", walkPath, err)
-				return
-			}
-
-			_, err = io.Copy(tw, input)
-			if err != nil {
-				err = fmt.Errorf("error copying file %s: %v", walkPath, err)
-				return
-			}
-
-			err = input.Close()
-		}
+		files[walkPath] = true
 
 		return
 	}
 
 	err = filepath.Walk(path, walker)
+
+	buffer, err = TarGzFiles(path, dirname, files)
 
 	return
 }

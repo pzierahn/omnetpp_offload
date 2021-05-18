@@ -43,7 +43,7 @@ func (client *Client) Upload(data io.Reader, meta FileMeta) (ref *pb.StorageRef,
 		return
 	}
 
-	logger.Printf("upload %v->%v in %v\n", meta.Bucket, meta.Filename, time.Now().Sub(start))
+	logger.Printf("upload %v in %v\n", meta, time.Now().Sub(start))
 
 	return
 }

@@ -13,6 +13,5 @@ func init() {
 
 func main() {
 
-	stateinfo.Workers(config.Broker, nil)
-	stateinfo.Status(config.Broker, nil)
+	stateinfo.Workers(config.Broker)
 }

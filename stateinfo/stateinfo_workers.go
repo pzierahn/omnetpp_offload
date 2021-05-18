@@ -9,12 +9,14 @@ import (
 	"google.golang.org/grpc"
 )
 
-func Workers(config gconfig.GRPCConnection, simulationIds []string) {
+func Workers(config gconfig.GRPCConnection) {
+
+	logger.Printf("connect to %v", config.DialAddr())
 
 	conn, err := grpc.Dial(config.DialAddr(), grpc.WithInsecure(), grpc.WithBlock())
 	if err != nil {
 		err = fmt.Errorf("did not connect: %v", err)
-		panic(err)
+		return
 	}
 	defer func() {
 		_ = conn.Close()
@@ -22,13 +24,18 @@ func Workers(config gconfig.GRPCConnection, simulationIds []string) {
 
 	client := pb.NewBrokerClient(conn)
 
-	status, err := client.WorkerInfo(context.Background(), &pb.WorkerInfoRequest{})
+	stream, err := client.ProviderLoad(context.Background(), &pb.ProviderId{Id: "patricks-mbp-ea11aab0"})
 	if err != nil {
-		panic(err)
+		logger.Fatalln(err)
 	}
 
-	jbyt, _ := json.MarshalIndent(status, "", "  ")
-	fmt.Println(string(jbyt))
+	for {
+		pstate, err := stream.Recv()
+		if err != nil {
+			logger.Fatalln(err)
+		}
 
-	return
+		jsonBytes, _ := json.MarshalIndent(pstate, "", "  ")
+		logger.Printf("%s", string(jsonBytes))
+	}
 }

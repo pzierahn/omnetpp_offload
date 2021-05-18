@@ -8,7 +8,7 @@ import (
 )
 
 type DeviceInfo struct {
-	WorkerId string `json:"workerId"`
+	WorkerId string `json:"providerId"`
 	Os       string `json:"os"`
 	Arch     string `json:"arch"`
 	NumCPUs  int    `json:"numCPUs"`
@@ -17,10 +17,10 @@ type DeviceInfo struct {
 func (info DeviceInfo) MarshallMeta() (md metadata.MD) {
 
 	md = metadata.New(map[string]string{
-		"workerId": info.WorkerId,
-		"os":       info.Os,
-		"arch":     info.Arch,
-		"numCPUs":  fmt.Sprint(info.NumCPUs),
+		"providerId": info.WorkerId,
+		"os":         info.Os,
+		"arch":       info.Arch,
+		"numCPUs":    fmt.Sprint(info.NumCPUs),
 	})
 
 	return
@@ -28,7 +28,7 @@ func (info DeviceInfo) MarshallMeta() (md metadata.MD) {
 
 func (info *DeviceInfo) UnMarshallMeta(md metadata.MD) {
 
-	info.WorkerId = utils.MetaStringFallback(md, "workerId", "")
+	info.WorkerId = utils.MetaStringFallback(md, "providerId", "")
 	info.Os = utils.MetaStringFallback(md, "os", "")
 	info.Arch = utils.MetaStringFallback(md, "arch", "")
 	info.NumCPUs = utils.MetaIntFallback(md, "numCPUs", 0)

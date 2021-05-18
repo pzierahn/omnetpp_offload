@@ -3,163 +3,95 @@ package service;
 
 option go_package = "./proto";
 
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/duration.proto";
+
 import "storage.proto";
+import "opp_config.proto";
 
 service Broker {
-  rpc ExecuteSimulation (Simulation)         returns (SimulationReply) {}
-  rpc TaskSubscription  (stream WorkRequest) returns (stream Task)     {}
-  rpc PutResults        (TaskResult)         returns (WorkAffirmation) {}
-  rpc GetResults        (ResultsRequest)     returns (TaskResults)     {}
-  rpc SimulationStatus  (StatusRequest)      returns (StatusReply)     {}
-  rpc WorkerInfo        (WorkerInfoRequest)  returns (WorkerInfoReply) {}
+  rpc ProviderLoad     (ProviderId)           returns (stream ProviderState) {}
+  rpc WorkSubscription (stream ProviderState) returns (stream Work)          {}
+
+  rpc SimNew      (Simulation)   returns (SimulationId) {}
+  rpc SimAddTasks (Tasks)        returns (Empty)        {}
+  rpc SetSource   (Source)       returns (Empty)        {}
+  rpc GetSource   (SimulationId) returns (StorageRef)   {}
+  rpc AddBinary   (SimBinary)    returns (Empty)        {}
+  rpc GetBinary   (OsArch)       returns (StorageRef)   {}
 }
 
-message ResultsRequest {
+message Empty {}
+
+message OsArch {
+  string os = 1;
+  string arch = 2;
+}
+
+message Work {
+  oneof work {
+    Task task = 1;
+    Simulation compile = 2;
+  }
+}
+
+message SimBinary {
   string simulationId = 1;
+  OsArch arch = 2;
+  StorageRef binary = 4;
 }
 
-message TaskResults {
-  repeated TaskResult results = 1;
-}
-
-message WorkerInfoRequest {
-}
-
-message WorkerInfoReply {
-  message WorkerInfo {
-    string workerId = 1;
-    string os = 2;
-    string arch = 3;
-    uint32 numCPUs = 4;
-    uint32 freeResource = 5;
-  }
-
-  repeated WorkerInfo items = 1;
-}
-
-message StatusRequest {
-  repeated string simulationIds = 1;
-}
-
-message SimulationStatus {
+message Source {
   string simulationId = 1;
-
-  message QueueInfo {
-    string config = 1;
-    string runNum = 2;
-  }
-
-  repeated QueueInfo queue = 2;
-
-  message Assignment {
-    QueueInfo config = 1;
-    string workerId = 2;
-  }
-
-  repeated Assignment assigned = 3;
-  repeated QueueInfo finished = 4;
+  StorageRef source = 2;
 }
 
-message StatusReply {
-  repeated SimulationStatus items = 1;
+message SimulationId {
+  string id = 1;
 }
 
-message WorkRequest {
-  // Workers id
-  string workerId = 1;
+message ProviderId {
+  string id = 1;
 }
 
 message Task {
-  // Simulation Id
-  string simulationId = 1;
-
-  // Simulation Config
-  OppConfig oppConfig = 2;
-
-  // Path to simulation source code
-  StorageRef source = 3;
-
-  // Simulation config name (-c argument)
-  string config = 4;
-
-  // Simulation run (-r argument)
-  string runNumber = 5;
+	string simulationId  = 1;
+  string config  = 2;
+	string runNumber  = 3;
+	float progress  = 4;
+	google.protobuf.Duration executionTime  = 5;
+	StorageRef results  = 6;
 }
 
-message OppConfig {
-  // buildscript
-  string buildScript = 1;
+message Tasks {
+  string simulationId = 1;
+  repeated Task items = 2;
+}
 
-  // This is the directory in which the simulation will be executed
-  string basePath = 2;
+message ProviderState {
+  //
+  // Metadata
+  //
 
-  // Simulation ini files
-  repeated string iniFiles = 3;
+  string providerId = 1;
+  OsArch arch = 2;
+  uint32 numCPUs = 3;
 
-  // Ned include directories
-  repeated string nedPaths = 4;
+  //
+  // Updatable
+  //
 
-  // Run opp_run -l ... instead of running the simulation directly
-  bool useLib = 5;
+  float cpuUsage = 4;
+  float memoryUsage = 5;
+  google.protobuf.Timestamp updated = 6;
 
-  // Simulation exe or lib
-  string simulation = 6;
-
-  // Source code directory
-  string sourcePath = 7;
-
-  // Results directory (default is basePath/results)
-  string resultsPath = 8;
+  // Maybe move this to broker to prevent too many assiments
+  map<string, Task> tasks = 7;
+  string compile = 8;
 }
 
 message Simulation {
-  // Name tag
   string simulationId = 1;
-
-  // Name tag
   string tag = 2;
-
-  // Simulation config
   OppConfig oppConfig = 3;
-
-  // Simulation source reference
-  StorageRef source = 4;
-
-  message RunConfig {
-    // Name of the configuration, this will be passed as -c parameter
-    string config = 1;
-
-    // Array with configuration numbers, this will be passed with -r
-    repeated string runNumbers = 2;
-  }
-
-  // Simulation configs that shall be executed
-  repeated RunConfig run = 5;
-}
-
-message SimulationReply {
-  // Simulation id
-  string simulationId = 1;
-
-  // Check for success
-  optional string error = 2;
-}
-
-message TaskResult {
-  // Work
-  Task task = 1;
-
-  // Error
-  string error = 2;
-
-  // Results path
-  StorageRef results = 3;
-}
-
-message WorkAffirmation {
-  // Simulation ID
-  string simulationId = 1;
-
-  // Check this var for error handling
-  string error = 2;
 }
