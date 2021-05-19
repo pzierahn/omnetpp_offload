@@ -74,26 +74,19 @@ message Utilization {
   google.protobuf.Timestamp updated = 3;
 }
 
-//message ProviderState {
-//  //
-//  // Metadata
-//  //
-//
-//  string providerId = 1;
-//  Arch arch = 2;
-//  uint32 numCPUs = 3;
-//
-//  //
-//  // Updatable
-//  //
-//
-//  float cpuUsage = 4;
-//  float memoryUsage = 5;
-//  google.protobuf.Timestamp updated = 6;
-//
-//  // Maybe move this to broker to prevent too many assiments
-//  repeated Assignment assignments = 7;
-//}
+message ProviderState {
+  string providerId = 1;
+  Arch arch = 2;
+  uint32 numCPUs = 3;
+  float cpuUsage = 4;
+  float memoryUsage = 5;
+  google.protobuf.Timestamp updated = 6;
+  map<string, Assignment> assignments = 7;
+}
+
+message ProviderOverview {
+  repeated ProviderState items = 1;
+}
 
 message Simulation {
   string simulationId = 1;

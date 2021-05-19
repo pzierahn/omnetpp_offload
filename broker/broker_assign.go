@@ -62,7 +62,7 @@ func (server *broker) Assignments(stream pb.Broker_AssignmentsServer) (err error
 	go func() {
 		for assignment := range node.assign {
 
-			logger.Printf("assign %s to '%v'", node.id, assignment)
+			logger.Printf("%s assigned '%v'", node.id, assignment)
 
 			err = stream.Send(assignment)
 			if err != nil {
