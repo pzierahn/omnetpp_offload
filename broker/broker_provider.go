@@ -95,6 +95,14 @@ func (node *provider) busy() (busy bool) {
 	node.RLock()
 	defer node.RUnlock()
 
+	for _, assignment := range node.assignments {
+		switch assignment.Do.(type) {
+		case *pb.Assignment_Build:
+			busy = true
+			return
+		}
+	}
+
 	busy = (node.utilization == nil) ||
 		(node.utilization.CpuUsage >= 50.0) ||
 		(len(node.assignments) >= int(node.numCPUs))
