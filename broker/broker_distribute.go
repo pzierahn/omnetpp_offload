@@ -20,7 +20,6 @@ func (server *broker) distribute() {
 		logger.Printf("%s assignments=%d", id, len(node.assignments))
 
 		compile := server.simulations.pullCompile(node.arch)
-
 		if compile != nil {
 
 			node.assignWork(&pb.Assignment{
@@ -31,17 +30,12 @@ func (server *broker) distribute() {
 		}
 
 		task := server.simulations.pullWork(node.arch)
+		if task != nil {
+			node.assignWork(&pb.Assignment{
+				Do: &pb.Assignment_Run{Run: task},
+			})
 
-		if task == nil {
-			//
-			// No work
-			//
-
-			break
+			continue
 		}
-
-		node.assignWork(&pb.Assignment{
-			Do: &pb.Assignment_Run{Run: task},
-		})
 	}
 }
