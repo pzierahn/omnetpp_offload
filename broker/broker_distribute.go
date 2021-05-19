@@ -5,7 +5,7 @@ import pb "github.com/patrickz98/project.go.omnetpp/proto"
 func (server *broker) distribute() {
 	// logger.Printf("distribute work!")
 
-	for id, node := range server.providers.provider {
+	for _, node := range server.providers.provider {
 		// arch := osArchId(providerState.Arch)
 		// logger.Printf("%s arch=%s usage=%3.0f%%", id, arch, providerState.CpuUsage)
 
@@ -17,8 +17,6 @@ func (server *broker) distribute() {
 			continue
 		}
 
-		logger.Printf("%s assignments=%d", id, len(node.assignments))
-
 		compile := server.simulations.pullCompile(node.arch)
 		if compile != nil {
 
@@ -29,13 +27,17 @@ func (server *broker) distribute() {
 			continue
 		}
 
-		task := server.simulations.pullWork(node.arch)
-		if task != nil {
+		slots := node.freeSlots()
+		for inx := 0; inx < slots; inx++ {
+			task := server.simulations.pullWork(node.arch)
+			if task == nil {
+				// No jobs left
+				break
+			}
+
 			node.assignWork(&pb.Assignment{
 				Do: &pb.Assignment_Run{Run: task},
 			})
-
-			continue
 		}
 	}
 }

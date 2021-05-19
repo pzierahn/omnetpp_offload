@@ -25,7 +25,34 @@ func (server *broker) Assignments(stream pb.Broker_AssignmentsServer) (err error
 	if err != nil {
 		return
 	}
-	defer node.close()
+	defer func() {
+
+		logger.Printf("%s: reassign %d tasks", node.id, len(node.assignments))
+
+		for _, assignment := range node.assignments {
+
+			switch left := assignment.Do.(type) {
+			case *pb.Assignment_Build:
+				//
+				// TODO: Reassign compiling
+				//
+
+			case *pb.Assignment_Run:
+				//
+				// Reassign simulation runs
+				//
+
+				sState := server.simulations.getSimulationState(left.Run.SimulationId)
+				sState.write(func() {
+					id := tId(left.Run)
+					sState.queue[id] = true
+					sState.runs[id] = left.Run
+				})
+			}
+		}
+
+		node.close()
+	}()
 
 	logger.Printf("connected %s", node.id)
 
@@ -35,7 +62,7 @@ func (server *broker) Assignments(stream pb.Broker_AssignmentsServer) (err error
 	go func() {
 		for assignment := range node.assign {
 
-			logger.Printf("assign %s to %s", assignment, node.id)
+			logger.Printf("assign %s to '%v'", node.id, assignment)
 
 			err = stream.Send(assignment)
 			if err != nil {

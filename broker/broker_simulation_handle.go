@@ -22,10 +22,11 @@ func (server *broker) AddTasks(_ context.Context, tasks *pb.Tasks) (resp *pb.Emp
 	logger.Printf("simulation %s (added %d tasks)", tasks.SimulationId, len(tasks.Items))
 
 	sState := server.simulations.getSimulationState(tasks.SimulationId)
-
 	sState.write(func() {
 		for _, task := range tasks.Items {
-			sState.tasks[tId(task)] = task
+			id := tId(task)
+			sState.queue[id] = true
+			sState.runs[id] = task
 		}
 	})
 

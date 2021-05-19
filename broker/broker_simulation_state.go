@@ -33,8 +33,8 @@ func tId(task *pb.SimulationRun) taskId {
 type simulationState struct {
 	sync.RWMutex
 	simulationId string
-	tasks        map[taskId]*pb.SimulationRun
-	finished     map[taskId]*pb.SimulationRun
+	queue        map[taskId]bool
+	runs         map[taskId]*pb.SimulationRun
 	source       *pb.StorageRef
 	oppConfig    *pb.OppConfig
 	binaries     map[osArch]*pb.Binary
@@ -44,8 +44,8 @@ type simulationState struct {
 func newSimulationState(simulation *pb.Simulation) (state *simulationState) {
 	return &simulationState{
 		simulationId: simple.NamedId(simulation.Tag, 8),
-		tasks:        make(map[taskId]*pb.SimulationRun),
-		finished:     make(map[taskId]*pb.SimulationRun),
+		queue:        make(map[taskId]bool),
+		runs:         make(map[taskId]*pb.SimulationRun, 0),
 		oppConfig:    simulation.OppConfig,
 		binaries:     make(map[osArch]*pb.Binary),
 	}

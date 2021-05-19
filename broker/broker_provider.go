@@ -76,8 +76,6 @@ func (node *provider) assignWork(assignment *pb.Assignment) {
 	node.Lock()
 	defer node.Unlock()
 
-	logger.Printf("assignWork: %s '%v'", node.id, assignment)
-
 	id := assignId(assignment)
 	node.assignments[id] = assignment
 
@@ -106,6 +104,15 @@ func (node *provider) busy() (busy bool) {
 	busy = (node.utilization == nil) ||
 		(node.utilization.CpuUsage >= 50.0) ||
 		(len(node.assignments) >= int(node.numCPUs))
+
+	return
+}
+
+func (node *provider) freeSlots() (num int) {
+	node.RLock()
+	defer node.RUnlock()
+
+	num = int(node.numCPUs) - len(node.assignments)
 
 	return
 }

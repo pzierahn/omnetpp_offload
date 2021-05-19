@@ -56,7 +56,7 @@ func (client *workerConnection) StartLink(ctx context.Context) (err error) {
 
 	}()
 
-	for range time.Tick(time.Second) {
+	for range time.Tick(time.Second * 1) {
 		usage := sysinfo.GetCPUUsage()
 
 		// logger.Printf("Sending usage=%f", usage)

@@ -88,9 +88,10 @@ func (sm *simulationManager) pullWork(arch *pb.Arch) (task *pb.SimulationRun) {
 		}
 
 		var id taskId
-		for id, task = range sim.tasks {
-			// TODO: Fix this mess
-			delete(sim.tasks, id)
+		for id = range sim.queue {
+			delete(sim.queue, id)
+			task = sim.runs[id]
+
 			return
 		}
 	}
