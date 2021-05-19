@@ -18,14 +18,14 @@ const _ = grpc.SupportPackageIsVersion7
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type BrokerClient interface {
-	ProviderLoad(ctx context.Context, in *ProviderId, opts ...grpc.CallOption) (Broker_ProviderLoadClient, error)
-	WorkSubscription(ctx context.Context, opts ...grpc.CallOption) (Broker_WorkSubscriptionClient, error)
-	SimNew(ctx context.Context, in *Simulation, opts ...grpc.CallOption) (*SimulationId, error)
-	SimAddTasks(ctx context.Context, in *Tasks, opts ...grpc.CallOption) (*Empty, error)
+	Assignments(ctx context.Context, opts ...grpc.CallOption) (Broker_AssignmentsClient, error)
+	Finished(ctx context.Context, in *Assignment, opts ...grpc.CallOption) (*Empty, error)
+	Create(ctx context.Context, in *Simulation, opts ...grpc.CallOption) (*SimulationId, error)
+	AddTasks(ctx context.Context, in *Tasks, opts ...grpc.CallOption) (*Empty, error)
 	SetSource(ctx context.Context, in *Source, opts ...grpc.CallOption) (*Empty, error)
-	GetSource(ctx context.Context, in *SimulationId, opts ...grpc.CallOption) (*StorageRef, error)
-	AddBinary(ctx context.Context, in *SimBinary, opts ...grpc.CallOption) (*Empty, error)
-	GetBinary(ctx context.Context, in *OsArch, opts ...grpc.CallOption) (*StorageRef, error)
+	GetSource(ctx context.Context, in *SimulationId, opts ...grpc.CallOption) (*Source, error)
+	AddBinary(ctx context.Context, in *Binary, opts ...grpc.CallOption) (*Empty, error)
+	GetBinary(ctx context.Context, in *Arch, opts ...grpc.CallOption) (*Binary, error)
 }
 
 type brokerClient struct {
@@ -36,81 +36,58 @@ func NewBrokerClient(cc grpc.ClientConnInterface) BrokerClient {
 	return &brokerClient{cc}
 }
 
-func (c *brokerClient) ProviderLoad(ctx context.Context, in *ProviderId, opts ...grpc.CallOption) (Broker_ProviderLoadClient, error) {
-	stream, err := c.cc.NewStream(ctx, &Broker_ServiceDesc.Streams[0], "/service.Broker/ProviderLoad", opts...)
+func (c *brokerClient) Assignments(ctx context.Context, opts ...grpc.CallOption) (Broker_AssignmentsClient, error) {
+	stream, err := c.cc.NewStream(ctx, &Broker_ServiceDesc.Streams[0], "/service.Broker/Assignments", opts...)
 	if err != nil {
 		return nil, err
 	}
-	x := &brokerProviderLoadClient{stream}
-	if err := x.ClientStream.SendMsg(in); err != nil {
-		return nil, err
-	}
-	if err := x.ClientStream.CloseSend(); err != nil {
-		return nil, err
-	}
+	x := &brokerAssignmentsClient{stream}
 	return x, nil
 }
 
-type Broker_ProviderLoadClient interface {
-	Recv() (*ProviderOverview, error)
+type Broker_AssignmentsClient interface {
+	Send(*Utilization) error
+	Recv() (*Assignment, error)
 	grpc.ClientStream
 }
 
-type brokerProviderLoadClient struct {
+type brokerAssignmentsClient struct {
 	grpc.ClientStream
 }
 
-func (x *brokerProviderLoadClient) Recv() (*ProviderOverview, error) {
-	m := new(ProviderOverview)
-	if err := x.ClientStream.RecvMsg(m); err != nil {
-		return nil, err
-	}
-	return m, nil
-}
-
-func (c *brokerClient) WorkSubscription(ctx context.Context, opts ...grpc.CallOption) (Broker_WorkSubscriptionClient, error) {
-	stream, err := c.cc.NewStream(ctx, &Broker_ServiceDesc.Streams[1], "/service.Broker/WorkSubscription", opts...)
-	if err != nil {
-		return nil, err
-	}
-	x := &brokerWorkSubscriptionClient{stream}
-	return x, nil
-}
-
-type Broker_WorkSubscriptionClient interface {
-	Send(*ProviderState) error
-	Recv() (*Work, error)
-	grpc.ClientStream
-}
-
-type brokerWorkSubscriptionClient struct {
-	grpc.ClientStream
-}
-
-func (x *brokerWorkSubscriptionClient) Send(m *ProviderState) error {
+func (x *brokerAssignmentsClient) Send(m *Utilization) error {
 	return x.ClientStream.SendMsg(m)
 }
 
-func (x *brokerWorkSubscriptionClient) Recv() (*Work, error) {
-	m := new(Work)
+func (x *brokerAssignmentsClient) Recv() (*Assignment, error) {
+	m := new(Assignment)
 	if err := x.ClientStream.RecvMsg(m); err != nil {
 		return nil, err
 	}
 	return m, nil
 }
 
-func (c *brokerClient) SimNew(ctx context.Context, in *Simulation, opts ...grpc.CallOption) (*SimulationId, error) {
-	out := new(SimulationId)
-	err := c.cc.Invoke(ctx, "/service.Broker/SimNew", in, out, opts...)
+func (c *brokerClient) Finished(ctx context.Context, in *Assignment, opts ...grpc.CallOption) (*Empty, error) {
+	out := new(Empty)
+	err := c.cc.Invoke(ctx, "/service.Broker/Finished", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *brokerClient) SimAddTasks(ctx context.Context, in *Tasks, opts ...grpc.CallOption) (*Empty, error) {
+func (c *brokerClient) Create(ctx context.Context, in *Simulation, opts ...grpc.CallOption) (*SimulationId, error) {
+	out := new(SimulationId)
+	err := c.cc.Invoke(ctx, "/service.Broker/Create", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *brokerClient) AddTasks(ctx context.Context, in *Tasks, opts ...grpc.CallOption) (*Empty, error) {
 	out := new(Empty)
-	err := c.cc.Invoke(ctx, "/service.Broker/SimAddTasks", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/service.Broker/AddTasks", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -126,8 +103,8 @@ func (c *brokerClient) SetSource(ctx context.Context, in *Source, opts ...grpc.C
 	return out, nil
 }
 
-func (c *brokerClient) GetSource(ctx context.Context, in *SimulationId, opts ...grpc.CallOption) (*StorageRef, error) {
-	out := new(StorageRef)
+func (c *brokerClient) GetSource(ctx context.Context, in *SimulationId, opts ...grpc.CallOption) (*Source, error) {
+	out := new(Source)
 	err := c.cc.Invoke(ctx, "/service.Broker/GetSource", in, out, opts...)
 	if err != nil {
 		return nil, err
@@ -135,7 +112,7 @@ func (c *brokerClient) GetSource(ctx context.Context, in *SimulationId, opts ...
 	return out, nil
 }
 
-func (c *brokerClient) AddBinary(ctx context.Context, in *SimBinary, opts ...grpc.CallOption) (*Empty, error) {
+func (c *brokerClient) AddBinary(ctx context.Context, in *Binary, opts ...grpc.CallOption) (*Empty, error) {
 	out := new(Empty)
 	err := c.cc.Invoke(ctx, "/service.Broker/AddBinary", in, out, opts...)
 	if err != nil {
@@ -144,8 +121,8 @@ func (c *brokerClient) AddBinary(ctx context.Context, in *SimBinary, opts ...grp
 	return out, nil
 }
 
-func (c *brokerClient) GetBinary(ctx context.Context, in *OsArch, opts ...grpc.CallOption) (*StorageRef, error) {
-	out := new(StorageRef)
+func (c *brokerClient) GetBinary(ctx context.Context, in *Arch, opts ...grpc.CallOption) (*Binary, error) {
+	out := new(Binary)
 	err := c.cc.Invoke(ctx, "/service.Broker/GetBinary", in, out, opts...)
 	if err != nil {
 		return nil, err
@@ -157,14 +134,14 @@ func (c *brokerClient) GetBinary(ctx context.Context, in *OsArch, opts ...grpc.C
 // All implementations must embed UnimplementedBrokerServer
 // for forward compatibility
 type BrokerServer interface {
-	ProviderLoad(*ProviderId, Broker_ProviderLoadServer) error
-	WorkSubscription(Broker_WorkSubscriptionServer) error
-	SimNew(context.Context, *Simulation) (*SimulationId, error)
-	SimAddTasks(context.Context, *Tasks) (*Empty, error)
+	Assignments(Broker_AssignmentsServer) error
+	Finished(context.Context, *Assignment) (*Empty, error)
+	Create(context.Context, *Simulation) (*SimulationId, error)
+	AddTasks(context.Context, *Tasks) (*Empty, error)
 	SetSource(context.Context, *Source) (*Empty, error)
-	GetSource(context.Context, *SimulationId) (*StorageRef, error)
-	AddBinary(context.Context, *SimBinary) (*Empty, error)
-	GetBinary(context.Context, *OsArch) (*StorageRef, error)
+	GetSource(context.Context, *SimulationId) (*Source, error)
+	AddBinary(context.Context, *Binary) (*Empty, error)
+	GetBinary(context.Context, *Arch) (*Binary, error)
 	mustEmbedUnimplementedBrokerServer()
 }
 
@@ -172,28 +149,28 @@ type BrokerServer interface {
 type UnimplementedBrokerServer struct {
 }
 
-func (UnimplementedBrokerServer) ProviderLoad(*ProviderId, Broker_ProviderLoadServer) error {
-	return status.Errorf(codes.Unimplemented, "method ProviderLoad not implemented")
+func (UnimplementedBrokerServer) Assignments(Broker_AssignmentsServer) error {
+	return status.Errorf(codes.Unimplemented, "method Assignments not implemented")
 }
-func (UnimplementedBrokerServer) WorkSubscription(Broker_WorkSubscriptionServer) error {
-	return status.Errorf(codes.Unimplemented, "method WorkSubscription not implemented")
+func (UnimplementedBrokerServer) Finished(context.Context, *Assignment) (*Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Finished not implemented")
 }
-func (UnimplementedBrokerServer) SimNew(context.Context, *Simulation) (*SimulationId, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method SimNew not implemented")
+func (UnimplementedBrokerServer) Create(context.Context, *Simulation) (*SimulationId, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Create not implemented")
 }
-func (UnimplementedBrokerServer) SimAddTasks(context.Context, *Tasks) (*Empty, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method SimAddTasks not implemented")
+func (UnimplementedBrokerServer) AddTasks(context.Context, *Tasks) (*Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method AddTasks not implemented")
 }
 func (UnimplementedBrokerServer) SetSource(context.Context, *Source) (*Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SetSource not implemented")
 }
-func (UnimplementedBrokerServer) GetSource(context.Context, *SimulationId) (*StorageRef, error) {
+func (UnimplementedBrokerServer) GetSource(context.Context, *SimulationId) (*Source, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetSource not implemented")
 }
-func (UnimplementedBrokerServer) AddBinary(context.Context, *SimBinary) (*Empty, error) {
+func (UnimplementedBrokerServer) AddBinary(context.Context, *Binary) (*Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method AddBinary not implemented")
 }
-func (UnimplementedBrokerServer) GetBinary(context.Context, *OsArch) (*StorageRef, error) {
+func (UnimplementedBrokerServer) GetBinary(context.Context, *Arch) (*Binary, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetBinary not implemented")
 }
 func (UnimplementedBrokerServer) mustEmbedUnimplementedBrokerServer() {}
@@ -209,85 +186,82 @@ func RegisterBrokerServer(s grpc.ServiceRegistrar, srv BrokerServer) {
 	s.RegisterService(&Broker_ServiceDesc, srv)
 }
 
-func _Broker_ProviderLoad_Handler(srv interface{}, stream grpc.ServerStream) error {
-	m := new(ProviderId)
-	if err := stream.RecvMsg(m); err != nil {
-		return err
-	}
-	return srv.(BrokerServer).ProviderLoad(m, &brokerProviderLoadServer{stream})
+func _Broker_Assignments_Handler(srv interface{}, stream grpc.ServerStream) error {
+	return srv.(BrokerServer).Assignments(&brokerAssignmentsServer{stream})
 }
 
-type Broker_ProviderLoadServer interface {
-	Send(*ProviderOverview) error
+type Broker_AssignmentsServer interface {
+	Send(*Assignment) error
+	Recv() (*Utilization, error)
 	grpc.ServerStream
 }
 
-type brokerProviderLoadServer struct {
+type brokerAssignmentsServer struct {
 	grpc.ServerStream
 }
 
-func (x *brokerProviderLoadServer) Send(m *ProviderOverview) error {
+func (x *brokerAssignmentsServer) Send(m *Assignment) error {
 	return x.ServerStream.SendMsg(m)
 }
 
-func _Broker_WorkSubscription_Handler(srv interface{}, stream grpc.ServerStream) error {
-	return srv.(BrokerServer).WorkSubscription(&brokerWorkSubscriptionServer{stream})
-}
-
-type Broker_WorkSubscriptionServer interface {
-	Send(*Work) error
-	Recv() (*ProviderState, error)
-	grpc.ServerStream
-}
-
-type brokerWorkSubscriptionServer struct {
-	grpc.ServerStream
-}
-
-func (x *brokerWorkSubscriptionServer) Send(m *Work) error {
-	return x.ServerStream.SendMsg(m)
-}
-
-func (x *brokerWorkSubscriptionServer) Recv() (*ProviderState, error) {
-	m := new(ProviderState)
+func (x *brokerAssignmentsServer) Recv() (*Utilization, error) {
+	m := new(Utilization)
 	if err := x.ServerStream.RecvMsg(m); err != nil {
 		return nil, err
 	}
 	return m, nil
 }
 
-func _Broker_SimNew_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _Broker_Finished_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(Assignment)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BrokerServer).Finished(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/service.Broker/Finished",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BrokerServer).Finished(ctx, req.(*Assignment))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Broker_Create_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(Simulation)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(BrokerServer).SimNew(ctx, in)
+		return srv.(BrokerServer).Create(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/service.Broker/SimNew",
+		FullMethod: "/service.Broker/Create",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(BrokerServer).SimNew(ctx, req.(*Simulation))
+		return srv.(BrokerServer).Create(ctx, req.(*Simulation))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Broker_SimAddTasks_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _Broker_AddTasks_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(Tasks)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(BrokerServer).SimAddTasks(ctx, in)
+		return srv.(BrokerServer).AddTasks(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/service.Broker/SimAddTasks",
+		FullMethod: "/service.Broker/AddTasks",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(BrokerServer).SimAddTasks(ctx, req.(*Tasks))
+		return srv.(BrokerServer).AddTasks(ctx, req.(*Tasks))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -329,7 +303,7 @@ func _Broker_GetSource_Handler(srv interface{}, ctx context.Context, dec func(in
 }
 
 func _Broker_AddBinary_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(SimBinary)
+	in := new(Binary)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -341,13 +315,13 @@ func _Broker_AddBinary_Handler(srv interface{}, ctx context.Context, dec func(in
 		FullMethod: "/service.Broker/AddBinary",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(BrokerServer).AddBinary(ctx, req.(*SimBinary))
+		return srv.(BrokerServer).AddBinary(ctx, req.(*Binary))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
 func _Broker_GetBinary_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(OsArch)
+	in := new(Arch)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -359,7 +333,7 @@ func _Broker_GetBinary_Handler(srv interface{}, ctx context.Context, dec func(in
 		FullMethod: "/service.Broker/GetBinary",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(BrokerServer).GetBinary(ctx, req.(*OsArch))
+		return srv.(BrokerServer).GetBinary(ctx, req.(*Arch))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -372,12 +346,16 @@ var Broker_ServiceDesc = grpc.ServiceDesc{
 	HandlerType: (*BrokerServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
-			MethodName: "SimNew",
-			Handler:    _Broker_SimNew_Handler,
+			MethodName: "Finished",
+			Handler:    _Broker_Finished_Handler,
 		},
 		{
-			MethodName: "SimAddTasks",
-			Handler:    _Broker_SimAddTasks_Handler,
+			MethodName: "Create",
+			Handler:    _Broker_Create_Handler,
+		},
+		{
+			MethodName: "AddTasks",
+			Handler:    _Broker_AddTasks_Handler,
 		},
 		{
 			MethodName: "SetSource",
@@ -398,13 +376,8 @@ var Broker_ServiceDesc = grpc.ServiceDesc{
 	},
 	Streams: []grpc.StreamDesc{
 		{
-			StreamName:    "ProviderLoad",
-			Handler:       _Broker_ProviderLoad_Handler,
-			ServerStreams: true,
-		},
-		{
-			StreamName:    "WorkSubscription",
-			Handler:       _Broker_WorkSubscription_Handler,
+			StreamName:    "Assignments",
+			Handler:       _Broker_Assignments_Handler,
 			ServerStreams: true,
 			ClientStreams: true,
 		},

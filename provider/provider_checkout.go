@@ -1,4 +1,4 @@
-package worker
+package provider
 
 import (
 	"context"
@@ -16,7 +16,7 @@ func (client *workerConnection) checkout(simulationId string) (path string, err 
 		return
 	}
 
-	buf, err := client.storage.Download(src)
+	buf, err := client.storage.Download(src.Source)
 	if err != nil {
 		return
 	}

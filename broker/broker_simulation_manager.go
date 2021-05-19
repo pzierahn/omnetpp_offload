@@ -37,12 +37,18 @@ func (sm *simulationManager) getSimulationState(id string) (sState *simulationSt
 	return
 }
 
-func (sm *simulationManager) pullCompile(arch *pb.OsArch) (simulation *pb.Simulation) {
+func (sm *simulationManager) pullCompile(arch *pb.Arch) (simulation *pb.Source) {
 
 	sm.RLock()
 	defer sm.RUnlock()
 
 	for _, sim := range sm.simulations {
+
+		if sim.source == nil {
+			// No simulation source: skip
+			continue
+		}
+
 		_, ok := sim.binaries[osArchId(arch)]
 
 		if !ok {
@@ -51,10 +57,11 @@ func (sm *simulationManager) pullCompile(arch *pb.OsArch) (simulation *pb.Simula
 			// Binary is not compiled for arch
 			//
 
-			simulation = &pb.Simulation{
+			simulation = &pb.Source{
 				SimulationId: sim.simulationId,
-				OppConfig:    sim.oppConfig,
+				Source:       sim.source,
 			}
+
 			break
 		}
 	}
@@ -62,12 +69,24 @@ func (sm *simulationManager) pullCompile(arch *pb.OsArch) (simulation *pb.Simula
 	return
 }
 
-func (sm *simulationManager) pullWork() (task *pb.Task) {
+func (sm *simulationManager) pullWork(arch *pb.Arch) (task *pb.SimulationRun) {
 
 	sm.RLock()
 	defer sm.RUnlock()
 
 	for _, sim := range sm.simulations {
+		if sim.source == nil {
+			// No simulation source: skip
+			continue
+		}
+
+		_, ok := sim.binaries[osArchId(arch)]
+
+		if !ok {
+			// No simulation binary: skip
+			continue
+		}
+
 		var id taskId
 		for id, task = range sim.tasks {
 			// TODO: Fix this mess

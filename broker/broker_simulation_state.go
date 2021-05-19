@@ -9,7 +9,7 @@ import (
 
 type osArch string
 
-func osArchId(binary *pb.OsArch) osArch {
+func osArchId(binary *pb.Arch) osArch {
 	id := strings.Join([]string{
 		binary.Os,
 		binary.Arch,
@@ -20,7 +20,7 @@ func osArchId(binary *pb.OsArch) osArch {
 
 type taskId string
 
-func tId(task *pb.Task) taskId {
+func tId(task *pb.SimulationRun) taskId {
 	id := strings.Join([]string{
 		task.SimulationId,
 		task.Config,
@@ -33,62 +33,40 @@ func tId(task *pb.Task) taskId {
 type simulationState struct {
 	sync.RWMutex
 	simulationId string
-	tasks        map[taskId]*pb.Task
+	tasks        map[taskId]*pb.SimulationRun
+	finished     map[taskId]*pb.SimulationRun
+	source       *pb.StorageRef
+	oppConfig    *pb.OppConfig
+	binaries     map[osArch]*pb.Binary
 	// assignments  map[workerId]*pb.Task
-	finished  map[taskId]*pb.Task
-	source    *pb.StorageRef
-	oppConfig *pb.OppConfig
-	binaries  map[osArch]*pb.SimBinary
 }
 
 func newSimulationState(simulation *pb.Simulation) (state *simulationState) {
 	return &simulationState{
 		simulationId: simple.NamedId(simulation.Tag, 8),
-		tasks:        make(map[taskId]*pb.Task),
-		finished:     make(map[taskId]*pb.Task),
+		tasks:        make(map[taskId]*pb.SimulationRun),
+		finished:     make(map[taskId]*pb.SimulationRun),
 		oppConfig:    simulation.OppConfig,
-		binaries:     make(map[osArch]*pb.SimBinary),
+		binaries:     make(map[osArch]*pb.Binary),
 	}
 }
 
-func (ss *simulationState) addTasks(tasks ...*pb.Task) {
+func (ss *simulationState) write(fn func()) {
 
 	ss.Lock()
 	defer ss.Unlock()
 
-	for _, task := range tasks {
-		ss.tasks[tId(task)] = task
-	}
+	fn()
 
 	return
 }
 
-func (ss *simulationState) setSource(ref *pb.StorageRef) {
-
-	ss.Lock()
-	defer ss.Unlock()
-
-	ss.source = ref
-
-	return
-}
-
-func (ss *simulationState) getSource() (ref *pb.StorageRef) {
+func (ss *simulationState) read(fn func()) {
 
 	ss.RLock()
 	defer ss.RUnlock()
 
-	ref = ss.source
-
-	return
-}
-
-func (ss *simulationState) addBinary(binary *pb.SimBinary) {
-
-	ss.Lock()
-	defer ss.Unlock()
-
-	ss.binaries[osArchId(binary.Arch)] = binary
+	fn()
 
 	return
 }

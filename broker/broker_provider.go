@@ -1,89 +1,139 @@
 package broker
 
 import (
+	"fmt"
 	pb "github.com/patrickz98/project.go.omnetpp/proto"
+	prov "github.com/patrickz98/project.go.omnetpp/provider"
 	"sync"
 )
 
-type providerId string
+func assignId(assignment *pb.Assignment) (id string) {
 
-func pId(pState *pb.ProviderState) (id providerId) {
-	return providerId(pState.ProviderId)
+	switch work := assignment.Do.(type) {
+	case *pb.Assignment_Build:
+		id = fmt.Sprintf("%s.compile", work.Build.SimulationId)
+
+	case *pb.Assignment_Run:
+		id = fmt.Sprintf("%s.%s.%s",
+			work.Run.SimulationId, work.Run.Config, work.Run.RunNumber)
+	}
+
+	return
+}
+
+type provider struct {
+	sync.RWMutex
+	id          string
+	arch        *pb.Arch
+	numCPUs     uint32
+	utilization *pb.Utilization
+	assignments map[string]*pb.Assignment
+	assign      chan *pb.Assignment
+	//listener    map[chan<- *pb.ProviderState]interface{}
+}
+
+func newProvider(meta prov.Meta) (node *provider, err error) {
+
+	id := meta.ProviderId
+	if id == "" {
+		err = fmt.Errorf("missing providerId in metadata")
+		return
+	}
+
+	os := meta.Os
+	if os == "" {
+		err = fmt.Errorf("missing os in metadata")
+		return
+	}
+
+	arch := meta.Arch
+	if arch == "" {
+		err = fmt.Errorf("missing arch in metadata")
+		return
+	}
+
+	numCPUs := meta.NumCPUs
+	if numCPUs == 0 {
+		err = fmt.Errorf("missing numCPUs in metadata")
+		return
+	}
+
+	node = &provider{
+		id: id,
+		arch: &pb.Arch{
+			Os:   os,
+			Arch: arch,
+		},
+		numCPUs:     uint32(numCPUs),
+		assignments: make(map[string]*pb.Assignment),
+		assign:      make(chan *pb.Assignment),
+	}
+
+	return
+}
+
+func (node *provider) assignWork(assignment *pb.Assignment) {
+	node.Lock()
+	defer node.Unlock()
+
+	logger.Printf("assignWork: %s '%v'", node.id, assignment)
+
+	id := assignId(assignment)
+	node.assignments[id] = assignment
+
+	node.assign <- assignment
+}
+
+func (node *provider) setUtilization(utilization *pb.Utilization) {
+	node.Lock()
+	defer node.Unlock()
+
+	node.utilization = utilization
+}
+
+func (node *provider) busy() (busy bool) {
+	node.RLock()
+	defer node.RUnlock()
+
+	busy = (node.utilization == nil) ||
+		(node.utilization.CpuUsage >= 50.0) ||
+		(len(node.assignments) >= int(node.numCPUs))
+
+	return
+}
+
+func (node *provider) close() {
+	node.Lock()
+	defer node.Unlock()
+
+	close(node.assign)
 }
 
 type providerManager struct {
 	sync.RWMutex
-	provider map[providerId]*pb.ProviderState
-	listener map[providerId]map[chan<- *pb.ProviderState]interface{}
-	work     map[providerId]chan<- *pb.Work
+	provider map[string]*provider
 }
 
-func newProviderManager() (union providerManager) {
+func newProviderManager() (pm providerManager) {
 	return providerManager{
-		provider: make(map[providerId]*pb.ProviderState),
-		listener: make(map[providerId]map[chan<- *pb.ProviderState]interface{}),
-		work:     make(map[providerId]chan<- *pb.Work),
+		provider: make(map[string]*provider),
 	}
 }
 
-func (pm *providerManager) update(state *pb.ProviderState) {
+func (pm *providerManager) add(node *provider) {
 
-	id := pId(state)
-
-	// logger.Printf("update: %v (%.0f%%)", id, state.CpuUsage)
+	logger.Printf("providerManager: add id=%v", node.id)
 
 	pm.Lock()
-	pm.provider[id] = state
-	pm.Unlock()
-
-	pm.RLock()
-	//logger.Printf("update: send events to %v listeners", len(pm.listener[id]))
-
-	for listener := range pm.listener[id] {
-		listener <- state
-	}
-	pm.RUnlock()
-}
-
-func (pm *providerManager) remove(id providerId) {
-
-	logger.Printf("remove: id=%v", id)
-
-	pm.Lock()
-	delete(pm.provider, id)
-	delete(pm.listener, id)
-	delete(pm.work, id)
+	pm.provider[node.id] = node
 	pm.Unlock()
 }
 
-func (pm *providerManager) newProvider(id providerId, ch chan *pb.Work) {
+func (pm *providerManager) remove(node *provider) {
+
+	logger.Printf("providerManager: remove id=%v", node.id)
+
 	pm.Lock()
-	defer pm.Unlock()
-
-	pm.work[id] = ch
-}
-
-func (pm *providerManager) removeWorker(id providerId) {
-	pm.Lock()
-	defer pm.Unlock()
-
-	delete(pm.work, id)
-}
-
-func (pm *providerManager) newListener(id providerId, ch chan *pb.ProviderState) {
-	pm.Lock()
-	defer pm.Unlock()
-
-	if pm.listener[id] == nil {
-		pm.listener[id] = make(map[chan<- *pb.ProviderState]interface{})
-	}
-
-	pm.listener[id][ch] = ch
-}
-
-func (pm *providerManager) removeListener(id providerId, ch chan *pb.ProviderState) {
-	pm.Lock()
-	defer pm.Unlock()
-
-	delete(pm.listener[id], ch)
+	delete(pm.provider, node.id)
+	pm.Unlock()
 }

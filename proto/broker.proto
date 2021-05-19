@@ -10,34 +10,34 @@ import "storage.proto";
 import "opp_config.proto";
 
 service Broker {
-  rpc ProviderLoad     (ProviderId)           returns (stream ProviderOverview) {}
-  rpc WorkSubscription (stream ProviderState) returns (stream Work)          {}
+  rpc Assignments (stream Utilization) returns (stream Assignment) {}
 
-  rpc SimNew      (Simulation)   returns (SimulationId) {}
-  rpc SimAddTasks (Tasks)        returns (Empty)        {}
-  rpc SetSource   (Source)       returns (Empty)        {}
-  rpc GetSource   (SimulationId) returns (StorageRef)   {}
-  rpc AddBinary   (SimBinary)    returns (Empty)        {}
-  rpc GetBinary   (OsArch)       returns (StorageRef)   {}
+  rpc Finished  (Assignment)   returns (Empty)        {}
+  rpc Create    (Simulation)   returns (SimulationId) {}
+  rpc AddTasks  (Tasks)        returns (Empty)        {}
+  rpc SetSource (Source)       returns (Empty)        {}
+  rpc GetSource (SimulationId) returns (Source)       {}
+  rpc AddBinary (Binary)       returns (Empty)        {}
+  rpc GetBinary (Arch)         returns (Binary)       {}
 }
 
 message Empty {}
 
-message OsArch {
+message Assignment {
+  oneof do {
+    Source build = 1;
+    SimulationRun run = 2;
+  }
+}
+
+message Arch {
   string os = 1;
   string arch = 2;
 }
 
-message Work {
-  oneof work {
-    Task task = 1;
-    Simulation compile = 2;
-  }
-}
-
-message SimBinary {
+message Binary {
   string simulationId = 1;
-  OsArch arch = 2;
+  Arch arch = 2;
   StorageRef binary = 4;
 }
 
@@ -54,48 +54,49 @@ message ProviderId {
   string id = 1;
 }
 
-message Task {
-	string simulationId  = 1;
-  string config  = 2;
-	string runNumber  = 3;
-	float progress  = 4;
-	google.protobuf.Duration executionTime  = 5;
-	StorageRef results  = 6;
+message SimulationRun {
+  string simulationId = 1;
+  string config = 2;
+  string runNumber = 3;
+  float progress = 4;
+  google.protobuf.Duration executionTime = 5;
+  StorageRef results = 6;
 }
 
 message Tasks {
   string simulationId = 1;
-  repeated Task items = 2;
+  repeated SimulationRun items = 2;
 }
 
-message ProviderState {
-  //
-  // Metadata
-  //
-
-  string providerId = 1;
-  OsArch arch = 2;
-  uint32 numCPUs = 3;
-
-  //
-  // Updatable
-  //
-
-  float cpuUsage = 4;
-  float memoryUsage = 5;
-  google.protobuf.Timestamp updated = 6;
-
-  // Maybe move this to broker to prevent too many assiments
-  map<string, Task> tasks = 7;
-  string compile = 8;
+message Utilization {
+  float cpuUsage = 1;
+  float memoryUsage = 2;
+  google.protobuf.Timestamp updated = 3;
 }
+
+//message ProviderState {
+//  //
+//  // Metadata
+//  //
+//
+//  string providerId = 1;
+//  Arch arch = 2;
+//  uint32 numCPUs = 3;
+//
+//  //
+//  // Updatable
+//  //
+//
+//  float cpuUsage = 4;
+//  float memoryUsage = 5;
+//  google.protobuf.Timestamp updated = 6;
+//
+//  // Maybe move this to broker to prevent too many assiments
+//  repeated Assignment assignments = 7;
+//}
 
 message Simulation {
   string simulationId = 1;
   string tag = 2;
   OppConfig oppConfig = 3;
-}
-
-message ProviderOverview {
-  repeated ProviderState providers = 1;
 }

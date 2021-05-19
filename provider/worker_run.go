@@ -1,4 +1,4 @@
-package worker
+package provider
 
 import (
 	pb "github.com/patrickz98/project.go.omnetpp/proto"
@@ -138,7 +138,7 @@ import (
 //	return
 //}
 
-func (client *workerConnection) runTasks(job *pb.Work_Task) {
+func (client *workerConnection) runTasks(job *pb.SimulationRun) {
 
 	////
 	//// Setup simulation environment

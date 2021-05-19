@@ -1,4 +1,4 @@
-package worker
+package provider
 
 import (
 	"context"
@@ -39,7 +39,7 @@ func (compiler Compiler) CheckinBinary() (err error) {
 		return
 	}
 
-	arch := &pb.OsArch{
+	arch := &pb.Arch{
 		Os:   runtime.GOOS,
 		Arch: runtime.GOARCH,
 	}
@@ -51,7 +51,7 @@ func (compiler Compiler) CheckinBinary() (err error) {
 		return
 	}
 
-	_, err = compiler.Broker.AddBinary(context.Background(), &pb.SimBinary{
+	_, err = compiler.Broker.AddBinary(context.Background(), &pb.Binary{
 		SimulationId: compiler.SimulationId,
 		Arch:         arch,
 		Binary:       ref,

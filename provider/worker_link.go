@@ -1,4 +1,4 @@
-package worker
+package provider
 
 import (
 	"context"
@@ -6,7 +6,6 @@ import (
 	"github.com/patrickz98/project.go.omnetpp/sysinfo"
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/protobuf/types/known/timestamppb"
-	"runtime"
 	"time"
 )
 
@@ -17,42 +16,42 @@ func (client *workerConnection) StartLink(ctx context.Context) (err error) {
 	md := NewDeviceInfo(client.providerId).MarshallMeta()
 	ctx = metadata.NewOutgoingContext(ctx, md)
 
-	stream, err := client.broker.WorkSubscription(ctx)
+	stream, err := client.broker.Assignments(ctx)
 	if err != nil {
 		return
 	}
 
-	workStream := make(chan *pb.Work)
+	assignments := make(chan *pb.Assignment)
 
 	for inx := 0; inx < client.agents; inx++ {
 		go func(inx int) {
-			for work := range workStream {
-				switch task := work.Work.(type) {
-				case *pb.Work_Task:
+			for assignment := range assignments {
+				switch task := assignment.Do.(type) {
+				case *pb.Assignment_Run:
 					logger.Printf("(%d) Run simulation %v", inx, task)
-					client.runTasks(task)
+					//client.runTasks(task)
 
-				case *pb.Work_Compile:
+				case *pb.Assignment_Build:
 					logger.Printf("(%d) Compile simulation %v", inx, task)
-					client.compile(task)
+					//client.compile(task)
 				}
 			}
 		}(inx)
 	}
 
 	go func() {
-		var work *pb.Work
+		var work *pb.Assignment
 
 		for {
-			logger.Printf("Waiting for work...")
+			//logger.Printf("Waiting for work...")
 
 			work, err = stream.Recv()
 			if err != nil {
 				panic(err)
 			}
 
-			logger.Printf("Received work %v", work)
-			workStream <- work
+			//logger.Printf("Received work %v", work)
+			assignments <- work
 		}
 
 	}()
@@ -62,21 +61,13 @@ func (client *workerConnection) StartLink(ctx context.Context) (err error) {
 
 		// logger.Printf("Sending usage=%f", usage)
 
-		state := &pb.ProviderState{
-			ProviderId:  client.providerId,
+		utilization := &pb.Utilization{
 			CpuUsage:    float32(usage),
 			MemoryUsage: 0,
-			Arch: &pb.OsArch{
-				Os:   runtime.GOOS,
-				Arch: runtime.GOARCH,
-			},
-			NumCPUs: uint32(runtime.NumCPU()),
-			Tasks:   nil,
-			Compile: "",
-			Updated: timestamppb.Now(),
+			Updated:     timestamppb.Now(),
 		}
 
-		err = stream.Send(state)
+		err = stream.Send(utilization)
 		if err != nil {
 			return
 		}

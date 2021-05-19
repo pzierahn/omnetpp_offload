@@ -5,11 +5,11 @@ import pb "github.com/patrickz98/project.go.omnetpp/proto"
 func (server *broker) distribute() {
 	// logger.Printf("distribute work!")
 
-	for id, providerState := range server.providers.provider {
+	for id, node := range server.providers.provider {
 		// arch := osArchId(providerState.Arch)
 		// logger.Printf("%s arch=%s usage=%3.0f%%", id, arch, providerState.CpuUsage)
 
-		if providerState.CpuUsage >= 50.0 {
+		if node.busy() {
 			//
 			// Provider busy
 			//
@@ -17,20 +17,20 @@ func (server *broker) distribute() {
 			continue
 		}
 
-		compile := server.simulations.pullCompile(providerState.Arch)
+		logger.Printf("%s assignments=%d", id, len(node.assignments))
+
+		compile := server.simulations.pullCompile(node.arch)
 
 		if compile != nil {
 
-			logger.Printf("--> compile='%s'", compile)
-
-			server.providers.work[id] <- &pb.Work{
-				Work: &pb.Work_Compile{Compile: compile},
-			}
+			node.assignWork(&pb.Assignment{
+				Do: &pb.Assignment_Build{Build: compile},
+			})
 
 			continue
 		}
 
-		task := server.simulations.pullWork()
+		task := server.simulations.pullWork(node.arch)
 
 		if task == nil {
 			//
@@ -40,10 +40,8 @@ func (server *broker) distribute() {
 			break
 		}
 
-		logger.Printf("--> task='%v'", task)
-
-		server.providers.work[id] <- &pb.Work{
-			Work: &pb.Work_Task{Task: task},
-		}
+		node.assignWork(&pb.Assignment{
+			Do: &pb.Assignment_Run{Run: task},
+		})
 	}
 }

@@ -1,4 +1,4 @@
-package worker
+package provider
 
 import (
 	"github.com/patrickz98/project.go.omnetpp/defines"

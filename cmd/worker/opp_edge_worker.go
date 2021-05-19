@@ -4,7 +4,7 @@ import (
 	"context"
 	"flag"
 	"github.com/patrickz98/project.go.omnetpp/gconfig"
-	"github.com/patrickz98/project.go.omnetpp/worker"
+	"github.com/patrickz98/project.go.omnetpp/provider"
 	"os"
 	"os/signal"
 )
@@ -20,7 +20,7 @@ func init() {
 func main() {
 
 	if clean {
-		worker.Clean()
+		provider.Clean()
 		return
 	}
 
@@ -29,11 +29,11 @@ func main() {
 
 	go func() {
 		<-ch
-		worker.Clean()
+		provider.Clean()
 		os.Exit(0)
 	}()
 
-	conn, err := worker.Init(config)
+	conn, err := provider.Init(config)
 	if err != nil {
 		panic(err)
 	}

@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"github.com/patrickz98/project.go.omnetpp/gconfig"
 	pb "github.com/patrickz98/project.go.omnetpp/proto"
+	"github.com/patrickz98/project.go.omnetpp/provider"
 	"github.com/patrickz98/project.go.omnetpp/storage"
-	"github.com/patrickz98/project.go.omnetpp/worker"
 	"google.golang.org/grpc"
 	"path/filepath"
 )
@@ -31,7 +31,7 @@ func Run(gConf gconfig.GRPCConnection, config *Config) (err error) {
 	broker := pb.NewBrokerClient(conn)
 
 	ctx := context.Background()
-	simulationId, err := broker.SimNew(ctx, &pb.Simulation{
+	simulationId, err := broker.Create(ctx, &pb.Simulation{
 		Tag:       config.Tag,
 		OppConfig: config.OppConfig,
 	})
@@ -46,7 +46,7 @@ func Run(gConf gconfig.GRPCConnection, config *Config) (err error) {
 	// Clean source folder and upload source
 	//
 
-	compiler := worker.Compiler{
+	compiler := provider.Compiler{
 		Broker:         broker,
 		Storage:        storage.ConnectClient(conn),
 		SimulationId:   simulationId.Id,
@@ -103,7 +103,7 @@ func Run(gConf gconfig.GRPCConnection, config *Config) (err error) {
 		return
 	}
 
-	var items []*pb.Task
+	var items []*pb.SimulationRun
 
 	if len(config.SimulateConfigs) == 0 {
 		// Add all configs
@@ -121,7 +121,7 @@ func Run(gConf gconfig.GRPCConnection, config *Config) (err error) {
 		}
 
 		for _, runNum := range runNums {
-			items = append(items, &pb.Task{
+			items = append(items, &pb.SimulationRun{
 				SimulationId: simulationId.Id,
 				Config:       name,
 				RunNumber:    runNum,
@@ -129,7 +129,7 @@ func Run(gConf gconfig.GRPCConnection, config *Config) (err error) {
 		}
 	}
 
-	_, err = broker.SimAddTasks(ctx, &pb.Tasks{
+	_, err = broker.AddTasks(ctx, &pb.Tasks{
 		SimulationId: simulationId.Id,
 		Items:        items,
 	})

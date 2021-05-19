@@ -1,11 +1,10 @@
-package worker
+package provider
 
 import (
 	pb "github.com/patrickz98/project.go.omnetpp/proto"
 )
 
-func (client *workerConnection) compile(compileJob *pb.Work_Compile) {
-	simulation := compileJob.Compile
+func (client *workerConnection) compile(simulation *pb.Simulation) {
 	simulationId := simulation.SimulationId
 
 	simulationBase, err := client.checkout(simulationId)
