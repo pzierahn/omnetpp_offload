@@ -1,0 +1,143 @@
+mem {
+    "total": 8190574592,
+    "available": 7747657728,
+    "used": 345653248,
+    "usedPercent": 4.220134303368786,
+    "free": 3694497792,
+    "active": 1790251008,
+    "inactive": 2232565760,
+    "wired": 0,
+    "laundry": 0,
+    "buffers": 228556800,
+    "cached": 3921866752,
+    "writeBack": 0,
+    "dirty": 4386816,
+    "writeBackTmp": 0,
+    "shared": 4149248,
+    "slab": 359251968,
+    "sreclaimable": 294191104,
+    "sunreclaim": 65060864,
+    "pageTables": 3006464,
+    "swapCached": 0,
+    "commitLimit": 4095287296,
+    "committedAS": 1456295936,
+    "highTotal": 0,
+    "highFree": 0,
+    "lowTotal": 0,
+    "lowFree": 0,
+    "swapTotal": 0,
+    "swapFree": 0,
+    "mapped": 119898112,
+    "vmallocTotal": 138537122856960,
+    "vmallocUsed": 15040512,
+    "vmallocChunk": 0,
+    "hugePagesTotal": 0,
+    "hugePagesFree": 0,
+    "hugePageSize": 0
+}
+stats: [
+    {
+        "cpu": 0,
+        "vendorId": "",
+        "family": "",
+        "model": "",
+        "stepping": 0,
+        "physicalId": "",
+        "coreId": "0",
+        "cores": 1,
+        "modelName": "",
+        "mhz": 1500,
+        "cacheSize": 0,
+        "flags": [
+            "fp",
+            "asimd",
+            "evtstrm",
+            "crc32",
+            "cpuid"
+        ],
+        "microcode": ""
+    },
+    {
+        "cpu": 1,
+        "vendorId": "",
+        "family": "",
+        "model": "",
+        "stepping": 0,
+        "physicalId": "",
+        "coreId": "1",
+        "cores": 1,
+        "modelName": "",
+        "mhz": 1500,
+        "cacheSize": 0,
+        "flags": [
+            "fp",
+            "asimd",
+            "evtstrm",
+            "crc32",
+            "cpuid"
+        ],
+        "microcode": ""
+    },
+    {
+        "cpu": 2,
+        "vendorId": "",
+        "family": "",
+        "model": "",
+        "stepping": 0,
+        "physicalId": "",
+        "coreId": "2",
+        "cores": 1,
+        "modelName": "",
+        "mhz": 1500,
+        "cacheSize": 0,
+        "flags": [
+            "fp",
+            "asimd",
+            "evtstrm",
+            "crc32",
+            "cpuid"
+        ],
+        "microcode": ""
+    },
+    {
+        "cpu": 3,
+        "vendorId": "",
+        "family": "",
+        "model": "",
+        "stepping": 0,
+        "physicalId": "",
+        "coreId": "3",
+        "cores": 1,
+        "modelName": "",
+        "mhz": 1500,
+        "cacheSize": 0,
+        "flags": [
+            "fp",
+            "asimd",
+            "evtstrm",
+            "crc32",
+            "cpuid"
+        ],
+        "microcode": ""
+    }
+]
+hostInfo: {
+    "hostname": "raspberry4",
+    "uptime": 2187379,
+    "bootTime": 1619252049,
+    "procs": 150,
+    "os": "linux",
+    "platform": "ubuntu",
+    "platformFamily": "debian",
+    "platformVersion": "20.10",
+    "kernelVersion": "5.8.0-1021-raspi",
+    "kernelArch": "aarch64",
+    "virtualizationSystem": "",
+    "virtualizationRole": "",
+    "hostId": "09512c89-c414-48d7-99ab-a4636b0f3348"
+}
+avg: {
+    "load1": 0.2,
+    "load5": 0.06,
+    "load15": 0.01
+}

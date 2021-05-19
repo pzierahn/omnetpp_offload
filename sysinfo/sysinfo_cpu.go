@@ -19,6 +19,10 @@ func getCPUUsageWindows() (usage float64) {
 	str := strings.TrimSpace(string(out))
 	parts := strings.Split(str, "\n")
 
+	if len(parts) < 2 {
+		return
+	}
+
 	percent, err := strconv.Atoi(parts[1])
 	if err != nil {
 		panic(err)

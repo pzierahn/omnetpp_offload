@@ -36,11 +36,11 @@ func newAverage(size int) (avg rollingAverage) {
 
 func main() {
 
-	mem, err := mem.VirtualMemory()
+	memo, err := mem.VirtualMemory()
 	if err != nil {
 		panic(err)
 	}
-	fmt.Println("mem", simple.PrettyString(mem))
+	fmt.Println("mem", simple.PrettyString(memo))
 
 	stats, err := cpu.Info()
 	if err != nil {
