@@ -1,10 +1,12 @@
 package main
 
 import (
-	"github.com/patrickz98/project.go.omnetpp/sysinfo"
-	"log"
-	"runtime"
-	"time"
+	"fmt"
+	"github.com/patrickz98/project.go.omnetpp/simple"
+	"github.com/shirou/gopsutil/v3/cpu"
+	"github.com/shirou/gopsutil/v3/host"
+	"github.com/shirou/gopsutil/v3/load"
+	"github.com/shirou/gopsutil/v3/mem"
 )
 
 type rollingAverage struct {
@@ -34,18 +36,43 @@ func newAverage(size int) (avg rollingAverage) {
 
 func main() {
 
-	log.Println("OS:", runtime.GOOS)
-	log.Println("ARCH:", runtime.GOARCH)
-	log.Println("NumCPU:", runtime.NumCPU())
-
-	avg := newAverage(30)
-
-	for inx := 0; inx < 1000000; inx++ {
-
-		usage := sysinfo.GetCPUUsage()
-		log.Printf("usage=%7.3f idle=%7.3f avg=%7.3f", usage, 100-usage, avg.push(100-usage))
-
-		time.Sleep(time.Millisecond * 500)
-		//break
+	mem, err := mem.VirtualMemory()
+	if err != nil {
+		panic(err)
 	}
+	fmt.Println("mem", simple.PrettyString(mem))
+
+	stats, err := cpu.Info()
+	if err != nil {
+		panic(err)
+	}
+
+	fmt.Println("stats:", simple.PrettyString(stats))
+
+	hostInfo, err := host.Info()
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println("hostInfo:", simple.PrettyString(hostInfo))
+
+	avg, err := load.Avg()
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println("avg:", simple.PrettyString(avg))
+
+	//log.Println("OS:", runtime.GOOS)
+	//log.Println("ARCH:", runtime.GOARCH)
+	//log.Println("NumCPU:", runtime.NumCPU())
+	//
+	//avg := newAverage(30)
+	//
+	//for inx := 0; inx < 1000000; inx++ {
+	//
+	//	usage := sysinfo.GetCPUUsage()
+	//	log.Printf("usage=%7.3f idle=%7.3f avg=%7.3f", usage, 100-usage, avg.push(100-usage))
+	//
+	//	time.Sleep(time.Millisecond * 500)
+	//	//break
+	//}
 }
