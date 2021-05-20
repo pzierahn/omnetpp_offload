@@ -32,7 +32,7 @@ func (client *workerConnection) StartLink(ctx context.Context) (err error) {
 
 				case *pb.Assignment_Build:
 					logger.Printf("(%d) Compile simulation %v", inx, task)
-					//client.compile(task)
+					client.compile(task)
 				}
 			}
 		}(inx)

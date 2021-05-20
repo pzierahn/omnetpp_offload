@@ -23,9 +23,15 @@ service Broker {
 
 message Empty {}
 
+message Build {
+  string simulationId = 1;
+  OppConfig oppConfig = 2;
+  StorageRef source = 3;
+}
+
 message Assignment {
   oneof do {
-    Source build = 1;
+    Build build = 1;
     SimulationRun run = 2;
   }
 }
