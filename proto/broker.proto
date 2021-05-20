@@ -70,18 +70,18 @@ message Tasks {
 
 message Utilization {
   float cpuUsage = 1;
-  float memoryUsage = 2;
-  google.protobuf.Timestamp updated = 3;
+  uint64 memoryTotal = 2;
+  uint64 memoryUsed = 3;
+  google.protobuf.Timestamp updated = 4;
 }
 
 message ProviderState {
   string providerId = 1;
   Arch arch = 2;
-  uint32 numCPUs = 3;
-  float cpuUsage = 4;
-  float memoryUsage = 5;
-  google.protobuf.Timestamp updated = 6;
-  map<string, Assignment> assignments = 7;
+  Utilization utilization = 3;
+  uint32 numCPUs = 4;
+  google.protobuf.Timestamp updated = 5;
+  map<string, Assignment> assignments = 6;
 }
 
 message ProviderOverview {

@@ -26,8 +26,7 @@ func (server *broker) pStatusHandle(writer http.ResponseWriter, request *http.Re
 			ProviderId:  pro.id,
 			Arch:        pro.arch,
 			NumCPUs:     pro.numCPUs,
-			CpuUsage:    pro.utilization.CpuUsage,
-			MemoryUsage: pro.utilization.MemoryUsage,
+			Utilization: pro.utilization,
 			Updated:     pro.utilization.Updated,
 			Assignments: pro.assignments,
 		}

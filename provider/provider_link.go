@@ -5,7 +5,6 @@ import (
 	pb "github.com/patrickz98/project.go.omnetpp/proto"
 	"github.com/patrickz98/project.go.omnetpp/sysinfo"
 	"google.golang.org/grpc/metadata"
-	"google.golang.org/protobuf/types/known/timestamppb"
 	"time"
 )
 
@@ -57,17 +56,12 @@ func (client *workerConnection) StartLink(ctx context.Context) (err error) {
 	}()
 
 	for range time.Tick(time.Second * 1) {
-		usage := sysinfo.GetCPUUsage()
+		var usage *pb.Utilization
+		usage, err = sysinfo.GetUtilization()
 
-		// logger.Printf("Sending usage=%f", usage)
+		// logger.Printf("Sending usage=%v", usage)
 
-		utilization := &pb.Utilization{
-			CpuUsage:    float32(usage),
-			MemoryUsage: 0,
-			Updated:     timestamppb.Now(),
-		}
-
-		err = stream.Send(utilization)
+		err = stream.Send(usage)
 		if err != nil {
 			return
 		}
