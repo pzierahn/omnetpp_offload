@@ -89,7 +89,7 @@ message ProviderState {
   Utilization utilization = 3;
   uint32 numCPUs = 4;
   map<string, SimulationRun> assignments = 5;
-  Build building = 6;
+  string building = 6;
 }
 
 message SimulationState {

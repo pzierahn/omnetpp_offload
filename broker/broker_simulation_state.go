@@ -1,6 +1,7 @@
 package broker
 
 import (
+	"fmt"
 	pb "github.com/patrickz98/project.go.omnetpp/proto"
 	"github.com/patrickz98/project.go.omnetpp/simple"
 	"strings"
@@ -21,11 +22,9 @@ func osArchId(binary *pb.Arch) osArch {
 type taskId string
 
 func tId(task *pb.SimulationRun) taskId {
-	id := strings.Join([]string{
-		task.SimulationId,
-		task.Config,
-		task.RunNumber,
-	}, "_")
+
+	id := fmt.Sprintf("%s_%s_%0s",
+		task.SimulationId, task.Config, task.RunNumber)
 
 	return taskId(id)
 }

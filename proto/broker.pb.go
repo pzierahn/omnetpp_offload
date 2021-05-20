@@ -693,7 +693,7 @@ type ProviderState struct {
 	Utilization *Utilization              `protobuf:"bytes,3,opt,name=utilization,proto3" json:"utilization,omitempty"`
 	NumCPUs     uint32                    `protobuf:"varint,4,opt,name=numCPUs,proto3" json:"numCPUs,omitempty"`
 	Assignments map[string]*SimulationRun `protobuf:"bytes,5,rep,name=assignments,proto3" json:"assignments,omitempty" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"bytes,2,opt,name=value,proto3"`
-	Building    *Build                    `protobuf:"bytes,6,opt,name=building,proto3" json:"building,omitempty"`
+	Building    string                    `protobuf:"bytes,6,opt,name=building,proto3" json:"building,omitempty"`
 }
 
 func (x *ProviderState) Reset() {
@@ -763,11 +763,11 @@ func (x *ProviderState) GetAssignments() map[string]*SimulationRun {
 	return nil
 }
 
-func (x *ProviderState) GetBuilding() *Build {
+func (x *ProviderState) GetBuilding() string {
 	if x != nil {
 		return x.Building
 	}
-	return nil
+	return ""
 }
 
 type SimulationState struct {
@@ -1044,7 +1044,7 @@ var file_broker_proto_rawDesc = []byte{
 	0x79, 0x55, 0x73, 0x65, 0x64, 0x12, 0x34, 0x0a, 0x07, 0x75, 0x70, 0x64, 0x61, 0x74, 0x65, 0x64,
 	0x18, 0x04, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x1a, 0x2e, 0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x2e,
 	0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66, 0x2e, 0x54, 0x69, 0x6d, 0x65, 0x73, 0x74, 0x61,
-	0x6d, 0x70, 0x52, 0x07, 0x75, 0x70, 0x64, 0x61, 0x74, 0x65, 0x64, 0x22, 0xf3, 0x02, 0x0a, 0x0d,
+	0x6d, 0x70, 0x52, 0x07, 0x75, 0x70, 0x64, 0x61, 0x74, 0x65, 0x64, 0x22, 0xe3, 0x02, 0x0a, 0x0d,
 	0x50, 0x72, 0x6f, 0x76, 0x69, 0x64, 0x65, 0x72, 0x53, 0x74, 0x61, 0x74, 0x65, 0x12, 0x1e, 0x0a,
 	0x0a, 0x70, 0x72, 0x6f, 0x76, 0x69, 0x64, 0x65, 0x72, 0x49, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28,
 	0x09, 0x52, 0x0a, 0x70, 0x72, 0x6f, 0x76, 0x69, 0x64, 0x65, 0x72, 0x49, 0x64, 0x12, 0x21, 0x0a,
@@ -1059,9 +1059,8 @@ var file_broker_proto_rawDesc = []byte{
 	0x73, 0x18, 0x05, 0x20, 0x03, 0x28, 0x0b, 0x32, 0x27, 0x2e, 0x73, 0x65, 0x72, 0x76, 0x69, 0x63,
 	0x65, 0x2e, 0x50, 0x72, 0x6f, 0x76, 0x69, 0x64, 0x65, 0x72, 0x53, 0x74, 0x61, 0x74, 0x65, 0x2e,
 	0x41, 0x73, 0x73, 0x69, 0x67, 0x6e, 0x6d, 0x65, 0x6e, 0x74, 0x73, 0x45, 0x6e, 0x74, 0x72, 0x79,
-	0x52, 0x0b, 0x61, 0x73, 0x73, 0x69, 0x67, 0x6e, 0x6d, 0x65, 0x6e, 0x74, 0x73, 0x12, 0x2a, 0x0a,
-	0x08, 0x62, 0x75, 0x69, 0x6c, 0x64, 0x69, 0x6e, 0x67, 0x18, 0x06, 0x20, 0x01, 0x28, 0x0b, 0x32,
-	0x0e, 0x2e, 0x73, 0x65, 0x72, 0x76, 0x69, 0x63, 0x65, 0x2e, 0x42, 0x75, 0x69, 0x6c, 0x64, 0x52,
+	0x52, 0x0b, 0x61, 0x73, 0x73, 0x69, 0x67, 0x6e, 0x6d, 0x65, 0x6e, 0x74, 0x73, 0x12, 0x1a, 0x0a,
+	0x08, 0x62, 0x75, 0x69, 0x6c, 0x64, 0x69, 0x6e, 0x67, 0x18, 0x06, 0x20, 0x01, 0x28, 0x09, 0x52,
 	0x08, 0x62, 0x75, 0x69, 0x6c, 0x64, 0x69, 0x6e, 0x67, 0x1a, 0x56, 0x0a, 0x10, 0x41, 0x73, 0x73,
 	0x69, 0x67, 0x6e, 0x6d, 0x65, 0x6e, 0x74, 0x73, 0x45, 0x6e, 0x74, 0x72, 0x79, 0x12, 0x10, 0x0a,
 	0x03, 0x6b, 0x65, 0x79, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x03, 0x6b, 0x65, 0x79, 0x12,
@@ -1205,42 +1204,41 @@ var file_broker_proto_depIdxs = []int32{
 	3,  // 11: service.ProviderState.arch:type_name -> service.Arch
 	10, // 12: service.ProviderState.utilization:type_name -> service.Utilization
 	15, // 13: service.ProviderState.assignments:type_name -> service.ProviderState.AssignmentsEntry
-	1,  // 14: service.ProviderState.building:type_name -> service.Build
-	16, // 15: service.SimulationState.queue:type_name -> service.SimulationState.QueueEntry
-	17, // 16: service.SimulationState.runs:type_name -> service.SimulationState.RunsEntry
-	20, // 17: service.SimulationState.source:type_name -> service.StorageRef
-	19, // 18: service.SimulationState.oppConfig:type_name -> service.OppConfig
-	18, // 19: service.SimulationState.binaries:type_name -> service.SimulationState.BinariesEntry
-	11, // 20: service.ProviderOverview.items:type_name -> service.ProviderState
-	19, // 21: service.Simulation.oppConfig:type_name -> service.OppConfig
-	8,  // 22: service.ProviderState.AssignmentsEntry.value:type_name -> service.SimulationRun
-	8,  // 23: service.SimulationState.RunsEntry.value:type_name -> service.SimulationRun
-	4,  // 24: service.SimulationState.BinariesEntry.value:type_name -> service.Binary
-	10, // 25: service.Broker.Assignments:input_type -> service.Utilization
-	2,  // 26: service.Broker.Finished:input_type -> service.Assignment
-	14, // 27: service.Broker.Create:input_type -> service.Simulation
-	6,  // 28: service.Broker.GetSimulation:input_type -> service.SimulationId
-	6,  // 29: service.Broker.GetOppConfig:input_type -> service.SimulationId
-	9,  // 30: service.Broker.AddTasks:input_type -> service.Tasks
-	5,  // 31: service.Broker.SetSource:input_type -> service.Source
-	6,  // 32: service.Broker.GetSource:input_type -> service.SimulationId
-	4,  // 33: service.Broker.AddBinary:input_type -> service.Binary
-	3,  // 34: service.Broker.GetBinary:input_type -> service.Arch
-	2,  // 35: service.Broker.Assignments:output_type -> service.Assignment
-	0,  // 36: service.Broker.Finished:output_type -> service.Empty
-	6,  // 37: service.Broker.Create:output_type -> service.SimulationId
-	14, // 38: service.Broker.GetSimulation:output_type -> service.Simulation
-	19, // 39: service.Broker.GetOppConfig:output_type -> service.OppConfig
-	0,  // 40: service.Broker.AddTasks:output_type -> service.Empty
-	0,  // 41: service.Broker.SetSource:output_type -> service.Empty
-	5,  // 42: service.Broker.GetSource:output_type -> service.Source
-	0,  // 43: service.Broker.AddBinary:output_type -> service.Empty
-	4,  // 44: service.Broker.GetBinary:output_type -> service.Binary
-	35, // [35:45] is the sub-list for method output_type
-	25, // [25:35] is the sub-list for method input_type
-	25, // [25:25] is the sub-list for extension type_name
-	25, // [25:25] is the sub-list for extension extendee
-	0,  // [0:25] is the sub-list for field type_name
+	16, // 14: service.SimulationState.queue:type_name -> service.SimulationState.QueueEntry
+	17, // 15: service.SimulationState.runs:type_name -> service.SimulationState.RunsEntry
+	20, // 16: service.SimulationState.source:type_name -> service.StorageRef
+	19, // 17: service.SimulationState.oppConfig:type_name -> service.OppConfig
+	18, // 18: service.SimulationState.binaries:type_name -> service.SimulationState.BinariesEntry
+	11, // 19: service.ProviderOverview.items:type_name -> service.ProviderState
+	19, // 20: service.Simulation.oppConfig:type_name -> service.OppConfig
+	8,  // 21: service.ProviderState.AssignmentsEntry.value:type_name -> service.SimulationRun
+	8,  // 22: service.SimulationState.RunsEntry.value:type_name -> service.SimulationRun
+	4,  // 23: service.SimulationState.BinariesEntry.value:type_name -> service.Binary
+	10, // 24: service.Broker.Assignments:input_type -> service.Utilization
+	2,  // 25: service.Broker.Finished:input_type -> service.Assignment
+	14, // 26: service.Broker.Create:input_type -> service.Simulation
+	6,  // 27: service.Broker.GetSimulation:input_type -> service.SimulationId
+	6,  // 28: service.Broker.GetOppConfig:input_type -> service.SimulationId
+	9,  // 29: service.Broker.AddTasks:input_type -> service.Tasks
+	5,  // 30: service.Broker.SetSource:input_type -> service.Source
+	6,  // 31: service.Broker.GetSource:input_type -> service.SimulationId
+	4,  // 32: service.Broker.AddBinary:input_type -> service.Binary
+	3,  // 33: service.Broker.GetBinary:input_type -> service.Arch
+	2,  // 34: service.Broker.Assignments:output_type -> service.Assignment
+	0,  // 35: service.Broker.Finished:output_type -> service.Empty
+	6,  // 36: service.Broker.Create:output_type -> service.SimulationId
+	14, // 37: service.Broker.GetSimulation:output_type -> service.Simulation
+	19, // 38: service.Broker.GetOppConfig:output_type -> service.OppConfig
+	0,  // 39: service.Broker.AddTasks:output_type -> service.Empty
+	0,  // 40: service.Broker.SetSource:output_type -> service.Empty
+	5,  // 41: service.Broker.GetSource:output_type -> service.Source
+	0,  // 42: service.Broker.AddBinary:output_type -> service.Empty
+	4,  // 43: service.Broker.GetBinary:output_type -> service.Binary
+	34, // [34:44] is the sub-list for method output_type
+	24, // [24:34] is the sub-list for method input_type
+	24, // [24:24] is the sub-list for extension type_name
+	24, // [24:24] is the sub-list for extension extendee
+	0,  // [0:24] is the sub-list for field type_name
 }
 
 func init() { file_broker_proto_init() }

@@ -95,16 +95,14 @@ func (server *broker) AddBinary(_ context.Context, binary *pb.Binary) (resp *pb.
 	// TODO: Remove compile ref from compile assignments
 
 	server.providers.RLock()
-
 	for _, prov := range server.providers.provider {
 		prov.Lock()
-		if prov.building.SimulationId == binary.SimulationId {
+		if (prov.building == binary.SimulationId) && (osArchId(binary.Arch) == osArchId(prov.arch)) {
 			logger.Printf("%s: remove building ref from %s", binary.SimulationId, prov.id)
-			prov.building = nil
+			prov.building = ""
 		}
 		prov.Unlock()
 	}
-
 	server.providers.RUnlock()
 
 	resp = &pb.Empty{}

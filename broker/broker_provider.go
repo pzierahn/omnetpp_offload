@@ -27,7 +27,7 @@ type provider struct {
 	arch        *pb.Arch
 	numCPUs     uint32
 	utilization *pb.Utilization
-	building    *pb.Build
+	building    string
 	assignments map[taskId]*pb.SimulationRun
 	assign      chan *pb.Assignment
 	//listener    map[chan<- *pb.ProviderState]interface{}
@@ -89,7 +89,7 @@ func (node *provider) assignCompile(assignment *pb.Build) {
 	node.Lock()
 	defer node.Unlock()
 
-	node.building = assignment
+	node.building = assignment.SimulationId
 
 	node.assign <- &pb.Assignment{Do: &pb.Assignment_Build{
 		Build: assignment,
@@ -107,7 +107,7 @@ func (node *provider) busy() (busy bool) {
 	node.RLock()
 	defer node.RUnlock()
 
-	if node.building != nil {
+	if node.building != "" {
 		busy = true
 		return
 	}
@@ -134,8 +134,6 @@ func (node *provider) close() {
 
 	close(node.assign)
 }
-
-var compileMu sync.Mutex
 
 type providerManager struct {
 	sync.RWMutex

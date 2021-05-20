@@ -22,29 +22,27 @@ func (server *broker) pStatusHandle(writer http.ResponseWriter, request *http.Re
 
 	inx := 0
 
-	server.providers.RLock()
-	for _, pro := range server.providers.provider {
-		pro.RLock()
+	for _, prov := range server.providers.provider {
+		prov.RLock()
 
 		assignments := make(map[string]*pb.SimulationRun)
 
-		for key, val := range pro.assignments {
+		for key, val := range prov.assignments {
 			assignments[string(key)] = proto.Clone(val).(*pb.SimulationRun)
 		}
 
 		providers[inx] = &pb.ProviderState{
-			ProviderId:  pro.id,
-			Arch:        pro.arch,
-			NumCPUs:     pro.numCPUs,
-			Utilization: proto.Clone(pro.utilization).(*pb.Utilization),
+			ProviderId:  prov.id,
+			Arch:        prov.arch,
+			NumCPUs:     prov.numCPUs,
+			Utilization: proto.Clone(prov.utilization).(*pb.Utilization),
 			Assignments: assignments,
-			Building:    proto.Clone(pro.building).(*pb.Build),
+			Building:    prov.building,
 		}
-		pro.RUnlock()
+		prov.RUnlock()
 
 		inx++
 	}
-	server.providers.RUnlock()
 
 	sort.Slice(providers, func(i, j int) bool {
 		return providers[i].ProviderId < providers[j].ProviderId

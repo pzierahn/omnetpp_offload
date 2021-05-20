@@ -1,14 +1,16 @@
 package broker
 
+import pb "github.com/patrickz98/project.go.omnetpp/proto"
+
 func (server *broker) distribute() {
-	// logger.Printf("distribute work!")
+	//logger.Printf("distribute work!")
 
 	server.providers.RLock()
 	defer server.providers.RUnlock()
 
 	for _, node := range server.providers.provider {
 		// arch := osArchId(providerState.Arch)
-		// logger.Printf("%s arch=%s usage=%3.0f%%", id, arch, providerState.CpuUsage)
+		//logger.Printf("checking %s", node.id)
 
 		if node.busy() {
 
@@ -19,15 +21,45 @@ func (server *broker) distribute() {
 			continue
 		}
 
-		slots := node.freeSlots()
-		for inx := 0; inx < slots; inx++ {
-			task := server.simulations.pullWork(node.arch)
-			if task == nil {
-				// No jobs left to do for arch
-				break
+		build := server.simulations.pullCompile(node.arch)
+		if build != nil {
+
+			//logger.Printf("--> %s compile %s", node.id, build.simulationId)
+
+			assignBuild := true
+
+			for _, prov2 := range server.providers.provider {
+				prov2.RLock()
+				if prov2.building == build.simulationId {
+					//
+					// Build is already assigned to a privider
+					//
+
+					assignBuild = false
+					break
+				}
+				prov2.RUnlock()
 			}
 
-			node.assignRun(task)
+			if assignBuild {
+				node.assignCompile(&pb.Build{
+					SimulationId: build.simulationId,
+					Config:       build.oppConfig,
+					Source:       build.source,
+				})
+				continue
+			}
 		}
+
+		//slots := node.freeSlots()
+		//for inx := 0; inx < slots; inx++ {
+		//	task := server.simulations.pullWork(node.arch)
+		//	if task == nil {
+		//		// No jobs left to do for arch
+		//		break
+		//	}
+		//
+		//	node.assignRun(task)
+		//}
 	}
 }
