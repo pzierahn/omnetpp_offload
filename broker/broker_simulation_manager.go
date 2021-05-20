@@ -57,6 +57,8 @@ func (sm *simulationManager) pullCompile(arch *pb.Arch) (simulation *pb.Source) 
 			// Binary is not compiled for arch
 			//
 
+			// TODO: Check if simulation compilation is already assigned to an provider
+
 			simulation = &pb.Source{
 				SimulationId: sim.simulationId,
 				Source:       sim.source,
