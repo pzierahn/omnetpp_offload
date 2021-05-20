@@ -7,7 +7,10 @@ import (
 func (client *workerConnection) compile(build *pb.Assignment_Build) {
 	simulationId := build.Build.SimulationId
 
-	simulationBase, err := client.checkout(simulationId)
+	simulationBase, err := client.checkout(&pb.Source{
+		SimulationId: simulationId,
+		Source:       build.Build.Source,
+	})
 	if err != nil {
 		panic(err)
 	}
