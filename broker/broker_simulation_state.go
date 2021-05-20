@@ -23,7 +23,7 @@ type taskId string
 
 func tId(task *pb.SimulationRun) taskId {
 
-	id := fmt.Sprintf("%s_%s_%0s",
+	id := fmt.Sprintf("%s_%s_%03s",
 		task.SimulationId, task.Config, task.RunNumber)
 
 	return taskId(id)

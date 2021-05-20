@@ -85,23 +85,22 @@ func (server *broker) GetSource(_ context.Context, sim *pb.SimulationId) (resp *
 
 func (server *broker) AddBinary(_ context.Context, binary *pb.Binary) (resp *pb.Empty, err error) {
 
-	logger.Printf("%s: new binary (%s)", binary.SimulationId, binary.Arch)
+	logger.Printf("new binary (%s_%s)", binary.SimulationId, binary.Arch)
 
 	sState := server.simulations.getSimulationState(binary.SimulationId)
 	sState.write(func() {
 		sState.binaries[osArchId(binary.Arch)] = binary
 	})
 
-	// TODO: Remove compile ref from compile assignments
-
 	server.providers.RLock()
 	for _, prov := range server.providers.provider {
-		prov.Lock()
+		prov.RLock()
+
 		if (prov.building == binary.SimulationId) && (osArchId(binary.Arch) == osArchId(prov.arch)) {
 			logger.Printf("%s: remove building ref from %s", binary.SimulationId, prov.id)
 			prov.building = ""
 		}
-		prov.Unlock()
+		prov.RUnlock()
 	}
 	server.providers.RUnlock()
 

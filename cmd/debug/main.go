@@ -13,10 +13,11 @@ func (set set) Add(str string) {
 
 func main() {
 
-	test := make(set)
-	test.Add("hallo")
+	//test := make(set)
+	//test.Add("hallo")
 
-	fmt.Println(test)
+	fmt.Printf("test %03s\n", "1")
+	fmt.Printf("|%06d|%6d|\n", 12, 345)
 
 	//_, err := simple.TarGz("../TaskletSimulator", "test",
 	//	"\\.git", ".DS_Store", ".idea", "out/clang-release/src/messages/DataRequestMessage_m.o")

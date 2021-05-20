@@ -9,6 +9,7 @@ func (server *broker) distribute() {
 	defer server.providers.RUnlock()
 
 	for _, node := range server.providers.provider {
+
 		// arch := osArchId(providerState.Arch)
 		//logger.Printf("checking %s", node.id)
 
@@ -21,7 +22,10 @@ func (server *broker) distribute() {
 			continue
 		}
 
+		node.RLock()
 		build := server.simulations.pullCompile(node.arch)
+		node.RUnlock()
+
 		if build != nil {
 
 			//logger.Printf("--> %s compile %s", node.id, build.simulationId)
@@ -32,10 +36,12 @@ func (server *broker) distribute() {
 				prov2.RLock()
 				if prov2.building == build.simulationId {
 					//
-					// Build is already assigned to a privider
+					// Build is already assigned to a provider
 					//
 
 					assignBuild = false
+					prov2.RUnlock()
+
 					break
 				}
 				prov2.RUnlock()
