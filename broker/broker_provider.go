@@ -124,6 +124,8 @@ func (node *provider) close() {
 	close(node.assign)
 }
 
+var compileMu sync.Mutex
+
 type providerManager struct {
 	sync.RWMutex
 	provider map[string]*provider
@@ -140,8 +142,9 @@ func (pm *providerManager) add(node *provider) {
 	logger.Printf("providerManager: add id=%v", node.id)
 
 	pm.Lock()
+	defer pm.Unlock()
+
 	pm.provider[node.id] = node
-	pm.Unlock()
 }
 
 func (pm *providerManager) remove(node *provider) {
@@ -149,6 +152,7 @@ func (pm *providerManager) remove(node *provider) {
 	logger.Printf("providerManager: remove id=%v", node.id)
 
 	pm.Lock()
+	defer pm.Unlock()
+
 	delete(pm.provider, node.id)
-	pm.Unlock()
 }

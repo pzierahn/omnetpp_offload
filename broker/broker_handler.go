@@ -78,6 +78,8 @@ func (server *broker) AddBinary(_ context.Context, binary *pb.Binary) (resp *pb.
 		sState.binaries[osArchId(binary.Arch)] = binary
 	})
 
+	// TODO: Remove compile ref from compileAssignments
+
 	resp = &pb.Empty{}
 
 	return

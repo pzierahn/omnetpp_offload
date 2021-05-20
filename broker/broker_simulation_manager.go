@@ -37,7 +37,7 @@ func (sm *simulationManager) getSimulationState(id string) (sState *simulationSt
 	return
 }
 
-func (sm *simulationManager) pullCompile(arch *pb.Arch) (simulation *pb.Source) {
+func (sm *simulationManager) pullCompile(arch *pb.Arch) (sState *simulationState) {
 
 	sm.RLock()
 	defer sm.RUnlock()
@@ -54,15 +54,10 @@ func (sm *simulationManager) pullCompile(arch *pb.Arch) (simulation *pb.Source) 
 		if !ok {
 
 			//
-			// Binary is not compiled for arch
+			// Simulation is not compiled for arch
 			//
 
-			// TODO: Check if simulation compilation is already assigned to an provider
-
-			simulation = &pb.Source{
-				SimulationId: sim.simulationId,
-				Source:       sim.source,
-			}
+			sState = sim
 
 			break
 		}
