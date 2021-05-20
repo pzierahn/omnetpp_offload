@@ -80,8 +80,16 @@ message ProviderState {
   Arch arch = 2;
   Utilization utilization = 3;
   uint32 numCPUs = 4;
-  google.protobuf.Timestamp updated = 5;
-  map<string, Assignment> assignments = 6;
+  map<string, Assignment> assignments = 5;
+}
+
+message SimulationState {
+  string simulationId = 1;
+  map<string, bool> queue = 2;
+  map<string, SimulationRun> runs = 3;
+  StorageRef source = 4;
+  OppConfig oppConfig = 5;
+  map<string, Binary> binaries = 6;
 }
 
 message ProviderOverview {
