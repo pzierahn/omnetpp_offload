@@ -21,6 +21,8 @@ type BrokerClient interface {
 	Assignments(ctx context.Context, opts ...grpc.CallOption) (Broker_AssignmentsClient, error)
 	Finished(ctx context.Context, in *Assignment, opts ...grpc.CallOption) (*Empty, error)
 	Create(ctx context.Context, in *Simulation, opts ...grpc.CallOption) (*SimulationId, error)
+	GetSimulation(ctx context.Context, in *SimulationId, opts ...grpc.CallOption) (*Simulation, error)
+	GetOppConfig(ctx context.Context, in *SimulationId, opts ...grpc.CallOption) (*OppConfig, error)
 	AddTasks(ctx context.Context, in *Tasks, opts ...grpc.CallOption) (*Empty, error)
 	SetSource(ctx context.Context, in *Source, opts ...grpc.CallOption) (*Empty, error)
 	GetSource(ctx context.Context, in *SimulationId, opts ...grpc.CallOption) (*Source, error)
@@ -85,6 +87,24 @@ func (c *brokerClient) Create(ctx context.Context, in *Simulation, opts ...grpc.
 	return out, nil
 }
 
+func (c *brokerClient) GetSimulation(ctx context.Context, in *SimulationId, opts ...grpc.CallOption) (*Simulation, error) {
+	out := new(Simulation)
+	err := c.cc.Invoke(ctx, "/service.Broker/GetSimulation", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *brokerClient) GetOppConfig(ctx context.Context, in *SimulationId, opts ...grpc.CallOption) (*OppConfig, error) {
+	out := new(OppConfig)
+	err := c.cc.Invoke(ctx, "/service.Broker/GetOppConfig", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *brokerClient) AddTasks(ctx context.Context, in *Tasks, opts ...grpc.CallOption) (*Empty, error) {
 	out := new(Empty)
 	err := c.cc.Invoke(ctx, "/service.Broker/AddTasks", in, out, opts...)
@@ -137,6 +157,8 @@ type BrokerServer interface {
 	Assignments(Broker_AssignmentsServer) error
 	Finished(context.Context, *Assignment) (*Empty, error)
 	Create(context.Context, *Simulation) (*SimulationId, error)
+	GetSimulation(context.Context, *SimulationId) (*Simulation, error)
+	GetOppConfig(context.Context, *SimulationId) (*OppConfig, error)
 	AddTasks(context.Context, *Tasks) (*Empty, error)
 	SetSource(context.Context, *Source) (*Empty, error)
 	GetSource(context.Context, *SimulationId) (*Source, error)
@@ -157,6 +179,12 @@ func (UnimplementedBrokerServer) Finished(context.Context, *Assignment) (*Empty,
 }
 func (UnimplementedBrokerServer) Create(context.Context, *Simulation) (*SimulationId, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Create not implemented")
+}
+func (UnimplementedBrokerServer) GetSimulation(context.Context, *SimulationId) (*Simulation, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetSimulation not implemented")
+}
+func (UnimplementedBrokerServer) GetOppConfig(context.Context, *SimulationId) (*OppConfig, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetOppConfig not implemented")
 }
 func (UnimplementedBrokerServer) AddTasks(context.Context, *Tasks) (*Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method AddTasks not implemented")
@@ -244,6 +272,42 @@ func _Broker_Create_Handler(srv interface{}, ctx context.Context, dec func(inter
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(BrokerServer).Create(ctx, req.(*Simulation))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Broker_GetSimulation_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SimulationId)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BrokerServer).GetSimulation(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/service.Broker/GetSimulation",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BrokerServer).GetSimulation(ctx, req.(*SimulationId))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Broker_GetOppConfig_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SimulationId)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BrokerServer).GetOppConfig(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/service.Broker/GetOppConfig",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BrokerServer).GetOppConfig(ctx, req.(*SimulationId))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -352,6 +416,14 @@ var Broker_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "Create",
 			Handler:    _Broker_Create_Handler,
+		},
+		{
+			MethodName: "GetSimulation",
+			Handler:    _Broker_GetSimulation_Handler,
+		},
+		{
+			MethodName: "GetOppConfig",
+			Handler:    _Broker_GetOppConfig_Handler,
 		},
 		{
 			MethodName: "AddTasks",

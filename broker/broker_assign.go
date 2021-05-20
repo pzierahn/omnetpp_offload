@@ -31,24 +31,12 @@ func (server *broker) Assignments(stream pb.Broker_AssignmentsServer) (err error
 
 		for _, assignment := range node.assignments {
 
-			switch left := assignment.Do.(type) {
-			case *pb.Assignment_Build:
-				//
-				// TODO: Reassign compiling
-				//
-
-			case *pb.Assignment_Run:
-				//
-				// Reassign simulation runs
-				//
-
-				sState := server.simulations.getSimulationState(left.Run.SimulationId)
-				sState.write(func() {
-					id := tId(left.Run)
-					sState.queue[id] = true
-					sState.runs[id] = left.Run
-				})
-			}
+			sState := server.simulations.getSimulationState(assignment.SimulationId)
+			sState.write(func() {
+				id := tId(assignment)
+				sState.queue[id] = true
+				sState.runs[id] = assignment
+			})
 		}
 
 		node.close()

@@ -26,10 +26,10 @@ func (server *broker) pStatusHandle(writer http.ResponseWriter, request *http.Re
 	for _, pro := range server.providers.provider {
 		pro.RLock()
 
-		assignments := make(map[string]*pb.Assignment)
+		assignments := make(map[string]*pb.SimulationRun)
 
 		for key, val := range pro.assignments {
-			assignments[key] = proto.Clone(val).(*pb.Assignment)
+			assignments[string(key)] = proto.Clone(val).(*pb.SimulationRun)
 		}
 
 		providers[inx] = &pb.ProviderState{
@@ -38,6 +38,7 @@ func (server *broker) pStatusHandle(writer http.ResponseWriter, request *http.Re
 			NumCPUs:     pro.numCPUs,
 			Utilization: proto.Clone(pro.utilization).(*pb.Utilization),
 			Assignments: assignments,
+			Building:    proto.Clone(pro.building).(*pb.Build),
 		}
 		pro.RUnlock()
 

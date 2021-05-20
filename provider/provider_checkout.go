@@ -7,14 +7,14 @@ import (
 	"path/filepath"
 )
 
-func (client *workerConnection) checkout(source *pb.Source) (path string, err error) {
+func (client *workerConnection) checkout(simulationId string, src *pb.StorageRef) (path string, err error) {
 
-	buf, err := client.storage.Download(source.Source)
+	buf, err := client.storage.Download(src)
 	if err != nil {
 		return
 	}
 
-	path = filepath.Join(cachePath, source.SimulationId)
+	path = filepath.Join(cachePath, simulationId)
 
 	err = simple.UnTarGz(cachePath, &buf)
 	if err != nil {

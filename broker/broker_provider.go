@@ -27,7 +27,8 @@ type provider struct {
 	arch        *pb.Arch
 	numCPUs     uint32
 	utilization *pb.Utilization
-	assignments map[string]*pb.Assignment
+	building    *pb.Build
+	assignments map[taskId]*pb.SimulationRun
 	assign      chan *pb.Assignment
 	//listener    map[chan<- *pb.ProviderState]interface{}
 }
@@ -65,21 +66,34 @@ func newProvider(meta prov.Meta) (node *provider, err error) {
 			Arch: arch,
 		},
 		numCPUs:     uint32(numCPUs),
-		assignments: make(map[string]*pb.Assignment),
+		assignments: make(map[taskId]*pb.SimulationRun),
 		assign:      make(chan *pb.Assignment),
 	}
 
 	return
 }
 
-func (node *provider) assignWork(assignment *pb.Assignment) {
+func (node *provider) assignRun(assignment *pb.SimulationRun) {
 	node.Lock()
 	defer node.Unlock()
 
-	id := assignId(assignment)
+	id := tId(assignment)
 	node.assignments[id] = assignment
 
-	node.assign <- assignment
+	node.assign <- &pb.Assignment{Do: &pb.Assignment_Run{
+		Run: assignment,
+	}}
+}
+
+func (node *provider) assignCompile(assignment *pb.Build) {
+	node.Lock()
+	defer node.Unlock()
+
+	node.building = assignment
+
+	node.assign <- &pb.Assignment{Do: &pb.Assignment_Build{
+		Build: assignment,
+	}}
 }
 
 func (node *provider) setUtilization(utilization *pb.Utilization) {
@@ -93,12 +107,9 @@ func (node *provider) busy() (busy bool) {
 	node.RLock()
 	defer node.RUnlock()
 
-	for _, assignment := range node.assignments {
-		switch assignment.Do.(type) {
-		case *pb.Assignment_Build:
-			busy = true
-			return
-		}
+	if node.building != nil {
+		busy = true
+		return
 	}
 
 	busy = (node.utilization == nil) ||

@@ -4,13 +4,10 @@ import (
 	pb "github.com/patrickz98/project.go.omnetpp/proto"
 )
 
-func (client *workerConnection) compile(build *pb.Assignment_Build) {
-	simulationId := build.Build.SimulationId
+func (client *workerConnection) compile(build *pb.Build) {
+	simulationId := build.SimulationId
 
-	simulationBase, err := client.checkout(&pb.Source{
-		SimulationId: simulationId,
-		Source:       build.Build.Source,
-	})
+	simulationBase, err := client.checkout(simulationId, build.Source)
 	if err != nil {
 		panic(err)
 	}
@@ -20,7 +17,7 @@ func (client *workerConnection) compile(build *pb.Assignment_Build) {
 		Storage:        client.storage,
 		SimulationId:   simulationId,
 		SimulationBase: simulationBase,
-		OppConfig:      build.Build.OppConfig,
+		OppConfig:      build.Config,
 	}
 
 	err = compiler.Compile()

@@ -3,6 +3,7 @@ package broker
 import (
 	"context"
 	pb "github.com/patrickz98/project.go.omnetpp/proto"
+	"google.golang.org/protobuf/proto"
 )
 
 func (server *broker) Create(_ context.Context, simulation *pb.Simulation) (resp *pb.SimulationId, err error) {
@@ -12,6 +13,19 @@ func (server *broker) Create(_ context.Context, simulation *pb.Simulation) (resp
 
 	resp = &pb.SimulationId{
 		Id: sState.simulationId,
+	}
+
+	return
+}
+
+func (server *broker) GetSimulation(_ context.Context, req *pb.SimulationId) (simulation *pb.Simulation, err error) {
+
+	logger.Printf("GetSimulation: id='%s'", req.Id)
+	sState := server.simulations.getSimulationState(req.Id)
+
+	simulation = &pb.Simulation{
+		SimulationId: sState.simulationId,
+		OppConfig:    sState.oppConfig,
 	}
 
 	return
@@ -78,9 +92,32 @@ func (server *broker) AddBinary(_ context.Context, binary *pb.Binary) (resp *pb.
 		sState.binaries[osArchId(binary.Arch)] = binary
 	})
 
-	// TODO: Remove compile ref from compileAssignments
+	// TODO: Remove compile ref from compile assignments
+
+	server.providers.RLock()
+
+	for _, prov := range server.providers.provider {
+		prov.Lock()
+		if prov.building.SimulationId == binary.SimulationId {
+			logger.Printf("%s: remove building ref from %s", binary.SimulationId, prov.id)
+			prov.building = nil
+		}
+		prov.Unlock()
+	}
+
+	server.providers.RUnlock()
 
 	resp = &pb.Empty{}
+
+	return
+}
+
+func (server *broker) GetOppConfig(_ context.Context, simulation *pb.SimulationId) (config *pb.OppConfig, err error) {
+
+	sState := server.simulations.getSimulationState(simulation.Id)
+	sState.read(func() {
+		config = proto.Clone(sState.oppConfig).(*pb.OppConfig)
+	})
 
 	return
 }

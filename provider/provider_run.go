@@ -2,25 +2,14 @@ package provider
 
 import (
 	pb "github.com/patrickz98/project.go.omnetpp/proto"
+	"sync"
 )
 
-//import (
-//	"context"
-//	"fmt"
-//	"github.com/patrickz98/project.go.omnetpp/omnetpp"
-//	pb "github.com/patrickz98/project.go.omnetpp/proto"
-//	"github.com/patrickz98/project.go.omnetpp/simple"
-//	"os"
-//	"path/filepath"
-//	"sync"
-//)
-//
-//var setupSync sync.Mutex
-//
-//func (client *workerConnection) setup(job *pb.Task) (project omnetpp.OmnetProject, err error) {
+var setupSync sync.Mutex
+
+//func (client *workerConnection) setup(job *pb.SimulationRun) (project omnetpp.OmnetProject, err error) {
 //
 //	// Prevent that a simulation will be downloaded multiple times
-//	// todo: check simulation
 //	setupSync.Lock()
 //	defer setupSync.Unlock()
 //
@@ -104,7 +93,7 @@ import (
 //
 //	return
 //}
-//
+
 //func (client *workerConnection) uploadResults(project omnetpp.OmnetProject, job *pb.Task) (err error) {
 //
 //	//buf, err := project.ZipResults()
@@ -138,7 +127,7 @@ import (
 //	return
 //}
 
-func (client *workerConnection) runTasks(job *pb.SimulationRun) {
+func (client *workerConnection) runTasks(job *pb.Assignment_Run) {
 
 	////
 	//// Setup simulation environment

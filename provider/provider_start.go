@@ -28,11 +28,11 @@ func (client *workerConnection) StartLink(ctx context.Context) (err error) {
 				switch task := assignment.Do.(type) {
 				case *pb.Assignment_Run:
 					logger.Printf("(%d) Run simulation %v", inx, task)
-					//client.runTasks(task)
+					client.runTasks(task)
 
 				case *pb.Assignment_Build:
 					logger.Printf("(%d) Compile simulation %v", inx, task)
-					client.compile(task)
+					client.compile(task.Build)
 				}
 			}
 		}(inx)

@@ -12,20 +12,22 @@ import "opp_config.proto";
 service Broker {
   rpc Assignments (stream Utilization) returns (stream Assignment) {}
 
-  rpc Finished  (Assignment)   returns (Empty)        {}
-  rpc Create    (Simulation)   returns (SimulationId) {}
-  rpc AddTasks  (Tasks)        returns (Empty)        {}
-  rpc SetSource (Source)       returns (Empty)        {}
-  rpc GetSource (SimulationId) returns (Source)       {}
-  rpc AddBinary (Binary)       returns (Empty)        {}
-  rpc GetBinary (Arch)         returns (Binary)       {}
+  rpc Finished      (Assignment)   returns (Empty)        {}
+  rpc Create        (Simulation)   returns (SimulationId) {}
+  rpc GetSimulation (SimulationId) returns (Simulation)   {}
+  rpc GetOppConfig  (SimulationId) returns (OppConfig)    {}
+  rpc AddTasks      (Tasks)        returns (Empty)        {}
+  rpc SetSource     (Source)       returns (Empty)        {}
+  rpc GetSource     (SimulationId) returns (Source)       {}
+  rpc AddBinary     (Binary)       returns (Empty)        {}
+  rpc GetBinary     (Arch)         returns (Binary)       {}
 }
 
 message Empty {}
 
 message Build {
   string simulationId = 1;
-  OppConfig oppConfig = 2;
+  OppConfig config = 2;
   StorageRef source = 3;
 }
 
@@ -86,7 +88,8 @@ message ProviderState {
   Arch arch = 2;
   Utilization utilization = 3;
   uint32 numCPUs = 4;
-  map<string, Assignment> assignments = 5;
+  map<string, SimulationRun> assignments = 5;
+  Build building = 6;
 }
 
 message SimulationState {
