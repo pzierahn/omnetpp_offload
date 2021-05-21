@@ -20,10 +20,15 @@ service Broker {
   rpc SetSource     (Source)       returns (Empty)        {}
   rpc GetSource     (SimulationId) returns (Source)       {}
   rpc AddBinary     (Binary)       returns (Empty)        {}
-  rpc GetBinary     (Arch)         returns (Binary)       {}
+  rpc GetBinary     (SimulationBinaryRequest) returns (Binary)       {}
 }
 
 message Empty {}
+
+message SimulationBinaryRequest {
+  string simulationId = 1;
+  Arch arch = 2;
+}
 
 message Build {
   string simulationId = 1;

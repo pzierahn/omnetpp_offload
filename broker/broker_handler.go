@@ -67,18 +67,13 @@ func (server *broker) GetSource(_ context.Context, sim *pb.SimulationId) (resp *
 
 	logger.Printf("get source for %s", sim.Id)
 
-	ch := make(chan *pb.Source)
-	defer close(ch)
-
 	sState := server.simulations.getSimulationState(sim.Id)
 	sState.read(func() {
-		ch <- &pb.Source{
+		resp = &pb.Source{
 			SimulationId: sState.simulationId,
 			Source:       sState.source,
 		}
 	})
-
-	resp = <-ch
 
 	return
 }
@@ -105,6 +100,18 @@ func (server *broker) AddBinary(_ context.Context, binary *pb.Binary) (resp *pb.
 	server.providers.RUnlock()
 
 	resp = &pb.Empty{}
+
+	return
+}
+
+func (server *broker) GetBinary(_ context.Context, binary *pb.SimulationBinaryRequest) (resp *pb.Binary, err error) {
+
+	logger.Printf("get binary (%s_%s)", binary, binary.Arch)
+
+	sState := server.simulations.getSimulationState(binary.SimulationId)
+	sState.read(func() {
+		resp = sState.binaries[osArchId(binary.Arch)]
+	})
 
 	return
 }

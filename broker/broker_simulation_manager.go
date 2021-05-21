@@ -49,6 +49,10 @@ func (sm *simulationManager) pullCompile(arch *pb.Arch) (sState *simulationState
 			continue
 		}
 
+		if len(sim.queue) == 0 {
+			continue
+		}
+
 		_, ok := sim.binaries[osArchId(arch)]
 
 		if !ok {

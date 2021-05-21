@@ -57,15 +57,15 @@ func (server *broker) distribute() {
 			}
 		}
 
-		//slots := node.freeSlots()
-		//for inx := 0; inx < slots; inx++ {
-		//	task := server.simulations.pullWork(node.arch)
-		//	if task == nil {
-		//		// No jobs left to do for arch
-		//		break
-		//	}
-		//
-		//	node.assignRun(task)
-		//}
+		slots := node.freeSlots()
+		for inx := 0; inx < slots; inx++ {
+			task := server.simulations.pullWork(node.arch)
+			if task == nil {
+				// No jobs left to do for arch
+				break
+			}
+
+			node.assignRun(task)
+		}
 	}
 }

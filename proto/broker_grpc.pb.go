@@ -27,7 +27,7 @@ type BrokerClient interface {
 	SetSource(ctx context.Context, in *Source, opts ...grpc.CallOption) (*Empty, error)
 	GetSource(ctx context.Context, in *SimulationId, opts ...grpc.CallOption) (*Source, error)
 	AddBinary(ctx context.Context, in *Binary, opts ...grpc.CallOption) (*Empty, error)
-	GetBinary(ctx context.Context, in *Arch, opts ...grpc.CallOption) (*Binary, error)
+	GetBinary(ctx context.Context, in *SimulationBinaryRequest, opts ...grpc.CallOption) (*Binary, error)
 }
 
 type brokerClient struct {
@@ -141,7 +141,7 @@ func (c *brokerClient) AddBinary(ctx context.Context, in *Binary, opts ...grpc.C
 	return out, nil
 }
 
-func (c *brokerClient) GetBinary(ctx context.Context, in *Arch, opts ...grpc.CallOption) (*Binary, error) {
+func (c *brokerClient) GetBinary(ctx context.Context, in *SimulationBinaryRequest, opts ...grpc.CallOption) (*Binary, error) {
 	out := new(Binary)
 	err := c.cc.Invoke(ctx, "/service.Broker/GetBinary", in, out, opts...)
 	if err != nil {
@@ -163,7 +163,7 @@ type BrokerServer interface {
 	SetSource(context.Context, *Source) (*Empty, error)
 	GetSource(context.Context, *SimulationId) (*Source, error)
 	AddBinary(context.Context, *Binary) (*Empty, error)
-	GetBinary(context.Context, *Arch) (*Binary, error)
+	GetBinary(context.Context, *SimulationBinaryRequest) (*Binary, error)
 	mustEmbedUnimplementedBrokerServer()
 }
 
@@ -198,7 +198,7 @@ func (UnimplementedBrokerServer) GetSource(context.Context, *SimulationId) (*Sou
 func (UnimplementedBrokerServer) AddBinary(context.Context, *Binary) (*Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method AddBinary not implemented")
 }
-func (UnimplementedBrokerServer) GetBinary(context.Context, *Arch) (*Binary, error) {
+func (UnimplementedBrokerServer) GetBinary(context.Context, *SimulationBinaryRequest) (*Binary, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetBinary not implemented")
 }
 func (UnimplementedBrokerServer) mustEmbedUnimplementedBrokerServer() {}
@@ -385,7 +385,7 @@ func _Broker_AddBinary_Handler(srv interface{}, ctx context.Context, dec func(in
 }
 
 func _Broker_GetBinary_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(Arch)
+	in := new(SimulationBinaryRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -397,7 +397,7 @@ func _Broker_GetBinary_Handler(srv interface{}, ctx context.Context, dec func(in
 		FullMethod: "/service.Broker/GetBinary",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(BrokerServer).GetBinary(ctx, req.(*Arch))
+		return srv.(BrokerServer).GetBinary(ctx, req.(*SimulationBinaryRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
