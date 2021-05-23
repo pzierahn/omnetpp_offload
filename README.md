@@ -10,7 +10,7 @@ go install cmd/config/opp_edge_config.go
 go install cmd/distribute/opp_edge_run.go
 go install cmd/omnetpp/opp_edge_opp.go
 go install cmd/storage/opp_edge_storage.go
-go install cmd/provider/opp_edge_worker.go
+go install cmd/worker/opp_edge_worker.go
 ```
 
 ## Developer Notes
