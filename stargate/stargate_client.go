@@ -1,21 +1,13 @@
 package stargate
 
 import (
-	"fmt"
+	"github.com/patrickz98/project.go.omnetpp/quick"
 	"github.com/patrickz98/project.go.omnetpp/simple"
 	"log"
 	"net"
 	"os"
-	"strings"
 	"time"
 )
-
-type Parcel struct {
-	Package uint32
-	Index   uint32
-	Chunks  uint32
-	Payload []byte
-}
 
 func Client() {
 	register()
@@ -50,25 +42,51 @@ func register() {
 }
 
 func listen(conn *net.UDPConn, local string) {
+	//buffer := make([]byte, 1024*1024)
+
 	for {
-		log.Printf("listening on %v", conn.LocalAddr())
-		buffer := make([]byte, 1024)
-		bytesRead, err := conn.Read(buffer)
+
+		qConn := quick.Connection{
+			Connection: conn,
+		}
+
+		var addr string
+		err := qConn.Receive(&addr)
 		if err != nil {
-			fmt.Println("[ERROR]", err)
+			log.Println("[ERROR]", err)
 			continue
 		}
 
-		log.Printf("recieved: '%s'", buffer[0:bytesRead])
-		if string(buffer[0:bytesRead]) == "Hello!" {
-			continue
-		}
+		log.Printf("received addr=%s", addr)
 
-		for _, a := range strings.Split(string(buffer[0:bytesRead]), ",") {
-			if a != local {
-				go chatter(conn, a)
-			}
-		}
+		//log.Printf("listening on %v ==> %s", conn.LocalAddr(), local)
+		//bytesRead, err := conn.Read(buffer)
+		//if err != nil {
+		//	fmt.Println("[ERROR]", err)
+		//	continue
+		//}
+		//
+		//log.Printf("recieved: %v bytes", len(buffer[0:bytesRead]))
+		////if string(buffer[0:bytesRead]) == "Hello!" {
+		////	continue
+		////}
+		//
+		//var parcel quick.Parcel
+		//
+		//dec := gob.NewDecoder(bytes.NewReader(buffer))
+		//err = dec.Decode(&parcel)
+		//if err != nil {
+		//	log.Printf("error: %v", err)
+		//	continue
+		//}
+		//
+		//log.Printf("parcel: '%s'", parcel.Payload)
+		//
+		////for _, a := range strings.Split(string(buffer[0:bytesRead]), ",") {
+		////	if a != local {
+		////		go chatter(conn, a)
+		////	}
+		////}
 	}
 }
 

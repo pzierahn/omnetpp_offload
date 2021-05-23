@@ -2,11 +2,8 @@ package main
 
 import (
 	"errors"
+	"fmt"
 	"log"
-	"net"
-	"net/http"
-	"net/rpc"
-	"time"
 )
 
 type Args struct {
@@ -37,37 +34,61 @@ func main() {
 
 	log.SetFlags(log.LstdFlags | log.Lshortfile)
 
-	go func() {
-		arith := new(Arith)
-		err := rpc.Register(arith)
-		if err != nil {
-			log.Fatalln(err)
-		}
+	//log.Println(math.Ceil(1.0))
+	//log.Printf("0x%x", (int64(0x12345678)<<32) | int64(0xa))
 
-		rpc.HandleHTTP()
-		l, e := net.Listen("tcp", ":1234")
-		if e != nil {
-			log.Fatal("listen error:", e)
-		}
+	//test := make(map[string]bool, 1)
+	//test["1"] = true
+	//test["2"] = true
+	//test["3"] = true
+	//test["4"] = true
 
-		//rpc.Accept(l)
-
-		go http.Serve(l, nil)
-	}()
-
-	time.Sleep(time.Second * 1)
-
-	client, err := rpc.DialHTTP("tcp", ":1234")
-	if err != nil {
-		log.Fatal("dialing:", err)
+	for inx := 0; inx < 10; inx++ {
+		fmt.Println(inx)
 	}
 
-	// Synchronous call
-	args := &Args{7, 8}
-	var reply int
-	err = client.Call("Arith.Multiply", args, &reply)
-	if err != nil {
-		log.Fatal("arith error:", err)
+	fmt.Println("---------------")
+
+	for inx := 10 - 1; inx >= 0; inx-- {
+		fmt.Println(inx)
 	}
-	log.Printf("Arith: %d*%d=%d", args.A, args.B, reply)
+
+	//test := []int{1, 2, 3, 4, 5, 6, 7, 8, 9}
+	//log.Println(test[3:4])
+
+	//log.Println(simple.PrettyString(test))
+	//
+	//go func() {
+	//	arith := new(Arith)
+	//	err := rpc.Register(arith)
+	//	if err != nil {
+	//		log.Fatalln(err)
+	//	}
+	//
+	//	rpc.HandleHTTP()
+	//	l, e := net.Listen("tcp", ":1234")
+	//	if e != nil {
+	//		log.Fatal("listen error:", e)
+	//	}
+	//
+	//	//rpc.Accept(l)
+	//
+	//	go http.Serve(l, nil)
+	//}()
+	//
+	//time.Sleep(time.Second * 1)
+	//
+	//client, err := rpc.DialHTTP("tcp", ":1234")
+	//if err != nil {
+	//	log.Fatal("dialing:", err)
+	//}
+	//
+	//// Synchronous call
+	//args := &Args{7, 8}
+	//var reply int
+	//err = client.Call("Arith.Multiply", args, &reply)
+	//if err != nil {
+	//	log.Fatal("arith error:", err)
+	//}
+	//log.Printf("Arith: %d*%d=%d", args.A, args.B, reply)
 }

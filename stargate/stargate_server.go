@@ -2,6 +2,8 @@ package stargate
 
 import (
 	"fmt"
+	"github.com/patrickz98/project.go.omnetpp/quick"
+	"log"
 	"net"
 	"os"
 	"strings"
@@ -12,7 +14,7 @@ type clientType map[string]bool
 var clients = clientType{}
 
 func (c clientType) keys(filter string) string {
-	output := []string{}
+	var output []string
 	for key := range c {
 		if key != filter {
 			output = append(output, key)
@@ -22,7 +24,6 @@ func (c clientType) keys(filter string) string {
 	return strings.Join(output, ",")
 }
 
-// Server --
 func Server() {
 	localAddress := ":9595"
 	if len(os.Args) > 2 {
@@ -52,22 +53,43 @@ func Server() {
 		//	panic(err)
 		//}
 
-		clients[remoteAddr.String()] = true
+		clients[strings.TrimSpace(remoteAddr.String())] = true
 
 		for client := range clients {
 			resp := clients.keys(client)
 			if len(resp) > 0 {
-				r, err := net.ResolveUDPAddr("udp", client)
+				var remote *net.UDPAddr
+				remote, err = net.ResolveUDPAddr("udp", client)
 				if err != nil {
-					panic(err)
+					log.Fatalln(err)
 				}
 
-				_, err = conn.WriteTo([]byte(resp), r)
-				if err != nil {
-					panic(err)
+				quickConn := quick.Connection{
+					Connection: conn,
 				}
 
-				fmt.Printf("[INFO] Responded to %s with %s\n", client, string(resp))
+				log.Printf("resp: %v", resp)
+
+				err = quickConn.Send(resp, remote)
+				if err != nil {
+					log.Fatalln(err)
+				}
+
+				//var buffer bytes.Buffer
+				//enc := gob.NewEncoder(&buffer)
+				//err = enc.Encode(quick.Parcel{
+				//	Payload: []byte(resp),
+				//})
+				//if err != nil {
+				//	log.Fatalln(err)
+				//}
+				//
+				//_, err = conn.WriteTo(buffer.Bytes(), remote)
+				//if err != nil {
+				//	log.Fatalln(err)
+				//}
+
+				log.Printf("[INFO] Responded to %s with %s", client, resp)
 			}
 		}
 	}
