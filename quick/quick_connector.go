@@ -13,7 +13,7 @@ import (
 )
 
 const (
-	payloadSize = 3
+	payloadSize = 1024
 )
 
 type ParcelType int
@@ -75,7 +75,7 @@ func (conn *Connection) Send(obj interface{}, addr *net.UDPAddr) (err error) {
 		}
 
 		log.Printf("sending parcel=%d payload='%s' (%d bytes)",
-			idx, objBuf.Bytes()[payloadSize*idx:payloadSize*(idx+1)], len(parcel.Payload))
+			idx, objBuf.Bytes()[payloadSize*idx:endSlice], len(parcel.Payload))
 
 		var buf []byte
 		buf, err = parcel.marshalGob()
@@ -108,7 +108,7 @@ func (conn *Connection) Receive(obj interface{}) (err error) {
 		var bytesRead int
 		bytesRead, err = conn.Connection.Read(buffer)
 		if err != nil {
-			fmt.Println("[ERROR]", err)
+			log.Printf("error: %v", err)
 			return
 		}
 
@@ -137,7 +137,7 @@ func (conn *Connection) Receive(obj interface{}) (err error) {
 	}
 
 	log.Printf("size=%d", size)
-	log.Printf("message: '%s'", message[0:size])
+	//log.Printf("message: '%s'", message[0:size])
 
 	enc := gob.NewDecoder(bytes.NewReader(message))
 	err = enc.Decode(obj)
