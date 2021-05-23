@@ -1,83 +1,73 @@
 package main
 
-import "fmt"
+import (
+	"errors"
+	"log"
+	"net"
+	"net/http"
+	"net/rpc"
+	"time"
+)
 
-const input = "/Users/patrick/Desktop/xxx/tictoc"
-const mirror = "/Users/patrick/Desktop/xxx/tictoc-mirror"
+type Args struct {
+	A, B int
+}
 
-type set map[string]bool
+type Quotient struct {
+	Quo, Rem int
+}
 
-func (set set) Add(str string) {
-	set[str] = true
+type Arith int
+
+func (t *Arith) Multiply(args *Args, reply *int) error {
+	*reply = args.A * args.B
+	return nil
+}
+
+func (t *Arith) Divide(args *Args, quo *Quotient) error {
+	if args.B == 0 {
+		return errors.New("divide by zero")
+	}
+	quo.Quo = args.A / args.B
+	quo.Rem = args.A % args.B
+	return nil
 }
 
 func main() {
 
-	//test := make(set)
-	//test.Add("hallo")
+	log.SetFlags(log.LstdFlags | log.Lshortfile)
 
-	fmt.Printf("test %03s\n", "1")
-	fmt.Printf("|%06d|%6d|\n", 12, 345)
+	go func() {
+		arith := new(Arith)
+		err := rpc.Register(arith)
+		if err != nil {
+			log.Fatalln(err)
+		}
 
-	//_, err := simple.TarGz("../TaskletSimulator", "test",
-	//	"\\.git", ".DS_Store", ".idea", "out/clang-release/src/messages/DataRequestMessage_m.o")
-	//if err != nil {
-	//	panic(err)
-	//}
+		rpc.HandleHTTP()
+		l, e := net.Listen("tcp", ":1234")
+		if e != nil {
+			log.Fatal("listen error:", e)
+		}
 
-	//name, err := os.Hostname()
-	//if err != nil {
-	//	panic(err)
-	//}
+		//rpc.Accept(l)
 
-	//test := flags.StringSlice("list", []string{"1", "2"}, "")
-	//
-	//flag.Parse()
-	//
-	//fmt.Println("test", *test)
-	//fmt.Println("name", simple.GetHostnameShort())
-	//
-	//dir, _ := os.UserCacheDir()
-	//fmt.Println("UserCacheDir", dir)
-	//
-	//dir, _ = os.UserHomeDir()
-	//fmt.Println("UserHomeDir", dir)
-	//
-	//dir, _ = os.UserConfigDir()
-	//fmt.Println("UserConfigDir", dir)
+		go http.Serve(l, nil)
+	}()
 
-	//path := "src/libTaskletSimulator.dylib"
-	//
-	//ext := filepath.Ext(path)
-	//fmt.Println("ext", ext)
-	//fmt.Println("ext", strings.TrimSuffix(path, ext))
-	//fmt.Println("ext", strings.TrimSuffix("hallooo", "o"))
-	//fmt.Println("Base", filepath.Base("/Users/patrick/github/project.go.omnetpp"))
+	time.Sleep(time.Second * 1)
 
-	//fmt.Println("Base", filepath.Base("/Users/patrick/github/project.go.omnetpp"))
+	client, err := rpc.DialHTTP("tcp", ":1234")
+	if err != nil {
+		log.Fatal("dialing:", err)
+	}
 
-	//_ = os.RemoveAll(mirror)
-	//_ = os.MkdirAll(mirror, 0755)
-
-	//_ = simple.SymbolicCopy(input, mirror+"-1", map[string]bool{
-	//	"results/": true,
-	//})
-
-	//file, err := os.Open("data/storage/tictoc-1f779d/source.tar.gz")
-	//if err != nil {
-	//	panic(err)
-	//}
-
-	//_ = os.RemoveAll("data/xxx")
-	//_ = os.MkdirAll("data/xxx", 0755)
-
-	//err = ioutil.WriteFile("data/xxx/xxx.tgz", buf.Bytes(), 0644)
-	//if err != nil {
-	//	panic(err)
-	//}
-	//
-	//err = simple.UnTarGz("data/xxx", &buf)
-	//if err != nil {
-	//	panic(err)
-	//}
+	// Synchronous call
+	args := &Args{7, 8}
+	var reply int
+	err = client.Call("Arith.Multiply", args, &reply)
+	if err != nil {
+		log.Fatal("arith error:", err)
+	}
+	log.Printf("Arith: %d*%d=%d", args.A, args.B, reply)
 }
