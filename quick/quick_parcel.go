@@ -3,14 +3,20 @@ package quick
 import (
 	"bytes"
 	"encoding/gob"
+	"net"
 )
 
 type Parcel struct {
 	Type    ParcelType
-	Package uint32
+	Id      uint32
 	Index   uint32
 	Chunks  uint32
 	Payload []byte
+}
+
+type ParcelWithAddress struct {
+	*Parcel
+	RemoteAddr *net.UDPAddr
 }
 
 func (parcel *Parcel) marshalGob() (buf []byte, err error) {
