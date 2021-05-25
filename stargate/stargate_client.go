@@ -38,7 +38,7 @@ func register() {
 
 	log.Printf("sending register")
 
-	registerMsg := "register"
+	registerMsg := simple.NamedId("garbage", 128*(64+4))
 	err := qConn.Send(registerMsg, remote)
 	if err != nil {
 		log.Fatalln(err)

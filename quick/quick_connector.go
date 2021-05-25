@@ -14,7 +14,8 @@ import (
 )
 
 const (
-	payloadSize = 8192
+	//payloadSize = 8192
+	payloadSize = 1
 )
 
 type Connection struct {
@@ -30,7 +31,7 @@ func (conn *Connection) Init() {
 	conn.parcelListRec = make(map[uint32]chan *ParcelWithAddress)
 
 	go func() {
-		buffer := make([]byte, 1024+payloadSize)
+		buffer := make([]byte, 65536)
 
 		for {
 			bytesRead, remote, err := conn.Connection.ReadFromUDP(buffer)
@@ -311,7 +312,7 @@ func (conn *Connection) Receive(obj interface{}) (remoteAddr *net.UDPAddr, err e
 		}
 
 		log.Printf("Receive: ping finished")
-		killParcelListSender <- true
+		//killParcelListSender <- true
 		wg.Done()
 	}()
 
@@ -336,8 +337,8 @@ func (conn *Connection) Receive(obj interface{}) (remoteAddr *net.UDPAddr, err e
 
 				var payload []byte
 				mu.RLock()
-				log.Printf("Receive: send parcel list messageId=%x chunks=%v",
-					messageId, simple.PrettyString(received))
+				log.Printf("Receive: send parcel list messageId=%x", messageId)
+				//messageId, simple.PrettyString(received))
 				payload, err = encode(received)
 				mu.RUnlock()
 
@@ -349,8 +350,7 @@ func (conn *Connection) Receive(obj interface{}) (remoteAddr *net.UDPAddr, err e
 
 				err = conn.sendParcel(list, remoteAddr)
 				if err != nil {
-					log.Printf("error: %v", err)
-					break
+					log.Fatalln(err)
 				}
 
 				listTic.Reset(time.Millisecond * 75)

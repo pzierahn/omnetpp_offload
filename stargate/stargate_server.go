@@ -48,7 +48,8 @@ func Server() {
 		panic(err)
 	}
 
-	log.Printf("incoming '%v'", incoming)
+	//log.Printf("incoming '%v'", incoming)
+	log.Printf("incoming: %v bytes", len(incoming))
 
 	//buffer := make([]byte, 1024)
 	//bytesRead, remoteAddr, err := conn.ReadFromUDP(buffer)
