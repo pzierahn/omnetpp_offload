@@ -18,7 +18,7 @@ RUN ln -fs /usr/share/zoneinfo/Europe/Berlin /etc/localtime
 RUN apt-get update; \
     apt-get upgrade -y; \
     apt-get dist-upgrade -y; \
-    apt-get install -y --no-install-recommends git nano wget tzdata; \
+    apt-get install -y --no-install-recommends git nano wget tzdata apt-utils; \
     apt-get install -y --no-install-recommends build-essential clang make bison flex git libxml2-dev zlib1g-dev python; \
     apt-get clean; \
     rm -rf /var/lib/apt/lists/*
