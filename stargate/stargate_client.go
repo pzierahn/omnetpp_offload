@@ -25,63 +25,53 @@ func register() {
 	local, _ := net.ResolveUDPAddr("udp", localAddress)
 	conn, _ := net.ListenUDP("udp", local)
 
+	qConn := &quick.Connection{
+		Connection: conn,
+	}
+
+	qConn.Init()
+
 	log.Printf("remote=%v local=%v", remote, local)
 
-	go func() {
-		time.Sleep(time.Second)
+	//go func() {
+	//	time.Sleep(time.Second)
 
-		bytesWritten, err := conn.WriteTo([]byte("register"), remote)
-		if err != nil {
-			log.Fatalln(err)
-		}
+	log.Printf("sending register")
 
-		log.Printf("register (%v bytes)", bytesWritten)
-	}()
+	registerMsg := "register"
+	err := qConn.Send(registerMsg, remote)
+	if err != nil {
+		log.Fatalln(err)
+	}
 
-	listen(conn, local.String())
+	log.Printf("register done")
+	//}()
+
+	//listen(qConn)
 }
 
-func listen(conn *net.UDPConn, local string) {
+func listen(conn *quick.Connection) {
 	//buffer := make([]byte, 1024*1024)
 
 	for {
-
-		qConn := quick.Connection{
-			Connection: conn,
-		}
-
-		var addr string
-		err := qConn.Receive(&addr)
+		var garbage string
+		remoteAddr, err := conn.Receive(&garbage)
 		if err != nil {
 			log.Println("[ERROR]", err)
 			continue
 		}
 
-		log.Printf("received addr=%s", addr)
+		log.Printf("received remote=%v garbage=%d", remoteAddr, len(garbage))
 
-		//log.Printf("listening on %v ==> %s", conn.LocalAddr(), local)
-		//bytesRead, err := conn.Read(buffer)
+		//var addrs []*net.UDPAddr
+		//err := qConn.Receive(&addrs)
 		//if err != nil {
-		//	fmt.Println("[ERROR]", err)
+		//	log.Println("[ERROR]", err)
 		//	continue
 		//}
 		//
-		//log.Printf("recieved: %v bytes", len(buffer[0:bytesRead]))
-		////if string(buffer[0:bytesRead]) == "Hello!" {
-		////	continue
-		////}
-		//
-		//var parcel quick.Parcel
-		//
-		//dec := gob.NewDecoder(bytes.NewReader(buffer))
-		//err = dec.Decode(&parcel)
-		//if err != nil {
-		//	log.Printf("error: %v", err)
-		//	continue
-		//}
-		//
-		//log.Printf("parcel: '%s'", parcel.Payload)
-		//
+		//log.Printf("received addrs=%s", simple.PrettyString(addrs))
+
 		////for _, a := range strings.Split(string(buffer[0:bytesRead]), ",") {
 		////	if a != local {
 		////		go chatter(conn, a)

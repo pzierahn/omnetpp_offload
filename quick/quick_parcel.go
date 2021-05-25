@@ -6,12 +6,22 @@ import (
 	"net"
 )
 
+type parcelList []bool
+
+type ParcelType int
+
+const (
+	TypeParcel ParcelType = iota + 1
+	TypePing
+	TypeParcelList
+)
+
 type Parcel struct {
-	Type    ParcelType
-	Id      uint32
-	Index   uint32
-	Chunks  uint32
-	Payload []byte
+	Type      ParcelType
+	MessageId uint32
+	Index     uint32
+	Chunks    uint32
+	Payload   []byte
 }
 
 type ParcelWithAddress struct {

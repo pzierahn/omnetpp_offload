@@ -15,25 +15,19 @@ import (
 
 const (
 	payloadSize = 8192
-	ackWait     = 100 * time.Millisecond
-)
-
-type ParcelType int
-
-const (
-	TypeParcel ParcelType = iota + 1
-	TypeAck
 )
 
 type Connection struct {
 	sync.Mutex
-	Connection  *net.UDPConn
-	ackListener map[uint32]chan *ParcelWithAddress
-	receiver    chan *ParcelWithAddress
+	Connection    *net.UDPConn
+	parcelListRec map[uint32]chan *ParcelWithAddress
+	ping          chan *ParcelWithAddress
+	receiver      chan *ParcelWithAddress
+	connMu        sync.Mutex
 }
 
 func (conn *Connection) Init() {
-	conn.ackListener = make(map[uint32]chan *ParcelWithAddress)
+	conn.parcelListRec = make(map[uint32]chan *ParcelWithAddress)
 
 	go func() {
 		buffer := make([]byte, 1024+payloadSize)
@@ -59,17 +53,25 @@ func (conn *Connection) Init() {
 
 			conn.Lock()
 
-			log.Printf("recieved message: %x %v", pkg.Id, pkg.Type)
+			if pkg.Type == TypeParcelList {
+				log.Printf("receive list: %x", pkg.MessageId)
 
-			if pkg.Type == TypeAck {
-				if ackList, ok := conn.ackListener[pkg.Id]; ok {
+				if ackList, ok := conn.parcelListRec[pkg.MessageId]; ok {
 					ackList <- &pkg
 				}
 			}
 
 			if pkg.Type == TypeParcel {
+				log.Printf("receive parcel: %x", pkg.MessageId)
 				if conn.receiver != nil {
 					conn.receiver <- &pkg
+				}
+			}
+
+			if pkg.Type == TypePing {
+				log.Printf("receive ping: %x", pkg.MessageId)
+				if conn.ping != nil {
+					conn.ping <- &pkg
 				}
 			}
 
@@ -78,299 +80,331 @@ func (conn *Connection) Init() {
 	}()
 }
 
-func (conn *Connection) Send(obj interface{}, addr *net.UDPAddr) (err error) {
+func (conn *Connection) sendParcel(parcel *Parcel, addr *net.UDPAddr) (err error) {
 
-	//
-	// Encode struct to gob bytes
-	//
-
-	var objBuf bytes.Buffer
-	objEnc := gob.NewEncoder(&objBuf)
-	err = objEnc.Encode(obj)
-
+	var buf []byte
+	buf, err = parcel.marshalGob()
 	if err != nil {
-		err = fmt.Errorf("error gobbing interface %T: %v", obj, err)
+		err = fmt.Errorf("error gobbing parcel: %v", err)
 		return
 	}
 
+	conn.connMu.Lock()
+	defer conn.connMu.Unlock()
+
+	_, err = conn.Connection.WriteToUDP(buf, addr)
+	if err != nil {
+		err = fmt.Errorf("error sending parcel: %v", err)
+		return
+	}
+
+	return
+}
+
+func (conn *Connection) Send(obj interface{}, addr *net.UDPAddr) (err error) {
+
 	//
-	// Setup
+	// Prepare message
+	//
+
+	var payload []byte
+	payload, err = encode(obj)
+	if err != nil {
+		return
+	}
+
+	messageId := rand.Uint32()
+	chunks := uint32(math.Ceil(float64(len(payload)) / float64(payloadSize)))
+	parcels := make([]*Parcel, chunks)
+
+	for idx := uint32(0); idx < chunks; idx++ {
+
+		endSlice := simple.MathMin(int(payloadSize*(idx+1)), len(payload))
+
+		parcel := &Parcel{
+			Type:      TypeParcel,
+			MessageId: messageId,
+			Index:     idx,
+			Chunks:    chunks,
+			Payload:   payload[payloadSize*idx : endSlice],
+		}
+
+		parcels[idx] = parcel
+	}
+
+	log.Printf("create new message: id=%x size=%d chunks=%d", messageId, len(payload), chunks)
+
+	//
+	// TypeParcelList receiver
 	//
 
 	done := make(chan bool)
-	defer close(done)
+	sender := make(chan *Parcel, 8)
 
-	id := rand.Uint32()
-	chunks := uint32(math.Ceil(float64(objBuf.Len()) / float64(payloadSize)))
-	cache := make([]*Parcel, chunks)
-	acks := make(chan *ParcelWithAddress)
-
+	parcelLists := make(chan *ParcelWithAddress)
 	conn.Lock()
-	conn.ackListener[id] = acks
+	conn.parcelListRec[messageId] = parcelLists
 	conn.Unlock()
 
-	log.Printf("id=%x size=%d chunks=%d", id, objBuf.Len(), chunks)
-
-	//
-	// Receive ack messages
-	//
+	defer func() {
+		conn.Lock()
+		delete(conn.parcelListRec, messageId)
+		conn.Unlock()
+		close(parcelLists)
+	}()
 
 	go func() {
-		for parcel := range acks {
+		for list := range parcelLists {
 
-			var receivedPackages map[uint32]bool
-			dec := gob.NewDecoder(bytes.NewReader(parcel.Payload))
-			err = dec.Decode(&receivedPackages)
+			var receivedPackages parcelList
+			err = decode(list.Payload, &receivedPackages)
 			if err != nil {
 				log.Printf("error: %v", err)
 				continue
 			}
 
-			log.Printf("recieved ack %v: %v", parcel.Id, simple.PrettyString(receivedPackages))
+			log.Printf("recieved list %v: %v",
+				list.MessageId, simple.PrettyString(receivedPackages))
 
-			if len(cache) == len(receivedPackages) {
-				log.Printf("message deliverd successful!")
+			var missingParcels int
 
-				conn.Lock()
-				delete(conn.ackListener, id)
-				close(acks)
-				conn.Unlock()
+			for parcelId, val := range receivedPackages {
+				if val {
+					continue
+				}
+
+				sender <- parcels[parcelId]
+				missingParcels++
+			}
+
+			if missingParcels == 0 {
+				//
+				// Message delivered! Exit send function now!
+				//
 
 				done <- true
+				break
 			}
 		}
+
+		log.Printf("parcel lister finished id=%x", messageId)
 	}()
 
 	//
-	// Compile and send parcels
+	// TypePing sender
 	//
 
-	for idx := uint32(0); idx < chunks; idx++ {
+	pingTic := time.NewTimer(time.Millisecond * 50)
 
-		endSlice := simple.MathMin(int(payloadSize*(idx+1)), objBuf.Len())
+	go func() {
+		for range pingTic.C {
+			log.Printf("Send: ping message id=%x chunks=%d", messageId, chunks)
 
-		parcel := &Parcel{
-			Type:    TypeParcel,
-			Id:      id,
-			Index:   idx,
-			Chunks:  chunks,
-			Payload: objBuf.Bytes()[payloadSize*idx : endSlice],
+			ack := &Parcel{
+				Type:      TypePing,
+				MessageId: messageId,
+				Chunks:    chunks,
+			}
+
+			err = conn.sendParcel(ack, addr)
+			if err != nil {
+				err = fmt.Errorf("error sending parcel: %v", err)
+				break
+			}
+
+			pingTic.Reset(time.Millisecond * 50)
 		}
 
-		cache[idx] = parcel
+		log.Printf("ack message finished id=%x", messageId)
+	}()
 
-		log.Printf("sending parcel=%d (%d bytes)",
-			idx, len(parcel.Payload))
+	//
+	// Send parcels
+	//
 
-		var buf []byte
-		buf, err = parcel.marshalGob()
-		if err != nil {
-			err = fmt.Errorf("error gobbing parcel: %v", err)
-			return
+	go func() {
+		for parcel := range sender {
+			log.Printf("Send: sender: sending id=%x idx=%d (%d bytes)",
+				messageId, parcel.Index, len(parcel.Payload))
+
+			err = conn.sendParcel(parcel, addr)
+			if err != nil {
+				log.Printf("error: %v", err)
+				break
+			}
 		}
 
-		_, err = conn.Connection.WriteToUDP(buf, addr)
-		if err != nil {
-			err = fmt.Errorf("error sending parcel: %v", err)
-			return
-		}
-	}
+		log.Printf("Send: sender: finished id=%x", messageId)
+	}()
 
 	<-done
 
-	log.Printf("parcelId=%x send all packages", id)
+	log.Printf("Send: finishing id=%x", messageId)
+	pingTic.Stop()
+
+	//select {
+	//case <-done:
+	//case <-time.After(2 * time.Second):
+	//	log.Printf("Send: timeout id=%x", messageId)
+	//}
 
 	return
 }
 
 func (conn *Connection) Receive(obj interface{}) (remoteAddr *net.UDPAddr, err error) {
 
-	var messageId uint32
-
-	var message []byte
-	var size int
-
-	var parcels = -1
 	log.Printf("listening on %v", conn.Connection.LocalAddr())
 
-	var mu sync.Mutex
-	received := make(map[uint32]bool)
+	var isInit bool
+	var messageId uint32
+	var chunks uint32
 
-	done := make(chan bool)
-	defer close(done)
+	var mu sync.RWMutex
+	var size int
+	var message []byte
+	var received parcelList
+	var receivedParcels uint32
 
-	receiver := make(chan *ParcelWithAddress)
+	var wg sync.WaitGroup
+
+	init := func(ping *ParcelWithAddress) {
+		messageId = ping.MessageId
+		chunks = ping.Chunks
+		received = make(parcelList, ping.Chunks)
+		message = make([]byte, ping.Chunks*payloadSize)
+		remoteAddr = ping.RemoteAddr
+		isInit = true
+	}
+
+	//
+	// Ping receiver
+	//
+
+	killParcelListSender := make(chan bool)
+	defer close(killParcelListSender)
+
+	pings := make(chan *ParcelWithAddress)
 
 	conn.Lock()
-	conn.receiver = receiver
+	conn.ping = pings
 	conn.Unlock()
 
+	wg.Add(1)
 	go func() {
-		time.Sleep(time.Millisecond * 100)
+		timeout := time.NewTimer(time.Second * 10)
 
 	loop:
 		for {
 			select {
-			case <-time.Tick(ackWait):
-				if messageId == 0 {
-					continue
+			case ping := <-pings:
+				if !isInit {
+					init(ping)
 				}
 
-				if messageId == 0 {
-					continue
-				}
+				log.Printf("Receive: ping messageId=%x chunks=%v", ping.MessageId, ping.Chunks)
+				timeout.Reset(time.Millisecond * 500)
 
-				mu.Lock()
-
-				log.Printf("send ack %x: %v", messageId, simple.PrettyString(received))
-
-				var buf bytes.Buffer
-				enc := gob.NewEncoder(&buf)
-				err = enc.Encode(received)
-				if err != nil {
-					log.Printf("error: %v", err)
-					continue
-				}
-
-				mu.Unlock()
-
-				ack := Parcel{
-					Type:    TypeAck,
-					Id:      messageId,
-					Payload: buf.Bytes(),
-				}
-
-				byt, err := ack.marshalGob()
-				if err != nil {
-					log.Printf("error: %v", err)
-					continue
-				}
-
-				_, err = conn.Connection.WriteToUDP(byt, remoteAddr)
-				if err != nil {
-					log.Printf("error: %v", err)
-					continue
-				}
-
-			case <-done:
-				log.Printf("ack sender: quits")
-
-				if messageId == 0 {
-					continue
-				}
-
-				if messageId == 0 {
-					continue
-				}
-
-				mu.Lock()
-
-				log.Printf("send ack %x: %v", messageId, simple.PrettyString(received))
-
-				var buf bytes.Buffer
-				enc := gob.NewEncoder(&buf)
-				err = enc.Encode(received)
-				if err != nil {
-					log.Printf("error: %v", err)
-					continue
-				}
-
-				mu.Unlock()
-
-				ack := Parcel{
-					Type:    TypeAck,
-					Id:      messageId,
-					Payload: buf.Bytes(),
-				}
-
-				byt, err := ack.marshalGob()
-				if err != nil {
-					log.Printf("error: %v", err)
-					continue
-				}
-
-				_, err = conn.Connection.WriteToUDP(byt, remoteAddr)
-				if err != nil {
-					log.Printf("error: %v", err)
-					continue
-				}
-
+			case <-timeout.C:
+				log.Printf("Receive: timeout messageId=%x", messageId)
 				break loop
 			}
 		}
+
+		log.Printf("Receive: ping finished")
+		killParcelListSender <- true
+		wg.Done()
 	}()
 
-	for parcel := range receiver {
+	//
+	// Received parcels sender
+	//
 
-		go func() {
-			mu.Lock()
-			received[parcel.Index] = true
-			mu.Unlock()
-		}()
+	listTic := time.NewTimer(time.Millisecond * 75)
 
-		log.Printf("recieved: index=%4d (%d bytes)", parcel.Index, len(parcel.Payload))
+	wg.Add(1)
+	go func() {
 
-		if messageId == 0 {
-			log.Printf("recieved: init parcel")
+	loop:
+		for {
 
-			parcels = int(parcel.Chunks)
-			messageId = parcel.Id
-			remoteAddr = parcel.RemoteAddr
-			message = make([]byte, payloadSize*parcel.Chunks)
-
-			ackStream := make(chan *ParcelWithAddress)
-			conn.Lock()
-			conn.ackListener[messageId] = ackStream
-			conn.Unlock()
-
-			go func() {
-				for ack := range ackStream {
-					var list map[int]bool
-
-					dec := gob.NewDecoder(bytes.NewReader(ack.Payload))
-					err = dec.Decode(&list)
-					if err != nil {
-						log.Printf("error: %v", err)
-						continue
-					}
-
-					log.Printf("recived ack: %v", simple.PrettyString(list))
-
-					if len(list) == parcels {
-						done <- true
-						break
-					}
+			select {
+			case <-listTic.C:
+				if !isInit {
+					listTic.Reset(time.Millisecond * 75)
+					continue
 				}
-			}()
+
+				var payload []byte
+				mu.RLock()
+				log.Printf("Receive: send parcel list messageId=%x chunks=%v",
+					messageId, simple.PrettyString(received))
+				payload, err = encode(received)
+				mu.RUnlock()
+
+				list := &Parcel{
+					Type:      TypeParcelList,
+					MessageId: messageId,
+					Payload:   payload,
+				}
+
+				err = conn.sendParcel(list, remoteAddr)
+				if err != nil {
+					log.Printf("error: %v", err)
+					break
+				}
+
+				listTic.Reset(time.Millisecond * 75)
+			case <-killParcelListSender:
+				break loop
+			}
 		}
 
-		sliceStart := payloadSize * parcel.Index
-		copy(message[sliceStart:sliceStart+uint32(len(parcel.Payload))], parcel.Payload)
+		log.Printf("Receive: parcellist sender finished")
+		wg.Done()
+	}()
+
+	//
+	// Parcel receiver
+	//
+
+	parcels := make(chan *ParcelWithAddress, 8)
+
+	conn.Lock()
+	conn.receiver = parcels
+	conn.Unlock()
+
+	for parcel := range parcels {
+
+		if !isInit {
+			continue
+		}
+
+		log.Printf("Receive: recieved: index=%4d (%d bytes)", parcel.Index, len(parcel.Payload))
+
+		windowStart := payloadSize * parcel.Index
+		windowEnd := windowStart + uint32(len(parcel.Payload))
+		copy(message[windowStart:windowEnd], parcel.Payload)
 		size += len(parcel.Payload)
 
-		parcels--
+		var receivedAll bool
+		mu.Lock()
+		received[parcel.Index] = true
+		receivedParcels++
+		receivedAll = receivedParcels == chunks
+		mu.Unlock()
 
-		if parcels == 0 {
-
-			log.Printf("recieved all parcels: closing stuff")
-
-			//done <- true
-
-			go func() {
-				conn.Lock()
-				conn.receiver = nil
-				close(receiver)
-				conn.Unlock()
-
-				log.Printf("recieved all parcels: closing done")
-			}()
-
-			//
-			//break
+		if receivedAll {
+			break
 		}
 	}
 
-	log.Printf("size=%d", size)
+	log.Printf("Receive: recieved all parcels size=%d", size)
+
+	//listTic.Reset(0)
+	//listTic.Stop()
+
+	wg.Wait()
+
 	//log.Printf("message: '%s'", message[0:size])
 
 	enc := gob.NewDecoder(bytes.NewReader(message))
