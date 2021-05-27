@@ -20,3 +20,5 @@ vendor/
 
 data/
 debug
+
+.DS_Store
