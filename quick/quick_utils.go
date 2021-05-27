@@ -6,7 +6,7 @@ import (
 	"fmt"
 )
 
-func decode(byt []byte, obj interface{}) (err error) {
+func decodeGob(byt []byte, obj interface{}) (err error) {
 	dec := gob.NewDecoder(bytes.NewReader(byt))
 	err = dec.Decode(obj)
 
@@ -18,7 +18,7 @@ func decode(byt []byte, obj interface{}) (err error) {
 	return
 }
 
-func encode(obj interface{}) (byt []byte, err error) {
+func encodeGob(obj interface{}) (byt []byte, err error) {
 	var objBuf bytes.Buffer
 	objEnc := gob.NewEncoder(&objBuf)
 	err = objEnc.Encode(obj)

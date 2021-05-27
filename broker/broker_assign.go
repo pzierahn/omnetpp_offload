@@ -5,6 +5,7 @@ import (
 	pb "github.com/patrickz98/project.go.omnetpp/proto"
 	prov "github.com/patrickz98/project.go.omnetpp/provider"
 	"google.golang.org/grpc/metadata"
+	"time"
 )
 
 func (server *broker) Assignments(stream pb.Broker_AssignmentsServer) (err error) {
@@ -62,13 +63,19 @@ func (server *broker) Assignments(stream pb.Broker_AssignmentsServer) (err error
 
 	var utilization *pb.Utilization
 
+	var inx int
 	for {
 		utilization, err = stream.Recv()
 		if err != nil {
+			logger.Printf("error: %v", err)
 			break
 		}
 
+		create := utilization.Updated.AsTime()
+		logger.Printf("utilization %v transport: %v", inx, time.Now().Sub(create))
+
 		node.setUtilization(utilization)
+		inx++
 	}
 
 	logger.Printf("disconnect %s", node.id)

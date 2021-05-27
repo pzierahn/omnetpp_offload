@@ -2,8 +2,8 @@ package main
 
 import (
 	"errors"
-	"fmt"
 	"log"
+	"math/rand"
 )
 
 type Args struct {
@@ -43,15 +43,53 @@ func main() {
 	//test["3"] = true
 	//test["4"] = true
 
-	for inx := 0; inx < 10; inx++ {
-		fmt.Println(inx)
-	}
+	localSID := rand.Uint32()
+	remoteSID := rand.Uint32()
 
-	fmt.Println("---------------")
+	log.Printf("localSID: %08x --> %04x", localSID, uint16(localSID))
+	log.Printf("remoteSID: %08x --> %04x", remoteSID, uint16(remoteSID))
 
-	for inx := 10 - 1; inx >= 0; inx-- {
-		fmt.Println(inx)
-	}
+	//pairTic := time.NewTicker(time.Second * 1)
+	//pairTic.
+
+	//var inx int
+	//for range pairTic.C {
+	//	inx++
+	//	pairTic.Reset(time.Second * time.Duration(inx))
+	//	log.Printf("tic")
+	//}
+
+	//test := make([]bool, 10)
+	//
+	//fmt.Printf("test: %v\n", test)
+	//
+	//copy(test[9:], []bool{true, true, true, true})
+	//fmt.Printf("test: %v\n", test)
+
+	//for inx := range test {
+	//	if rand.Intn(2) == 0 {
+	//		test[inx] = true
+	//	}
+	//
+	//	//log.Printf("%v", test[inx])
+	//}
+	//
+	//var buf bytes.Buffer
+	//enc := gob.NewEncoder(&buf)
+	//if err := enc.Encode(test); err != nil {
+	//	panic(err)
+	//}
+	//
+	//log.Printf("buf: %d", buf.Len())
+	//
+	//var zbuf bytes.Buffer
+	//gw := gzip.NewWriter(&zbuf)
+	//zenc := gob.NewEncoder(gw)
+	//if err := zenc.Encode(test); err != nil {
+	//	panic(err)
+	//}
+	//
+	//log.Printf("zenc: %d", zbuf.Len())
 
 	//test := []int{1, 2, 3, 4, 5, 6, 7, 8, 9}
 	//log.Println(test[3:4])

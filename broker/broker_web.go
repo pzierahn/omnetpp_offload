@@ -106,7 +106,7 @@ func (server *broker) sStatusHandle(writer http.ResponseWriter, request *http.Re
 }
 
 func (server *broker) startWebService() {
-	logger.Println("start web service")
+	logger.Println("start web service on http://localhost:8090")
 
 	http.HandleFunc("/provider", server.pStatusHandle)
 	http.HandleFunc("/simulation", server.sStatusHandle)

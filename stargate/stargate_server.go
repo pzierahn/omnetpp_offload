@@ -1,8 +1,12 @@
 package stargate
 
 import (
-	"fmt"
-	"github.com/patrickz98/project.go.omnetpp/quick"
+	"crypto/tls"
+	"github.com/lucas-clemente/quic-go"
+	pnet "github.com/patrickz98/project.go.omnetpp/net"
+	pb "github.com/patrickz98/project.go.omnetpp/proto"
+	"github.com/patrickz98/project.go.omnetpp/storage"
+	"google.golang.org/grpc"
 	"log"
 	"net"
 	"os"
@@ -32,24 +36,40 @@ func Server() {
 	addr, _ := net.ResolveUDPAddr("udp", localAddress)
 	conn, _ := net.ListenUDP("udp", addr)
 
-	fmt.Printf("addr=%v localAddress=%v\n", addr, localAddress)
-
-	qconn := quick.Connection{
-		Connection: conn,
+	tlsConf := &tls.Config{
+		InsecureSkipVerify: true,
+		NextProtos:         []string{"quic-echo-example"},
 	}
-
-	qconn.Init()
-
-	//for {
-
-	var incoming string
-	_, err := qconn.Receive(&incoming)
+	ql, err := quic.Listen(conn, tlsConf, nil)
 	if err != nil {
-		panic(err)
+		log.Fatalln(err)
 	}
 
-	//log.Printf("incoming '%v'", incoming)
-	log.Printf("incoming: %v bytes", len(incoming))
+	lis := pnet.Listen(ql)
+
+	server := grpc.NewServer()
+	//pb.RegisterBrokerServer(server, &brk)
+	pb.RegisterStorageServer(server, &storage.Server{})
+	err = server.Serve(lis)
+
+	//fmt.Printf("addr=%v localAddress=%v\n", addr, localAddress)
+	//
+	//qconn := quick.Connection{
+	//	Connection: conn,
+	//}
+	//
+	//qconn.Init()
+	//
+	////for {
+	//
+	//var incoming string
+	//_, err := qconn.Receive(&incoming)
+	//if err != nil {
+	//	panic(err)
+	//}
+	//
+	////log.Printf("incoming '%v'", incoming)
+	//log.Printf("incoming: %v bytes", len(incoming))
 
 	//buffer := make([]byte, 1024)
 	//bytesRead, remoteAddr, err := conn.ReadFromUDP(buffer)

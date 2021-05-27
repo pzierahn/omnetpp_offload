@@ -3,6 +3,8 @@ package service;
 
 option go_package = "./proto";
 
+import "net_addr.proto";
+
 service Storage {
   rpc Pull   (StorageRef)           returns (stream StorageParcel) {}
   rpc Push   (stream StorageParcel) returns (StorageRef)           {}
@@ -19,8 +21,9 @@ message StorageStatus {
 }
 
 message StorageRef {
-  string bucket = 1;
-  string filename = 2;
+  NetAddr server = 1;
+  string bucket = 2;
+  string filename = 3;
 }
 
 message StorageParcel {

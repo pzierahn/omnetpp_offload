@@ -1,47 +1,46 @@
 package quick
 
 import (
-	"bytes"
-	"encoding/gob"
+	"fmt"
 	"net"
 )
 
 type parcelList []bool
 
-type ParcelType int
+type cast int
 
 const (
-	TypeParcel ParcelType = iota + 1
-	TypePing
-	TypeParcelList
+	castParcel cast = iota + 1
+	castPairing
+	castPing
+	castList
 )
 
-type Parcel struct {
-	Type      ParcelType
-	MessageId uint32
-	Index     uint32
-	Chunks    uint32
-	Payload   []byte
+type parcel struct {
+	sessionId uint32
+	messageId uint32
+	cast      cast
+	offset    uint64
+	payload   []byte
 }
 
-type ParcelWithAddress struct {
-	*Parcel
-	RemoteAddr *net.UDPAddr
-}
+func (conn *Connection) sendParcel(parcel *parcel, addr *net.UDPAddr) (err error) {
 
-func (parcel *Parcel) marshalGob() (buf []byte, err error) {
-	var buffer bytes.Buffer
-	enc := gob.NewEncoder(&buffer)
+	var buf []byte
+	buf, err = encodeGob(parcel)
+	if err != nil {
+		err = fmt.Errorf("error: gobbing parcel: %v", err)
+		return
+	}
 
-	err = enc.Encode(parcel)
-	buf = buffer.Bytes()
+	conn.connMu.Lock()
+	_, err = conn.Connection.WriteToUDP(buf, addr)
+	conn.connMu.Unlock()
 
-	return
-}
-
-func (parcel *Parcel) unmarshalGob(byt []byte) (err error) {
-	enc := gob.NewDecoder(bytes.NewReader(byt))
-	err = enc.Decode(&parcel)
+	if err != nil {
+		err = fmt.Errorf("error: sending parcel: %v", err)
+		return
+	}
 
 	return
 }

@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"flag"
+	"fmt"
 	"github.com/patrickz98/project.go.omnetpp/gconfig"
 	"github.com/patrickz98/project.go.omnetpp/provider"
 	"os"
@@ -37,6 +38,8 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
+
+	fmt.Println("############# ccc")
 
 	if err = conn.StartLink(context.Background()); err != nil {
 		panic(err)

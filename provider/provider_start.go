@@ -55,16 +55,25 @@ func (client *workerConnection) StartLink(ctx context.Context) (err error) {
 
 	}()
 
+	var inx int
+
 	for range time.Tick(time.Second * 1) {
 		var usage *pb.Utilization
 		usage, err = sysinfo.GetUtilization()
+		if err != nil {
+			logger.Fatalln(err)
+			return
+		}
 
-		// logger.Printf("Sending usage=%v", usage)
+		logger.Printf("Sending %v", inx)
 
 		err = stream.Send(usage)
 		if err != nil {
+			logger.Fatalln(err)
 			return
 		}
+
+		inx++
 	}
 
 	logger.Println("closing connection to broker")
