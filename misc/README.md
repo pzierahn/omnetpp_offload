@@ -1,6 +1,16 @@
-https://wi2bc11.bwl.uni-mannheim.de/TaskletProject/TaskletSimulator/-/tree/master/
+# Build docker images
 
 ```
-https://github.com/eclipse/paho.mqtt.c
-https://github.com/eclipse/paho.mqtt.cpp
+echo 'export PATH="$HOME/install/omnetpp/bin/:$PATH"' >> ~/.bashrc
+
+docker build -t pzierahn/omnetpp:amd64 .
+docker build -t pzierahn/omnetpp:arm64 .
+
+docker push pzierahn/omnetpp:amd64
+docker push pzierahn/omnetpp:arm64
+
+docker buildx build \
+    --push \
+    --platform linux/arm64,linux/amd64 \
+    --tag pzierahn/omnetpp:latest -f Dockerfile.omnetpp .
 ```

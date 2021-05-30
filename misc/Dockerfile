@@ -19,18 +19,16 @@ RUN apt-get update; \
     apt-get upgrade -y; \
     apt-get dist-upgrade -y; \
     apt-get install -y --no-install-recommends git nano wget tzdata apt-utils; \
-    apt-get install -y --no-install-recommends build-essential clang make bison flex git libxml2-dev zlib1g-dev python; \
+    apt-get install -y --no-install-recommends build-essential clang make bison flex libxml2-dev zlib1g-dev python; \
     apt-get clean; \
     rm -rf /var/lib/apt/lists/*
-
-# RUN apt-get install -y --no-install-recommends build-essential clang make bison flex git libxml2-dev zlib1g-dev
 
 #
 # Get build omnetpp
 #
 
 ARG VERSION=5.6.2
-# ARG VERSION=6.0pre10
+# ARG VERSION=6.0pre11
 
 RUN wget https://github.com/omnetpp/omnetpp/releases/download/omnetpp-$VERSION/omnetpp-$VERSION-src-core.tgz --no-check-certificate -O omnetpp-src-core.tgz; \
     tar xf omnetpp-src-core.tgz; \
@@ -42,5 +40,3 @@ ENV PATH $WORKDIR/omnetpp/bin:$PATH
 RUN cd omnetpp; \
     ./configure WITH_QTENV=no WITH_OSG=no WITH_OSGEARTH=no; \
     make -j $(nproc) MODE=release base
-
-# echo 'export PATH="$HOME/install/omnetpp/bin/:$PATH"' >> ~/.bashrc
