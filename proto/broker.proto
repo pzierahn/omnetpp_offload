@@ -14,8 +14,8 @@ import "opp_config.proto";
 
 service Broker {
   rpc GetProviders (Empty)              returns (Providers) {}
-  rpc Register     (ProviderInfo)       returns (Empty) {}
-  rpc Status       (stream Utilization) returns (Empty) {}
+  rpc Register     (ProviderInfo)       returns (Empty)     {}
+  rpc Status       (stream Utilization) returns (Empty)     {}
 }
 
 message Empty {}

@@ -32,7 +32,6 @@ func Start(conf gconfig.Config) {
 		conf.Broker.DialAddr(),
 		grpc.WithInsecure(),
 		grpc.WithBlock(),
-		//grpc.WithContextDialer(utils.GRPCDialer(conn)),
 		grpc.WithContextDialer(dialer),
 	)
 	if err != nil {

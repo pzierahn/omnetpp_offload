@@ -2,9 +2,7 @@ package provider
 
 import (
 	"context"
-	"github.com/pzierahn/project.go.omnetpp/gconfig"
 	pb "github.com/pzierahn/project.go.omnetpp/proto"
-	"github.com/pzierahn/project.go.omnetpp/storage"
 	"github.com/pzierahn/project.go.omnetpp/sysinfo"
 	"log"
 )
@@ -12,8 +10,6 @@ import (
 type provider struct {
 	pb.UnimplementedProviderServer
 	providerId string
-	config     gconfig.Worker
-	storage    storage.Client
 	agents     int
 }
 
