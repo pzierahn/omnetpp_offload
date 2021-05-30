@@ -9,7 +9,6 @@ import (
 	"encoding/pem"
 	"github.com/lucas-clemente/quic-go"
 	"github.com/patrickz98/project.go.omnetpp/adapter"
-	"log"
 	"math/big"
 	"net"
 )
@@ -64,16 +63,15 @@ func GRPCDialer(pconn *net.UDPConn) (dialer Dialer) {
 			NextProtos:         []string{"quic-echo-example"},
 		}
 
-		log.Printf("quic.DialAddrContext target=%v", target)
-
-		log.Printf("quic.DialAddrContext pconn=%v", pconn.LocalAddr())
+		//log.Printf("quic.DialAddrContext target=%v", target)
+		//log.Printf("quic.DialAddrContext pconn=%v", pconn.LocalAddr())
 
 		rAddr, err := net.ResolveUDPAddr("udp", target)
 		if err != nil {
 			return
 		}
 
-		log.Printf("quic.DialAddrContext rAddr=%v", rAddr)
+		//log.Printf("quic.DialAddrContext rAddr=%v", rAddr)
 
 		sess, err := quic.DialContext(ctx, pconn, rAddr, "", tlsConf, &quic.Config{
 			KeepAlive: true,
@@ -82,13 +80,13 @@ func GRPCDialer(pconn *net.UDPConn) (dialer Dialer) {
 			return
 		}
 
-		log.Printf("quic.DialAddrContext OpenStreamSync target=%v", target)
+		//log.Printf("quic.DialAddrContext OpenStreamSync target=%v", target)
 		stream, err := sess.OpenStreamSync(ctx)
 		if err != nil {
 			return
 		}
 
-		log.Printf("connected target=%v", target)
+		//log.Printf("connected target=%v", target)
 
 		conn = &adapter.Conn{Sess: sess, Stream: stream}
 

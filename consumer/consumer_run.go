@@ -36,10 +36,8 @@ func Run(gConf gconfig.GRPCConnection, config *Config) (err error) {
 		_ = conn.Close()
 	}()
 
-	ctx := context.Background()
-
 	broker := pb.NewBrokerClient(conn)
-	providers, err := broker.GetProviders(ctx, &pb.Empty{})
+	providers, err := broker.GetProviders(context.Background(), &pb.Empty{})
 	if err != nil {
 		return
 	}
@@ -50,7 +48,14 @@ func Run(gConf gconfig.GRPCConnection, config *Config) (err error) {
 
 		log.Printf("connect to provider (%v)", prov.ProviderId)
 
-		pconn, remote := stargate.Connect(prov.ProviderId)
+		ctx, _ := context.WithTimeout(context.Background(), time.Second*8)
+
+		pconn, remote, err := stargate.Dial(ctx, prov.ProviderId)
+		if err != nil {
+			// Connection failed!
+			log.Println(err)
+			continue
+		}
 
 		log.Printf("connected to %v", remote)
 

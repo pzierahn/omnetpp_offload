@@ -51,7 +51,11 @@ func Start(conf gconfig.Config) {
 
 	log.Println("wait for stargate connection")
 
-	conn, _ := stargate.Connect(prov.providerId)
+	conn, _, err := stargate.Dial(context.Background(), prov.providerId)
+	if err != nil {
+		log.Fatalln(err)
+	}
+
 	defer func() { _ = conn.Close() }()
 
 	tlsConf, _ := utils.GenerateTLSConfig()

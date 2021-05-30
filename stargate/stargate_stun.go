@@ -5,9 +5,9 @@ import (
 	"net"
 )
 
-func Server(port int) {
+func Server() {
 
-	conn, err := net.ListenUDP("udp", &net.UDPAddr{Port: port})
+	conn, err := net.ListenUDP("udp", &net.UDPAddr{Port: stunPort})
 	if err != nil {
 		log.Fatalln(err)
 	}

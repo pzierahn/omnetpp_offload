@@ -14,11 +14,9 @@ import (
 
 func Start(conf Config) (err error) {
 
-	go stargate.Server(9595)
+	go stargate.Server()
 
 	log.Printf("start server on :%d", conf.BrokerPort)
-
-	var lis net.Listener
 
 	conn, err := net.ListenUDP("udp", &net.UDPAddr{
 		Port: conf.BrokerPort,
@@ -35,7 +33,7 @@ func Start(conf Config) (err error) {
 		log.Fatalln(err)
 	}
 
-	lis = pnet.Listen(ql)
+	lis := pnet.Listen(ql)
 	defer func() { _ = lis.Close() }()
 
 	brk := broker{

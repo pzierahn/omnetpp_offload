@@ -5,5 +5,5 @@ import (
 )
 
 func main() {
-	_ = stargate.Connect("123456789")
+	_ = stargate.Dial("123456789")
 }
