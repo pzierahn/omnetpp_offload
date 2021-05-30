@@ -73,7 +73,7 @@ func Run(gConf gconfig.GRPCConnection, config *Config) (err error) {
 
 		start := time.Now()
 
-		for inx := 0; inx < 50_000; inx++ {
+		for inx := 0; inx < 5000; inx++ {
 			if inx%100 == 0 {
 				log.Printf("request: %v", inx)
 			}
