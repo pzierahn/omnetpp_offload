@@ -48,7 +48,7 @@ func Run(gConf gconfig.GRPCConnection, config *Config) (err error) {
 
 		log.Printf("connect to provider (%v)", prov.ProviderId)
 
-		ctx, _ := context.WithTimeout(context.Background(), time.Second*8)
+		ctx, _ := context.WithTimeout(context.Background(), time.Second*4)
 
 		pconn, remote, err := stargate.Dial(ctx, prov.ProviderId)
 		if err != nil {
@@ -71,14 +71,23 @@ func Run(gConf gconfig.GRPCConnection, config *Config) (err error) {
 
 		provider := pb.NewProviderClient(qconn)
 
-		for range time.Tick(time.Second) {
-			status, err := provider.Status(context.Background(), &pb.Empty{})
+		start := time.Now()
+
+		for inx := 0; inx < 50_000; inx++ {
+			if inx%100 == 0 {
+				log.Printf("request: %v", inx)
+			}
+
+			_, err = provider.Info(context.Background(), &pb.Empty{})
 			if err != nil {
 				log.Fatalln(err)
 			}
-
-			log.Printf("provider status (%s) %v", prov.ProviderId, status)
 		}
+
+		end := time.Now()
+
+		log.Printf("exectime: %v", end.Sub(start))
+		log.Printf("average exectime: %v", end.Sub(start)/10_000)
 
 		_ = pconn.Close()
 	}

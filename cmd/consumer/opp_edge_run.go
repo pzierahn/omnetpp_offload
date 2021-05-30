@@ -1,11 +1,9 @@
 package main
 
 import (
-	"encoding/json"
 	"flag"
 	"github.com/pzierahn/project.go.omnetpp/consumer"
 	"github.com/pzierahn/project.go.omnetpp/gconfig"
-	"io/ioutil"
 	"log"
 	"path/filepath"
 )
@@ -32,15 +30,15 @@ func main() {
 	var runConfig consumer.Config
 	runConfig.Path = path
 
-	byt, err := ioutil.ReadFile(configPath)
-	if err != nil {
-		log.Panicln(err)
-	}
-
-	err = json.Unmarshal(byt, &runConfig)
-	if err != nil {
-		log.Panicln(err)
-	}
+	//byt, err := ioutil.ReadFile(configPath)
+	//if err != nil {
+	//	log.Panicln(err)
+	//}
+	//
+	//err = json.Unmarshal(byt, &runConfig)
+	//if err != nil {
+	//	log.Panicln(err)
+	//}
 
 	err = consumer.Run(config.Broker, &runConfig)
 	if err != nil {
