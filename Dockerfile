@@ -1,7 +1,14 @@
-FROM golang:latest
+# syntax=docker/dockerfile:1
+FROM golang:latest AS builder
 
-WORKDIR /app
+WORKDIR /install
 
-COPY . /app
+COPY . /install
+RUN go build cmd/worker/opp_edge_worker.go; \
+    go build cmd/consumer/opp_edge_run.go
 
-CMD ["go", "run", "cmd/worker/opp_edge_worker.go"]
+FROM ubuntu:latest
+WORKDIR /root
+
+COPY --from=builder /install/opp_edge* /bin
+CMD ["opp_edge_worker"]

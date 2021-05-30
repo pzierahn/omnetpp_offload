@@ -67,5 +67,5 @@ go run cmd/consumer/opp_edge_run.go -path ~/Desktop/tictoc -config ~/Desktop/tic
 ```
 
 ```
-GOOS=linux GOARCH=amd64 go build cmd/ice/ice.go
+GOOS=linux GOARCH=amd64 go build cmd/consumer/opp_edge_run.go
 ```
