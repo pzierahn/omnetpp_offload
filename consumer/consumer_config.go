@@ -1,7 +1,7 @@
 package consumer
 
 import (
-	"github.com/patrickz98/project.go.omnetpp/omnetpp"
+	"github.com/pzierahn/project.go.omnetpp/omnetpp"
 )
 
 type Config struct {

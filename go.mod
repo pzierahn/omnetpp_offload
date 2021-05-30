@@ -1,4 +1,4 @@
-module github.com/patrickz98/project.go.omnetpp
+module github.com/pzierahn/project.go.omnetpp
 
 go 1.14
 

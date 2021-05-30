@@ -3,8 +3,8 @@ package broker
 import "log"
 
 //import (
-//	pb "github.com/patrickz98/project.go.omnetpp/proto"
-//	"github.com/patrickz98/project.go.omnetpp/utils"
+//	pb "github.com/pzierahn/project.go.omnetpp/proto"
+//	"github.com/pzierahn/project.go.omnetpp/utils"
 //	"google.golang.org/protobuf/proto"
 //	"net/http"
 //	"sort"

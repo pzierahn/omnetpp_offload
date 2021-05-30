@@ -3,8 +3,8 @@ package main
 import (
 	"encoding/json"
 	"flag"
-	"github.com/patrickz98/project.go.omnetpp/consumer"
-	"github.com/patrickz98/project.go.omnetpp/gconfig"
+	"github.com/pzierahn/project.go.omnetpp/consumer"
+	"github.com/pzierahn/project.go.omnetpp/gconfig"
 	"io/ioutil"
 	"log"
 	"path/filepath"

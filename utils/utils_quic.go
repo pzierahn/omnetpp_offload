@@ -8,7 +8,7 @@ import (
 	"crypto/x509"
 	"encoding/pem"
 	"github.com/lucas-clemente/quic-go"
-	"github.com/patrickz98/project.go.omnetpp/adapter"
+	"github.com/pzierahn/project.go.omnetpp/adapter"
 	"math/big"
 	"net"
 )

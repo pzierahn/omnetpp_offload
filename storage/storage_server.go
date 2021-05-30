@@ -2,7 +2,7 @@ package storage
 
 import (
 	"context"
-	pb "github.com/patrickz98/project.go.omnetpp/proto"
+	pb "github.com/pzierahn/project.go.omnetpp/proto"
 	"io/ioutil"
 	"os"
 	"path/filepath"

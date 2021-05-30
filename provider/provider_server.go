@@ -3,12 +3,12 @@ package provider
 import (
 	"context"
 	"github.com/lucas-clemente/quic-go"
-	pnet "github.com/patrickz98/project.go.omnetpp/adapter"
-	"github.com/patrickz98/project.go.omnetpp/gconfig"
-	pb "github.com/patrickz98/project.go.omnetpp/proto"
-	"github.com/patrickz98/project.go.omnetpp/simple"
-	"github.com/patrickz98/project.go.omnetpp/stargate"
-	"github.com/patrickz98/project.go.omnetpp/utils"
+	pnet "github.com/pzierahn/project.go.omnetpp/adapter"
+	"github.com/pzierahn/project.go.omnetpp/gconfig"
+	pb "github.com/pzierahn/project.go.omnetpp/proto"
+	"github.com/pzierahn/project.go.omnetpp/simple"
+	"github.com/pzierahn/project.go.omnetpp/stargate"
+	"github.com/pzierahn/project.go.omnetpp/utils"
 	"google.golang.org/grpc"
 	"log"
 )

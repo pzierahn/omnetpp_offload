@@ -4,7 +4,7 @@ import (
 	"bufio"
 	"bytes"
 	"fmt"
-	"github.com/patrickz98/project.go.omnetpp/shell"
+	"github.com/pzierahn/project.go.omnetpp/shell"
 	"os/exec"
 	"path/filepath"
 	"regexp"

@@ -1,7 +1,7 @@
 package omnetpp
 
 import (
-	pb "github.com/patrickz98/project.go.omnetpp/proto"
+	pb "github.com/pzierahn/project.go.omnetpp/proto"
 	"log"
 	"os"
 )

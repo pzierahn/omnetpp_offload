@@ -2,7 +2,7 @@ package consumer
 
 import (
 	"fmt"
-	"github.com/patrickz98/project.go.omnetpp/omnetpp"
+	"github.com/pzierahn/project.go.omnetpp/omnetpp"
 )
 
 func extractConfigs(omnet omnetpp.OmnetProject) (configs map[string][]string, err error) {

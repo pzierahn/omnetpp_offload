@@ -2,10 +2,10 @@ package provider
 
 import (
 	"context"
-	"github.com/patrickz98/project.go.omnetpp/gconfig"
-	pb "github.com/patrickz98/project.go.omnetpp/proto"
-	"github.com/patrickz98/project.go.omnetpp/storage"
-	"github.com/patrickz98/project.go.omnetpp/sysinfo"
+	"github.com/pzierahn/project.go.omnetpp/gconfig"
+	pb "github.com/pzierahn/project.go.omnetpp/proto"
+	"github.com/pzierahn/project.go.omnetpp/storage"
+	"github.com/pzierahn/project.go.omnetpp/sysinfo"
 	"log"
 )
 

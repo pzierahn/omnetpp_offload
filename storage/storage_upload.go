@@ -2,7 +2,7 @@ package storage
 
 import (
 	"context"
-	pb "github.com/patrickz98/project.go.omnetpp/proto"
+	pb "github.com/pzierahn/project.go.omnetpp/proto"
 	"google.golang.org/grpc/metadata"
 	"io"
 	"time"

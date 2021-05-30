@@ -1,7 +1,7 @@
 package sysinfo
 
 import (
-	pb "github.com/patrickz98/project.go.omnetpp/proto"
+	pb "github.com/pzierahn/project.go.omnetpp/proto"
 	"github.com/shirou/gopsutil/v3/mem"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )

@@ -2,7 +2,7 @@ package broker
 
 import (
 	"context"
-	pb "github.com/patrickz98/project.go.omnetpp/proto"
+	pb "github.com/pzierahn/project.go.omnetpp/proto"
 	"log"
 	"sync"
 )

@@ -2,7 +2,7 @@ package storage
 
 import (
 	"context"
-	pb "github.com/patrickz98/project.go.omnetpp/proto"
+	pb "github.com/pzierahn/project.go.omnetpp/proto"
 )
 
 func (client *Client) Delete(file *pb.StorageRef) (status *pb.StorageStatus, err error) {

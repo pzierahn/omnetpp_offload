@@ -2,8 +2,8 @@ package storage
 
 import (
 	"fmt"
-	pb "github.com/patrickz98/project.go.omnetpp/proto"
-	"github.com/patrickz98/project.go.omnetpp/utils"
+	pb "github.com/pzierahn/project.go.omnetpp/proto"
+	"github.com/pzierahn/project.go.omnetpp/utils"
 	"google.golang.org/grpc/metadata"
 	"io"
 	"os"

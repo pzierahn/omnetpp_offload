@@ -2,8 +2,8 @@ package main
 
 import (
 	"flag"
-	"github.com/patrickz98/project.go.omnetpp/gconfig"
-	"github.com/patrickz98/project.go.omnetpp/provider"
+	"github.com/pzierahn/project.go.omnetpp/gconfig"
+	"github.com/pzierahn/project.go.omnetpp/provider"
 	"os"
 	"os/signal"
 )

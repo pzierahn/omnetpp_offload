@@ -1,7 +1,7 @@
 package provider
 
 import (
-	"github.com/patrickz98/project.go.omnetpp/defines"
+	"github.com/pzierahn/project.go.omnetpp/defines"
 	"log"
 	"os"
 	"path/filepath"

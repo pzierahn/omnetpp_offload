@@ -4,9 +4,9 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
-	"github.com/patrickz98/project.go.omnetpp/gconfig"
-	pb "github.com/patrickz98/project.go.omnetpp/proto"
-	"github.com/patrickz98/project.go.omnetpp/storage"
+	"github.com/pzierahn/project.go.omnetpp/gconfig"
+	pb "github.com/pzierahn/project.go.omnetpp/proto"
+	"github.com/pzierahn/project.go.omnetpp/storage"
 	"io/ioutil"
 )
 

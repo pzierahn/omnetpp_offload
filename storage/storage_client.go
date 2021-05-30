@@ -1,8 +1,8 @@
 package storage
 
 import (
-	"github.com/patrickz98/project.go.omnetpp/gconfig"
-	pb "github.com/patrickz98/project.go.omnetpp/proto"
+	"github.com/pzierahn/project.go.omnetpp/gconfig"
+	pb "github.com/pzierahn/project.go.omnetpp/proto"
 	"google.golang.org/grpc"
 )
 

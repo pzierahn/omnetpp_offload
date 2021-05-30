@@ -1,8 +1,8 @@
 package main
 
 import (
-	"github.com/patrickz98/project.go.omnetpp/gconfig"
-	"github.com/patrickz98/project.go.omnetpp/stateinfo"
+	"github.com/pzierahn/project.go.omnetpp/gconfig"
+	"github.com/pzierahn/project.go.omnetpp/stateinfo"
 )
 
 var config gconfig.Config

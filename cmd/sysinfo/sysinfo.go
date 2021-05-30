@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	"github.com/patrickz98/project.go.omnetpp/simple"
+	"github.com/pzierahn/project.go.omnetpp/simple"
 	"github.com/shirou/gopsutil/v3/cpu"
 	"github.com/shirou/gopsutil/v3/host"
 	"github.com/shirou/gopsutil/v3/load"

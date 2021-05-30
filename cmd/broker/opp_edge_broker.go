@@ -2,9 +2,9 @@ package main
 
 import (
 	"flag"
-	"github.com/patrickz98/project.go.omnetpp/broker"
-	"github.com/patrickz98/project.go.omnetpp/defines"
-	"github.com/patrickz98/project.go.omnetpp/storage"
+	"github.com/pzierahn/project.go.omnetpp/broker"
+	"github.com/pzierahn/project.go.omnetpp/defines"
+	"github.com/pzierahn/project.go.omnetpp/storage"
 	"os"
 	"os/signal"
 )

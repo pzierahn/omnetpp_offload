@@ -2,7 +2,7 @@ package omnetpp
 
 import (
 	"fmt"
-	"github.com/patrickz98/project.go.omnetpp/shell"
+	"github.com/pzierahn/project.go.omnetpp/shell"
 	"os"
 	"os/exec"
 	"path/filepath"
