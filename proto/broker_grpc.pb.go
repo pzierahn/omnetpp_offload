@@ -19,8 +19,7 @@ const _ = grpc.SupportPackageIsVersion7
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type BrokerClient interface {
 	GetProviders(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*Providers, error)
-	Register(ctx context.Context, in *ProviderInfo, opts ...grpc.CallOption) (*Empty, error)
-	Status(ctx context.Context, opts ...grpc.CallOption) (Broker_StatusClient, error)
+	Register(ctx context.Context, opts ...grpc.CallOption) (Broker_RegisterClient, error)
 }
 
 type brokerClient struct {
@@ -40,39 +39,30 @@ func (c *brokerClient) GetProviders(ctx context.Context, in *Empty, opts ...grpc
 	return out, nil
 }
 
-func (c *brokerClient) Register(ctx context.Context, in *ProviderInfo, opts ...grpc.CallOption) (*Empty, error) {
-	out := new(Empty)
-	err := c.cc.Invoke(ctx, "/service.Broker/Register", in, out, opts...)
+func (c *brokerClient) Register(ctx context.Context, opts ...grpc.CallOption) (Broker_RegisterClient, error) {
+	stream, err := c.cc.NewStream(ctx, &Broker_ServiceDesc.Streams[0], "/service.Broker/Register", opts...)
 	if err != nil {
 		return nil, err
 	}
-	return out, nil
-}
-
-func (c *brokerClient) Status(ctx context.Context, opts ...grpc.CallOption) (Broker_StatusClient, error) {
-	stream, err := c.cc.NewStream(ctx, &Broker_ServiceDesc.Streams[0], "/service.Broker/Status", opts...)
-	if err != nil {
-		return nil, err
-	}
-	x := &brokerStatusClient{stream}
+	x := &brokerRegisterClient{stream}
 	return x, nil
 }
 
-type Broker_StatusClient interface {
-	Send(*Utilization) error
+type Broker_RegisterClient interface {
+	Send(*Ping) error
 	CloseAndRecv() (*Empty, error)
 	grpc.ClientStream
 }
 
-type brokerStatusClient struct {
+type brokerRegisterClient struct {
 	grpc.ClientStream
 }
 
-func (x *brokerStatusClient) Send(m *Utilization) error {
+func (x *brokerRegisterClient) Send(m *Ping) error {
 	return x.ClientStream.SendMsg(m)
 }
 
-func (x *brokerStatusClient) CloseAndRecv() (*Empty, error) {
+func (x *brokerRegisterClient) CloseAndRecv() (*Empty, error) {
 	if err := x.ClientStream.CloseSend(); err != nil {
 		return nil, err
 	}
@@ -88,8 +78,7 @@ func (x *brokerStatusClient) CloseAndRecv() (*Empty, error) {
 // for forward compatibility
 type BrokerServer interface {
 	GetProviders(context.Context, *Empty) (*Providers, error)
-	Register(context.Context, *ProviderInfo) (*Empty, error)
-	Status(Broker_StatusServer) error
+	Register(Broker_RegisterServer) error
 	mustEmbedUnimplementedBrokerServer()
 }
 
@@ -100,11 +89,8 @@ type UnimplementedBrokerServer struct {
 func (UnimplementedBrokerServer) GetProviders(context.Context, *Empty) (*Providers, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetProviders not implemented")
 }
-func (UnimplementedBrokerServer) Register(context.Context, *ProviderInfo) (*Empty, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method Register not implemented")
-}
-func (UnimplementedBrokerServer) Status(Broker_StatusServer) error {
-	return status.Errorf(codes.Unimplemented, "method Status not implemented")
+func (UnimplementedBrokerServer) Register(Broker_RegisterServer) error {
+	return status.Errorf(codes.Unimplemented, "method Register not implemented")
 }
 func (UnimplementedBrokerServer) mustEmbedUnimplementedBrokerServer() {}
 
@@ -137,44 +123,26 @@ func _Broker_GetProviders_Handler(srv interface{}, ctx context.Context, dec func
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Broker_Register_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ProviderInfo)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(BrokerServer).Register(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/service.Broker/Register",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(BrokerServer).Register(ctx, req.(*ProviderInfo))
-	}
-	return interceptor(ctx, in, info, handler)
+func _Broker_Register_Handler(srv interface{}, stream grpc.ServerStream) error {
+	return srv.(BrokerServer).Register(&brokerRegisterServer{stream})
 }
 
-func _Broker_Status_Handler(srv interface{}, stream grpc.ServerStream) error {
-	return srv.(BrokerServer).Status(&brokerStatusServer{stream})
-}
-
-type Broker_StatusServer interface {
+type Broker_RegisterServer interface {
 	SendAndClose(*Empty) error
-	Recv() (*Utilization, error)
+	Recv() (*Ping, error)
 	grpc.ServerStream
 }
 
-type brokerStatusServer struct {
+type brokerRegisterServer struct {
 	grpc.ServerStream
 }
 
-func (x *brokerStatusServer) SendAndClose(m *Empty) error {
+func (x *brokerRegisterServer) SendAndClose(m *Empty) error {
 	return x.ServerStream.SendMsg(m)
 }
 
-func (x *brokerStatusServer) Recv() (*Utilization, error) {
-	m := new(Utilization)
+func (x *brokerRegisterServer) Recv() (*Ping, error) {
+	m := new(Ping)
 	if err := x.ServerStream.RecvMsg(m); err != nil {
 		return nil, err
 	}
@@ -192,15 +160,11 @@ var Broker_ServiceDesc = grpc.ServiceDesc{
 			MethodName: "GetProviders",
 			Handler:    _Broker_GetProviders_Handler,
 		},
-		{
-			MethodName: "Register",
-			Handler:    _Broker_Register_Handler,
-		},
 	},
 	Streams: []grpc.StreamDesc{
 		{
-			StreamName:    "Status",
-			Handler:       _Broker_Status_Handler,
+			StreamName:    "Register",
+			Handler:       _Broker_Register_Handler,
 			ClientStreams: true,
 		},
 	},

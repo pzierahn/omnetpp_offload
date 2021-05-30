@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/pzierahn/project.go.omnetpp/gconfig"
 	pb "github.com/pzierahn/project.go.omnetpp/proto"
+	"github.com/pzierahn/project.go.omnetpp/simple"
 	"github.com/pzierahn/project.go.omnetpp/stargate"
 	"github.com/pzierahn/project.go.omnetpp/utils"
 	"google.golang.org/grpc"
@@ -42,7 +43,7 @@ func Run(gConf gconfig.GRPCConnection, config *Config) (err error) {
 		return
 	}
 
-	log.Printf("providers %d", len(providers.Items))
+	log.Printf("providers %v", simple.PrettyString(providers.Items))
 
 	for _, prov := range providers.Items {
 

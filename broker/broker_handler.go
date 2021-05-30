@@ -7,10 +7,14 @@ import (
 	"sync"
 )
 
+type providerId = string
+
 type broker struct {
 	pb.UnimplementedBrokerServer
-	mu        sync.RWMutex
-	providers map[string]*pb.ProviderInfo
+	pmu         sync.RWMutex
+	providers   map[providerId]*pb.ProviderInfo
+	umu         sync.RWMutex
+	utilization map[providerId]*pb.Utilization
 }
 
 func (broker *broker) GetProviders(_ context.Context, _ *pb.Empty) (providers *pb.Providers, err error) {
@@ -19,28 +23,62 @@ func (broker *broker) GetProviders(_ context.Context, _ *pb.Empty) (providers *p
 
 	providers = &pb.Providers{}
 
-	broker.mu.RLock()
+	broker.pmu.RLock()
 	for _, prov := range broker.providers {
 		providers.Items = append(providers.Items, prov)
 	}
-	broker.mu.RUnlock()
+	broker.pmu.RUnlock()
 
 	return
 }
 
-func (broker *broker) Register(_ context.Context, info *pb.ProviderInfo) (res *pb.Empty, err error) {
+func (broker *broker) Register(stream pb.Broker_RegisterServer) (err error) {
 
-	log.Printf("Register: info=%v", info)
+	var ping *pb.Ping
+	var id string
 
-	broker.mu.Lock()
-	broker.providers[info.ProviderId] = info
-	broker.mu.Unlock()
+	for {
+		ping, err = stream.Recv()
+		if err != nil {
+			break
+		}
 
-	res = &pb.Empty{}
-	return
-}
+		switch data := ping.Cast.(type) {
+		case *pb.Ping_Register:
+			id = data.Register.ProviderId
+			log.Printf("Register: connect id=%v", id)
 
-func (broker *broker) Status(stream pb.Broker_StatusServer) (err error) {
+			broker.pmu.Lock()
+			broker.providers[id] = data.Register
+			broker.pmu.Unlock()
+
+		case *pb.Ping_Util:
+
+			if id == "" {
+				continue
+			}
+
+			log.Printf("Register: id=%v utilization=%v", id, data.Util.CpuUsage)
+
+			broker.umu.Lock()
+			broker.utilization[id] = data.Util
+			broker.umu.Unlock()
+		}
+	}
+
+	log.Printf("Register: disconecct id=%v", id)
+
+	go func() {
+		broker.pmu.Lock()
+		delete(broker.providers, id)
+		broker.pmu.Unlock()
+	}()
+
+	go func() {
+		broker.umu.Lock()
+		delete(broker.utilization, id)
+		broker.umu.Unlock()
+	}()
 
 	return
 }

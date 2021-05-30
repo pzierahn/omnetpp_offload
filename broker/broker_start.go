@@ -37,7 +37,8 @@ func Start(conf Config) (err error) {
 	defer func() { _ = lis.Close() }()
 
 	brk := broker{
-		providers: make(map[string]*pb.ProviderInfo),
+		providers:   make(map[string]*pb.ProviderInfo),
+		utilization: make(map[string]*pb.Utilization),
 	}
 
 	if conf.WebInterface {

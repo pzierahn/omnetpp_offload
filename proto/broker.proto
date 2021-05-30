@@ -13,9 +13,15 @@ import "opp_config.proto";
 //
 
 service Broker {
-  rpc GetProviders (Empty)              returns (Providers) {}
-  rpc Register     (ProviderInfo)       returns (Empty)     {}
-  rpc Status       (stream Utilization) returns (Empty)     {}
+  rpc GetProviders (Empty)       returns (Providers) {}
+  rpc Register     (stream Ping) returns (Empty)     {}
+}
+
+message Ping {
+  oneof cast {
+    ProviderInfo register = 1;
+    Utilization util = 2;
+  }
 }
 
 message Empty {}
