@@ -3,7 +3,7 @@ package service;
 
 option go_package = "./proto";
 
-message NetAddr {
+message DialAddr {
   bytes ip = 1;
   uint32 port = 2;
 	string zone = 3;  // IPv6 scoped addressing zone

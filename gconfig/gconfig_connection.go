@@ -8,7 +8,7 @@ type GRPCConnection struct {
 }
 
 func (config GRPCConnection) DialAddr() (addr string) {
-	//addr = fmt.Sprintf("[%s]::%d", config.Address, config.Port)
+	//addr = fmt.Sprintf("[%s]::%d", config.Address, config.BrokerPort)
 	udp := net.UDPAddr{
 		IP:   net.ParseIP(config.Address),
 		Port: config.Port,

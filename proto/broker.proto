@@ -4,114 +4,82 @@ package service;
 option go_package = "./proto";
 
 import "google/protobuf/timestamp.proto";
-import "google/protobuf/duration.proto";
 
 import "storage.proto";
 import "opp_config.proto";
 
-service Broker {
-  rpc Assignments (stream Utilization) returns (stream Assignment) {}
+//
+// ----------------------------------------------------------------------------
+//
 
-  rpc Finished      (Assignment)   returns (Empty)        {}
-  rpc Create        (Simulation)   returns (SimulationId) {}
-  rpc GetSimulation (SimulationId) returns (Simulation)   {}
-  rpc GetOppConfig  (SimulationId) returns (OppConfig)    {}
-  rpc AddTasks      (Tasks)        returns (Empty)        {}
-  rpc SetSource     (Source)       returns (Empty)        {}
-  rpc GetSource     (SimulationId) returns (Source)       {}
-  rpc AddBinary     (Binary)       returns (Empty)        {}
-  rpc GetBinary     (SimulationBinaryRequest) returns (Binary)       {}
+service Broker {
+  rpc GetProviders (Empty)              returns (Providers) {}
+  rpc Register     (ProviderInfo)       returns (Empty) {}
+  rpc Status       (stream Utilization) returns (Empty) {}
 }
 
 message Empty {}
 
-message SimulationBinaryRequest {
-  string simulationId = 1;
-  Arch arch = 2;
-}
-
-message Build {
-  string simulationId = 1;
-  OppConfig config = 2;
-  StorageRef source = 3;
-}
-
-message Assignment {
-  oneof do {
-    Build build = 1;
-    SimulationRun run = 2;
-  }
-}
-
-message Arch {
+message OS {
   string os = 1;
   string arch = 2;
 }
 
-message Binary {
-  string simulationId = 1;
-  Arch arch = 2;
-  StorageRef binary = 4;
+message ProviderInfo {
+  string providerId = 1;
+  OS os = 2;
+  uint32 numCPUs = 3;
 }
 
-message Source {
-  string simulationId = 1;
-  StorageRef source = 2;
+message Providers {
+  repeated ProviderInfo items = 1;
+}
+
+message Utilization {
+  string providerId = 1;
+  float cpuUsage = 2;
+  uint64 memoryTotal = 3;
+  uint64 memoryUsed = 4;
+  google.protobuf.Timestamp updated = 5;
+}
+
+//
+// ----------------------------------------------------------------------------
+//
+
+service Provider {
+  rpc Info         (Empty)         returns (ProviderInfo) {}
+  rpc Status       (Empty)         returns (Utilization)  {}
+
+  rpc Init         (Simulation)    returns (Empty)        {}
+  rpc CompileSync  (SimulationId)  returns (Binary)       {}
+  rpc CompileAsync (SimulationId)  returns (Accepted)     {}
+  rpc RunSync      (SimulationRun) returns (StorageRef)   {}
+  rpc RunAsync     (SimulationRun) returns (Accepted)     {}
+}
+
+message Accepted {
+  bool accepted = 1;
 }
 
 message SimulationId {
   string id = 1;
 }
 
-message ProviderId {
-  string id = 1;
+message Simulation {
+  string simulationId = 1;
+  OppConfig oppConfig = 2;
+  StorageRef source = 3;
 }
 
 message SimulationRun {
   string simulationId = 1;
   string config = 2;
-  string runNumber = 3;
-  float progress = 4;
-  google.protobuf.Duration executionTime = 5;
-  StorageRef results = 6;
+  string runNum = 3;
 }
 
-message Tasks {
+message Binary {
   string simulationId = 1;
-  repeated SimulationRun items = 2;
-}
-
-message Utilization {
-  float cpuUsage = 1;
-  uint64 memoryTotal = 2;
-  uint64 memoryUsed = 3;
-  google.protobuf.Timestamp updated = 4;
-}
-
-message ProviderState {
-  string providerId = 1;
-  Arch arch = 2;
-  Utilization utilization = 3;
-  uint32 numCPUs = 4;
-  map<string, SimulationRun> assignments = 5;
-  string building = 6;
-}
-
-message SimulationState {
-  string simulationId = 1;
-  map<string, bool> queue = 2;
-  map<string, SimulationRun> runs = 3;
-  StorageRef source = 4;
-  OppConfig oppConfig = 5;
-  map<string, Binary> binaries = 6;
-}
-
-message ProviderOverview {
-  repeated ProviderState items = 1;
-}
-
-message Simulation {
-  string simulationId = 1;
-  string tag = 2;
-  OppConfig oppConfig = 3;
+  OS os = 2;
+  StorageRef bin = 3;
 }

@@ -1,9 +1,7 @@
 package main
 
 import (
-	"context"
 	"flag"
-	"fmt"
 	"github.com/patrickz98/project.go.omnetpp/gconfig"
 	"github.com/patrickz98/project.go.omnetpp/provider"
 	"os"
@@ -34,18 +32,20 @@ func main() {
 		os.Exit(0)
 	}()
 
-	conn, err := provider.Init(config)
-	if err != nil {
-		panic(err)
-	}
+	provider.Start(config)
 
-	fmt.Println("############# ccc")
-
-	if err = conn.StartLink(context.Background()); err != nil {
-		panic(err)
-	}
-
-	if err = conn.Close(); err != nil {
-		panic(err)
-	}
+	//conn, err := provider.Init(config)
+	//if err != nil {
+	//	panic(err)
+	//}
+	//
+	//fmt.Println("############# ccc")
+	//
+	//if err = conn.StartLink(context.Background()); err != nil {
+	//	panic(err)
+	//}
+	//
+	//if err = conn.Close(); err != nil {
+	//	panic(err)
+	//}
 }

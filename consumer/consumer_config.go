@@ -1,4 +1,4 @@
-package distribute
+package consumer
 
 import (
 	"github.com/patrickz98/project.go.omnetpp/omnetpp"

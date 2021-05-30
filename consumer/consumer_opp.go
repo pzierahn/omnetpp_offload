@@ -1,4 +1,4 @@
-package distribute
+package consumer
 
 import (
 	"fmt"

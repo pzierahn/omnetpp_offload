@@ -3,7 +3,7 @@ package service;
 
 option go_package = "./proto";
 
-import "net_addr.proto";
+import "dial_addr.proto";
 
 service Storage {
   rpc Pull   (StorageRef)           returns (stream StorageParcel) {}
@@ -21,7 +21,7 @@ message StorageStatus {
 }
 
 message StorageRef {
-  NetAddr server = 1;
+  DialAddr server = 1;
   string bucket = 2;
   string filename = 3;
 }

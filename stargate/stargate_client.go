@@ -1,96 +1,90 @@
 package stargate
 
 import (
-	"github.com/patrickz98/project.go.omnetpp/quick"
-	"github.com/patrickz98/project.go.omnetpp/simple"
+	"fmt"
 	"log"
 	"net"
-	"os"
+	"sync"
 	"time"
 )
 
-func Client() {
-	register()
+const (
+	port = 9595
+)
+
+var rendezvousAddr = &net.UDPAddr{
+	IP:   net.ParseIP("31.18.129.212"),
+	Port: port,
 }
 
-func register() {
-	signalAddress := os.Args[2]
+func Connect(connectionId string) (conn *net.UDPConn, remote *net.UDPAddr) {
 
-	localAddress := ":9595"
-	if len(os.Args) > 3 {
-		localAddress = os.Args[3]
-	}
-
-	remote, _ := net.ResolveUDPAddr("udp", signalAddress)
-	local, _ := net.ResolveUDPAddr("udp", localAddress)
-	conn, _ := net.ListenUDP("udp", local)
-
-	qConn := &quick.Connection{
-		Connection: conn,
-	}
-
-	qConn.Init()
-
-	log.Printf("remote=%v local=%v", remote, local)
-
-	//go func() {
-	//	time.Sleep(time.Second)
-
-	log.Printf("sending register")
-
-	registerMsg := simple.NamedId("garbage", 128*(64+4))
-	err := qConn.Send(registerMsg, remote)
+	var err error
+	conn, err = net.ListenUDP("udp", &net.UDPAddr{})
 	if err != nil {
 		log.Fatalln(err)
 	}
 
-	log.Printf("register done")
-	//}()
+	log.Printf("connectionId=%s rendezvousAddr=%v conn=%v",
+		connectionId, rendezvousAddr, conn.LocalAddr())
 
-	//listen(qConn)
+	bytesWritten, err := conn.WriteTo([]byte(connectionId), rendezvousAddr)
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+	log.Printf("send register connectionId=%s (%d bytes)", connectionId, bytesWritten)
+
+	buffer := make([]byte, 1024)
+	bytesRead, err := conn.Read(buffer)
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+	remote, err = net.ResolveUDPAddr("udp", string(buffer[0:bytesRead]))
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+	log.Printf("connect to %v", remote)
+
+	sendPings := 2
+
+	var wg sync.WaitGroup
+	wg.Add(sendPings)
+
+	go func() {
+		for inx := 0; inx < sendPings; inx++ {
+			message := fmt.Sprintf("ping %d", inx)
+			w, err := conn.WriteToUDP([]byte(message), remote)
+			if err != nil {
+				log.Fatalln(err)
+			}
+
+			log.Printf("send '%s' (%d bytes)\n", message, w)
+
+			// Wait for to seconds to ensure nat hole punching works!
+			if inx == 0 {
+				time.Sleep(time.Second * 2)
+			}
+
+			wg.Done()
+		}
+	}()
+
+	listen(conn)
+
+	wg.Wait()
+
+	return
 }
 
-func listen(conn *quick.Connection) {
-	//buffer := make([]byte, 1024*1024)
-
-	for {
-		var garbage string
-		remoteAddr, err := conn.Receive(&garbage)
-		if err != nil {
-			log.Println("[ERROR]", err)
-			continue
-		}
-
-		log.Printf("received remote=%v garbage=%d", remoteAddr, len(garbage))
-
-		//var addrs []*net.UDPAddr
-		//err := qConn.Receive(&addrs)
-		//if err != nil {
-		//	log.Println("[ERROR]", err)
-		//	continue
-		//}
-		//
-		//log.Printf("received addrs=%s", simple.PrettyString(addrs))
-
-		////for _, a := range strings.Split(string(buffer[0:bytesRead]), ",") {
-		////	if a != local {
-		////		go chatter(conn, a)
-		////	}
-		////}
+func listen(conn *net.UDPConn) {
+	buffer := make([]byte, 1024)
+	bytesRead, remote, err := conn.ReadFromUDP(buffer)
+	if err != nil {
+		log.Fatalln(err)
 	}
-}
 
-func chatter(conn *net.UDPConn, remote string) {
-	addr, _ := net.ResolveUDPAddr("udp", remote)
-	for {
-		message := simple.NamedId("message", 4)
-		_, err := conn.WriteTo([]byte(message), addr)
-		if err != nil {
-			//log.Fatalln("[ERROR]", err)
-			continue
-		}
-
-		log.Printf("sent: '%s' to %v", message, remote)
-		time.Sleep(5 * time.Second)
-	}
+	log.Printf("receive '%s' from %v\n", string(buffer[0:bytesRead]), remote)
 }

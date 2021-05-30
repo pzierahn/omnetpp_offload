@@ -1,6 +1,8 @@
-package broker
+package consumer
 
-import "log"
+import (
+	"log"
+)
 
 func init() {
 	log.SetFlags(log.LstdFlags | log.Lshortfile)

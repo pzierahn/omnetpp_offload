@@ -33,10 +33,14 @@ protoc --go_out=. --go_opt=paths=source_relative \
 protoc --go_out=. --go_opt=paths=source_relative \
     --go-grpc_out=. --go-grpc_opt=paths=source_relative \
     storage.proto
-    
+
 protoc --go_out=. --go_opt=paths=source_relative \
     --go-grpc_out=. --go-grpc_opt=paths=source_relative \
     opp_config.proto
+
+protoc --go_out=. --go_opt=paths=source_relative \
+    --go-grpc_out=. --go-grpc_opt=paths=source_relative \
+    dial_addr.proto
 ```
 
 ## Worker
@@ -58,8 +62,8 @@ go run cmd/simulation/simulation.go --path ~/Desktop/tictoc --configs TicToc18
 ## Example simulations
 
 ```
-go run cmd/distribute/opp_edge_run.go -path ../TaskletSimulator -config ../TaskletSimulator/opp-edge-config.json
-go run cmd/distribute/opp_edge_run.go -path ~/Desktop/tictoc -config ~/Desktop/tictoc/opp-edge-config.json
+go run cmd/consumer/opp_edge_run.go -path ../TaskletSimulator -config ../TaskletSimulator/opp-edge-config.json
+go run cmd/consumer/opp_edge_run.go -path ~/Desktop/tictoc -config ~/Desktop/tictoc/opp-edge-config.json
 ```
 
 ```

@@ -1,6 +1,7 @@
 package broker
 
 type Config struct {
-	Port         int  `json:"port"`
+	StunPort     int  `json:"stunPort"`
+	BrokerPort   int  `json:"brokerPort"`
 	WebInterface bool `json:"webInterface"`
 }

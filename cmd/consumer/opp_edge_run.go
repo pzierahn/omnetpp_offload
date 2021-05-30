@@ -3,7 +3,7 @@ package main
 import (
 	"encoding/json"
 	"flag"
-	"github.com/patrickz98/project.go.omnetpp/distribute"
+	"github.com/patrickz98/project.go.omnetpp/consumer"
 	"github.com/patrickz98/project.go.omnetpp/gconfig"
 	"io/ioutil"
 	"log"
@@ -29,7 +29,7 @@ func main() {
 		log.Panicln(err)
 	}
 
-	var runConfig distribute.Config
+	var runConfig consumer.Config
 	runConfig.Path = path
 
 	byt, err := ioutil.ReadFile(configPath)
@@ -42,7 +42,7 @@ func main() {
 		log.Panicln(err)
 	}
 
-	err = distribute.Run(config.Broker, &runConfig)
+	err = consumer.Run(config.Broker, &runConfig)
 	if err != nil {
 		panic(err)
 	}

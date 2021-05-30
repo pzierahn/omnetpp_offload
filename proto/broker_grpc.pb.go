@@ -18,16 +18,9 @@ const _ = grpc.SupportPackageIsVersion7
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type BrokerClient interface {
-	Assignments(ctx context.Context, opts ...grpc.CallOption) (Broker_AssignmentsClient, error)
-	Finished(ctx context.Context, in *Assignment, opts ...grpc.CallOption) (*Empty, error)
-	Create(ctx context.Context, in *Simulation, opts ...grpc.CallOption) (*SimulationId, error)
-	GetSimulation(ctx context.Context, in *SimulationId, opts ...grpc.CallOption) (*Simulation, error)
-	GetOppConfig(ctx context.Context, in *SimulationId, opts ...grpc.CallOption) (*OppConfig, error)
-	AddTasks(ctx context.Context, in *Tasks, opts ...grpc.CallOption) (*Empty, error)
-	SetSource(ctx context.Context, in *Source, opts ...grpc.CallOption) (*Empty, error)
-	GetSource(ctx context.Context, in *SimulationId, opts ...grpc.CallOption) (*Source, error)
-	AddBinary(ctx context.Context, in *Binary, opts ...grpc.CallOption) (*Empty, error)
-	GetBinary(ctx context.Context, in *SimulationBinaryRequest, opts ...grpc.CallOption) (*Binary, error)
+	GetProviders(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*Providers, error)
+	Register(ctx context.Context, in *ProviderInfo, opts ...grpc.CallOption) (*Empty, error)
+	Status(ctx context.Context, opts ...grpc.CallOption) (Broker_StatusClient, error)
 }
 
 type brokerClient struct {
@@ -38,132 +31,65 @@ func NewBrokerClient(cc grpc.ClientConnInterface) BrokerClient {
 	return &brokerClient{cc}
 }
 
-func (c *brokerClient) Assignments(ctx context.Context, opts ...grpc.CallOption) (Broker_AssignmentsClient, error) {
-	stream, err := c.cc.NewStream(ctx, &Broker_ServiceDesc.Streams[0], "/service.Broker/Assignments", opts...)
+func (c *brokerClient) GetProviders(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*Providers, error) {
+	out := new(Providers)
+	err := c.cc.Invoke(ctx, "/service.Broker/GetProviders", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
-	x := &brokerAssignmentsClient{stream}
+	return out, nil
+}
+
+func (c *brokerClient) Register(ctx context.Context, in *ProviderInfo, opts ...grpc.CallOption) (*Empty, error) {
+	out := new(Empty)
+	err := c.cc.Invoke(ctx, "/service.Broker/Register", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *brokerClient) Status(ctx context.Context, opts ...grpc.CallOption) (Broker_StatusClient, error) {
+	stream, err := c.cc.NewStream(ctx, &Broker_ServiceDesc.Streams[0], "/service.Broker/Status", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &brokerStatusClient{stream}
 	return x, nil
 }
 
-type Broker_AssignmentsClient interface {
+type Broker_StatusClient interface {
 	Send(*Utilization) error
-	Recv() (*Assignment, error)
+	CloseAndRecv() (*Empty, error)
 	grpc.ClientStream
 }
 
-type brokerAssignmentsClient struct {
+type brokerStatusClient struct {
 	grpc.ClientStream
 }
 
-func (x *brokerAssignmentsClient) Send(m *Utilization) error {
+func (x *brokerStatusClient) Send(m *Utilization) error {
 	return x.ClientStream.SendMsg(m)
 }
 
-func (x *brokerAssignmentsClient) Recv() (*Assignment, error) {
-	m := new(Assignment)
+func (x *brokerStatusClient) CloseAndRecv() (*Empty, error) {
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	m := new(Empty)
 	if err := x.ClientStream.RecvMsg(m); err != nil {
 		return nil, err
 	}
 	return m, nil
 }
 
-func (c *brokerClient) Finished(ctx context.Context, in *Assignment, opts ...grpc.CallOption) (*Empty, error) {
-	out := new(Empty)
-	err := c.cc.Invoke(ctx, "/service.Broker/Finished", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *brokerClient) Create(ctx context.Context, in *Simulation, opts ...grpc.CallOption) (*SimulationId, error) {
-	out := new(SimulationId)
-	err := c.cc.Invoke(ctx, "/service.Broker/Create", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *brokerClient) GetSimulation(ctx context.Context, in *SimulationId, opts ...grpc.CallOption) (*Simulation, error) {
-	out := new(Simulation)
-	err := c.cc.Invoke(ctx, "/service.Broker/GetSimulation", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *brokerClient) GetOppConfig(ctx context.Context, in *SimulationId, opts ...grpc.CallOption) (*OppConfig, error) {
-	out := new(OppConfig)
-	err := c.cc.Invoke(ctx, "/service.Broker/GetOppConfig", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *brokerClient) AddTasks(ctx context.Context, in *Tasks, opts ...grpc.CallOption) (*Empty, error) {
-	out := new(Empty)
-	err := c.cc.Invoke(ctx, "/service.Broker/AddTasks", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *brokerClient) SetSource(ctx context.Context, in *Source, opts ...grpc.CallOption) (*Empty, error) {
-	out := new(Empty)
-	err := c.cc.Invoke(ctx, "/service.Broker/SetSource", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *brokerClient) GetSource(ctx context.Context, in *SimulationId, opts ...grpc.CallOption) (*Source, error) {
-	out := new(Source)
-	err := c.cc.Invoke(ctx, "/service.Broker/GetSource", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *brokerClient) AddBinary(ctx context.Context, in *Binary, opts ...grpc.CallOption) (*Empty, error) {
-	out := new(Empty)
-	err := c.cc.Invoke(ctx, "/service.Broker/AddBinary", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *brokerClient) GetBinary(ctx context.Context, in *SimulationBinaryRequest, opts ...grpc.CallOption) (*Binary, error) {
-	out := new(Binary)
-	err := c.cc.Invoke(ctx, "/service.Broker/GetBinary", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
 // BrokerServer is the server API for Broker service.
 // All implementations must embed UnimplementedBrokerServer
 // for forward compatibility
 type BrokerServer interface {
-	Assignments(Broker_AssignmentsServer) error
-	Finished(context.Context, *Assignment) (*Empty, error)
-	Create(context.Context, *Simulation) (*SimulationId, error)
-	GetSimulation(context.Context, *SimulationId) (*Simulation, error)
-	GetOppConfig(context.Context, *SimulationId) (*OppConfig, error)
-	AddTasks(context.Context, *Tasks) (*Empty, error)
-	SetSource(context.Context, *Source) (*Empty, error)
-	GetSource(context.Context, *SimulationId) (*Source, error)
-	AddBinary(context.Context, *Binary) (*Empty, error)
-	GetBinary(context.Context, *SimulationBinaryRequest) (*Binary, error)
+	GetProviders(context.Context, *Empty) (*Providers, error)
+	Register(context.Context, *ProviderInfo) (*Empty, error)
+	Status(Broker_StatusServer) error
 	mustEmbedUnimplementedBrokerServer()
 }
 
@@ -171,35 +97,14 @@ type BrokerServer interface {
 type UnimplementedBrokerServer struct {
 }
 
-func (UnimplementedBrokerServer) Assignments(Broker_AssignmentsServer) error {
-	return status.Errorf(codes.Unimplemented, "method Assignments not implemented")
+func (UnimplementedBrokerServer) GetProviders(context.Context, *Empty) (*Providers, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetProviders not implemented")
 }
-func (UnimplementedBrokerServer) Finished(context.Context, *Assignment) (*Empty, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method Finished not implemented")
+func (UnimplementedBrokerServer) Register(context.Context, *ProviderInfo) (*Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Register not implemented")
 }
-func (UnimplementedBrokerServer) Create(context.Context, *Simulation) (*SimulationId, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method Create not implemented")
-}
-func (UnimplementedBrokerServer) GetSimulation(context.Context, *SimulationId) (*Simulation, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetSimulation not implemented")
-}
-func (UnimplementedBrokerServer) GetOppConfig(context.Context, *SimulationId) (*OppConfig, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetOppConfig not implemented")
-}
-func (UnimplementedBrokerServer) AddTasks(context.Context, *Tasks) (*Empty, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method AddTasks not implemented")
-}
-func (UnimplementedBrokerServer) SetSource(context.Context, *Source) (*Empty, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method SetSource not implemented")
-}
-func (UnimplementedBrokerServer) GetSource(context.Context, *SimulationId) (*Source, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetSource not implemented")
-}
-func (UnimplementedBrokerServer) AddBinary(context.Context, *Binary) (*Empty, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method AddBinary not implemented")
-}
-func (UnimplementedBrokerServer) GetBinary(context.Context, *SimulationBinaryRequest) (*Binary, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetBinary not implemented")
+func (UnimplementedBrokerServer) Status(Broker_StatusServer) error {
+	return status.Errorf(codes.Unimplemented, "method Status not implemented")
 }
 func (UnimplementedBrokerServer) mustEmbedUnimplementedBrokerServer() {}
 
@@ -214,192 +119,66 @@ func RegisterBrokerServer(s grpc.ServiceRegistrar, srv BrokerServer) {
 	s.RegisterService(&Broker_ServiceDesc, srv)
 }
 
-func _Broker_Assignments_Handler(srv interface{}, stream grpc.ServerStream) error {
-	return srv.(BrokerServer).Assignments(&brokerAssignmentsServer{stream})
+func _Broker_GetProviders_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(Empty)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BrokerServer).GetProviders(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/service.Broker/GetProviders",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BrokerServer).GetProviders(ctx, req.(*Empty))
+	}
+	return interceptor(ctx, in, info, handler)
 }
 
-type Broker_AssignmentsServer interface {
-	Send(*Assignment) error
+func _Broker_Register_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ProviderInfo)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BrokerServer).Register(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/service.Broker/Register",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BrokerServer).Register(ctx, req.(*ProviderInfo))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Broker_Status_Handler(srv interface{}, stream grpc.ServerStream) error {
+	return srv.(BrokerServer).Status(&brokerStatusServer{stream})
+}
+
+type Broker_StatusServer interface {
+	SendAndClose(*Empty) error
 	Recv() (*Utilization, error)
 	grpc.ServerStream
 }
 
-type brokerAssignmentsServer struct {
+type brokerStatusServer struct {
 	grpc.ServerStream
 }
 
-func (x *brokerAssignmentsServer) Send(m *Assignment) error {
+func (x *brokerStatusServer) SendAndClose(m *Empty) error {
 	return x.ServerStream.SendMsg(m)
 }
 
-func (x *brokerAssignmentsServer) Recv() (*Utilization, error) {
+func (x *brokerStatusServer) Recv() (*Utilization, error) {
 	m := new(Utilization)
 	if err := x.ServerStream.RecvMsg(m); err != nil {
 		return nil, err
 	}
 	return m, nil
-}
-
-func _Broker_Finished_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(Assignment)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(BrokerServer).Finished(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/service.Broker/Finished",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(BrokerServer).Finished(ctx, req.(*Assignment))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _Broker_Create_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(Simulation)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(BrokerServer).Create(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/service.Broker/Create",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(BrokerServer).Create(ctx, req.(*Simulation))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _Broker_GetSimulation_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(SimulationId)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(BrokerServer).GetSimulation(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/service.Broker/GetSimulation",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(BrokerServer).GetSimulation(ctx, req.(*SimulationId))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _Broker_GetOppConfig_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(SimulationId)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(BrokerServer).GetOppConfig(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/service.Broker/GetOppConfig",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(BrokerServer).GetOppConfig(ctx, req.(*SimulationId))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _Broker_AddTasks_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(Tasks)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(BrokerServer).AddTasks(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/service.Broker/AddTasks",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(BrokerServer).AddTasks(ctx, req.(*Tasks))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _Broker_SetSource_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(Source)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(BrokerServer).SetSource(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/service.Broker/SetSource",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(BrokerServer).SetSource(ctx, req.(*Source))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _Broker_GetSource_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(SimulationId)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(BrokerServer).GetSource(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/service.Broker/GetSource",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(BrokerServer).GetSource(ctx, req.(*SimulationId))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _Broker_AddBinary_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(Binary)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(BrokerServer).AddBinary(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/service.Broker/AddBinary",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(BrokerServer).AddBinary(ctx, req.(*Binary))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _Broker_GetBinary_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(SimulationBinaryRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(BrokerServer).GetBinary(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/service.Broker/GetBinary",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(BrokerServer).GetBinary(ctx, req.(*SimulationBinaryRequest))
-	}
-	return interceptor(ctx, in, info, handler)
 }
 
 // Broker_ServiceDesc is the grpc.ServiceDesc for Broker service.
@@ -410,49 +189,322 @@ var Broker_ServiceDesc = grpc.ServiceDesc{
 	HandlerType: (*BrokerServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
-			MethodName: "Finished",
-			Handler:    _Broker_Finished_Handler,
+			MethodName: "GetProviders",
+			Handler:    _Broker_GetProviders_Handler,
 		},
 		{
-			MethodName: "Create",
-			Handler:    _Broker_Create_Handler,
-		},
-		{
-			MethodName: "GetSimulation",
-			Handler:    _Broker_GetSimulation_Handler,
-		},
-		{
-			MethodName: "GetOppConfig",
-			Handler:    _Broker_GetOppConfig_Handler,
-		},
-		{
-			MethodName: "AddTasks",
-			Handler:    _Broker_AddTasks_Handler,
-		},
-		{
-			MethodName: "SetSource",
-			Handler:    _Broker_SetSource_Handler,
-		},
-		{
-			MethodName: "GetSource",
-			Handler:    _Broker_GetSource_Handler,
-		},
-		{
-			MethodName: "AddBinary",
-			Handler:    _Broker_AddBinary_Handler,
-		},
-		{
-			MethodName: "GetBinary",
-			Handler:    _Broker_GetBinary_Handler,
+			MethodName: "Register",
+			Handler:    _Broker_Register_Handler,
 		},
 	},
 	Streams: []grpc.StreamDesc{
 		{
-			StreamName:    "Assignments",
-			Handler:       _Broker_Assignments_Handler,
-			ServerStreams: true,
+			StreamName:    "Status",
+			Handler:       _Broker_Status_Handler,
 			ClientStreams: true,
 		},
 	},
+	Metadata: "broker.proto",
+}
+
+// ProviderClient is the client API for Provider service.
+//
+// For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
+type ProviderClient interface {
+	Info(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*ProviderInfo, error)
+	Status(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*Utilization, error)
+	Init(ctx context.Context, in *Simulation, opts ...grpc.CallOption) (*Empty, error)
+	CompileSync(ctx context.Context, in *SimulationId, opts ...grpc.CallOption) (*Binary, error)
+	CompileAsync(ctx context.Context, in *SimulationId, opts ...grpc.CallOption) (*Accepted, error)
+	RunSync(ctx context.Context, in *SimulationRun, opts ...grpc.CallOption) (*StorageRef, error)
+	RunAsync(ctx context.Context, in *SimulationRun, opts ...grpc.CallOption) (*Accepted, error)
+}
+
+type providerClient struct {
+	cc grpc.ClientConnInterface
+}
+
+func NewProviderClient(cc grpc.ClientConnInterface) ProviderClient {
+	return &providerClient{cc}
+}
+
+func (c *providerClient) Info(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*ProviderInfo, error) {
+	out := new(ProviderInfo)
+	err := c.cc.Invoke(ctx, "/service.Provider/Info", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *providerClient) Status(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*Utilization, error) {
+	out := new(Utilization)
+	err := c.cc.Invoke(ctx, "/service.Provider/Status", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *providerClient) Init(ctx context.Context, in *Simulation, opts ...grpc.CallOption) (*Empty, error) {
+	out := new(Empty)
+	err := c.cc.Invoke(ctx, "/service.Provider/Init", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *providerClient) CompileSync(ctx context.Context, in *SimulationId, opts ...grpc.CallOption) (*Binary, error) {
+	out := new(Binary)
+	err := c.cc.Invoke(ctx, "/service.Provider/CompileSync", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *providerClient) CompileAsync(ctx context.Context, in *SimulationId, opts ...grpc.CallOption) (*Accepted, error) {
+	out := new(Accepted)
+	err := c.cc.Invoke(ctx, "/service.Provider/CompileAsync", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *providerClient) RunSync(ctx context.Context, in *SimulationRun, opts ...grpc.CallOption) (*StorageRef, error) {
+	out := new(StorageRef)
+	err := c.cc.Invoke(ctx, "/service.Provider/RunSync", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *providerClient) RunAsync(ctx context.Context, in *SimulationRun, opts ...grpc.CallOption) (*Accepted, error) {
+	out := new(Accepted)
+	err := c.cc.Invoke(ctx, "/service.Provider/RunAsync", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+// ProviderServer is the server API for Provider service.
+// All implementations must embed UnimplementedProviderServer
+// for forward compatibility
+type ProviderServer interface {
+	Info(context.Context, *Empty) (*ProviderInfo, error)
+	Status(context.Context, *Empty) (*Utilization, error)
+	Init(context.Context, *Simulation) (*Empty, error)
+	CompileSync(context.Context, *SimulationId) (*Binary, error)
+	CompileAsync(context.Context, *SimulationId) (*Accepted, error)
+	RunSync(context.Context, *SimulationRun) (*StorageRef, error)
+	RunAsync(context.Context, *SimulationRun) (*Accepted, error)
+	mustEmbedUnimplementedProviderServer()
+}
+
+// UnimplementedProviderServer must be embedded to have forward compatible implementations.
+type UnimplementedProviderServer struct {
+}
+
+func (UnimplementedProviderServer) Info(context.Context, *Empty) (*ProviderInfo, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Info not implemented")
+}
+func (UnimplementedProviderServer) Status(context.Context, *Empty) (*Utilization, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Status not implemented")
+}
+func (UnimplementedProviderServer) Init(context.Context, *Simulation) (*Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Init not implemented")
+}
+func (UnimplementedProviderServer) CompileSync(context.Context, *SimulationId) (*Binary, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CompileSync not implemented")
+}
+func (UnimplementedProviderServer) CompileAsync(context.Context, *SimulationId) (*Accepted, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CompileAsync not implemented")
+}
+func (UnimplementedProviderServer) RunSync(context.Context, *SimulationRun) (*StorageRef, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method RunSync not implemented")
+}
+func (UnimplementedProviderServer) RunAsync(context.Context, *SimulationRun) (*Accepted, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method RunAsync not implemented")
+}
+func (UnimplementedProviderServer) mustEmbedUnimplementedProviderServer() {}
+
+// UnsafeProviderServer may be embedded to opt out of forward compatibility for this service.
+// Use of this interface is not recommended, as added methods to ProviderServer will
+// result in compilation errors.
+type UnsafeProviderServer interface {
+	mustEmbedUnimplementedProviderServer()
+}
+
+func RegisterProviderServer(s grpc.ServiceRegistrar, srv ProviderServer) {
+	s.RegisterService(&Provider_ServiceDesc, srv)
+}
+
+func _Provider_Info_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(Empty)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ProviderServer).Info(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/service.Provider/Info",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ProviderServer).Info(ctx, req.(*Empty))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Provider_Status_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(Empty)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ProviderServer).Status(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/service.Provider/Status",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ProviderServer).Status(ctx, req.(*Empty))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Provider_Init_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(Simulation)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ProviderServer).Init(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/service.Provider/Init",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ProviderServer).Init(ctx, req.(*Simulation))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Provider_CompileSync_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SimulationId)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ProviderServer).CompileSync(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/service.Provider/CompileSync",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ProviderServer).CompileSync(ctx, req.(*SimulationId))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Provider_CompileAsync_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SimulationId)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ProviderServer).CompileAsync(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/service.Provider/CompileAsync",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ProviderServer).CompileAsync(ctx, req.(*SimulationId))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Provider_RunSync_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SimulationRun)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ProviderServer).RunSync(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/service.Provider/RunSync",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ProviderServer).RunSync(ctx, req.(*SimulationRun))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Provider_RunAsync_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SimulationRun)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ProviderServer).RunAsync(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/service.Provider/RunAsync",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ProviderServer).RunAsync(ctx, req.(*SimulationRun))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+// Provider_ServiceDesc is the grpc.ServiceDesc for Provider service.
+// It's only intended for direct use with grpc.RegisterService,
+// and not to be introspected or modified (even as a copy)
+var Provider_ServiceDesc = grpc.ServiceDesc{
+	ServiceName: "service.Provider",
+	HandlerType: (*ProviderServer)(nil),
+	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "Info",
+			Handler:    _Provider_Info_Handler,
+		},
+		{
+			MethodName: "Status",
+			Handler:    _Provider_Status_Handler,
+		},
+		{
+			MethodName: "Init",
+			Handler:    _Provider_Init_Handler,
+		},
+		{
+			MethodName: "CompileSync",
+			Handler:    _Provider_CompileSync_Handler,
+		},
+		{
+			MethodName: "CompileAsync",
+			Handler:    _Provider_CompileAsync_Handler,
+		},
+		{
+			MethodName: "RunSync",
+			Handler:    _Provider_RunSync_Handler,
+		},
+		{
+			MethodName: "RunAsync",
+			Handler:    _Provider_RunAsync_Handler,
+		},
+	},
+	Streams:  []grpc.StreamDesc{},
 	Metadata: "broker.proto",
 }
