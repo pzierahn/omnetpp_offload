@@ -2,6 +2,7 @@ package storage
 
 import (
 	"io"
+	"log"
 )
 
 const (
@@ -23,9 +24,9 @@ type fileChunk struct {
 	payload []byte
 }
 
-func streamReader(reader io.Reader) (stream chan fileChunk) {
+func streamReader(reader io.Reader) (stream chan *fileChunk) {
 
-	stream = make(chan fileChunk)
+	stream = make(chan *fileChunk)
 
 	go func() {
 		defer close(stream)
@@ -43,10 +44,10 @@ func streamReader(reader io.Reader) (stream chan fileChunk) {
 			}
 
 			if err != nil {
-				logger.Fatalln(err)
+				log.Fatalln(err)
 			}
 
-			stream <- fileChunk{
+			stream <- &fileChunk{
 				size:    size,
 				offset:  offset,
 				payload: buffer,

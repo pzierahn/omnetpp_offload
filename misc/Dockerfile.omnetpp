@@ -1,4 +1,4 @@
-FROM ubuntu:18.04 as builder
+FROM ubuntu:latest as builder
 
 RUN apt-get update -y && \
     apt-get install -y --no-install-recommends git wget curl make ca-certificates bison flex clang perl python3 libxml2-dev libavcodec-dev libavformat-dev  libavutil-dev libavresample-dev libfl-dev libpcap-dev && \
@@ -20,7 +20,7 @@ RUN ./configure WITH_QTENV=no WITH_OSG=no WITH_OSGEARTH=no && \
     rm -r doc out test samples misc config.log config.status
 
 # second stage - copy only the final binaries (to get rid of the 'out' folder and reduce the image size)
-FROM ubuntu:18.04
+FROM ubuntu:latest
 
 RUN apt-get update -y && \
     apt-get install -y --no-install-recommends git wget curl make ca-certificates bison flex clang perl python3 libxml2-dev libavcodec-dev libavformat-dev  libavutil-dev libavresample-dev libfl-dev libpcap-dev && \
@@ -41,5 +41,5 @@ RUN chmod 775 /root/ && \
 WORKDIR /root
 RUN echo 'PS1="omnetpp-$OPP_VER:\w\$ "' >> /root/.bashrc && chmod +x /root/.bashrc && \
     touch /root/.hushlogin
-ENV HOME=/root/
+ENV HOME=/root
 #CMD ["/bin/bash", "--init-file", "/root/.bashrc"]

@@ -3,27 +3,14 @@ package service;
 
 option go_package = "./proto";
 
-import "dial_addr.proto";
-
 service Storage {
-  rpc Pull   (StorageRef)           returns (stream StorageParcel) {}
-  rpc Push   (stream StorageParcel) returns (StorageRef)           {}
-  rpc Delete (StorageRef)           returns (StorageStatus)        {}
-  rpc List   (StorageRef)           returns (StorageList)          {}
-}
-
-message StorageList {
-  repeated string files = 1;
-}
-
-message StorageStatus {
-  bool deleted = 1;
+  rpc Pull (StorageRef)           returns (stream StorageParcel) {}
+  rpc Push (stream StorageParcel) returns (StorageRef)           {}
 }
 
 message StorageRef {
-  DialAddr server = 1;
-  string bucket = 2;
-  string filename = 3;
+  string bucket = 1;
+  string filename = 2;
 }
 
 message StorageParcel {

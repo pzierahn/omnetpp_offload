@@ -3,11 +3,12 @@ package provider
 import (
 	"context"
 	"github.com/lucas-clemente/quic-go"
-	pnet "github.com/pzierahn/project.go.omnetpp/adapter"
+	"github.com/pzierahn/project.go.omnetpp/adapter"
 	"github.com/pzierahn/project.go.omnetpp/gconfig"
 	pb "github.com/pzierahn/project.go.omnetpp/proto"
 	"github.com/pzierahn/project.go.omnetpp/simple"
 	"github.com/pzierahn/project.go.omnetpp/stargate"
+	"github.com/pzierahn/project.go.omnetpp/storage"
 	"github.com/pzierahn/project.go.omnetpp/sysinfo"
 	"github.com/pzierahn/project.go.omnetpp/utils"
 	"google.golang.org/grpc"
@@ -18,8 +19,11 @@ import (
 
 func Start(conf gconfig.Config) {
 
-	prov := provider{
+	store := &storage.Server{}
+
+	prov := &provider{
 		providerId: simple.NamedId(runtime.GOOS+"-"+runtime.GOARCH, 8),
+		store:      store,
 	}
 
 	log.Printf("start provider (%v)", prov.providerId)
@@ -93,13 +97,14 @@ func Start(conf gconfig.Config) {
 			}
 
 			log.Println("create adapter listener")
-			lis := pnet.Listen(ql)
+			lis := adapter.Listen(ql)
 			defer func() { _ = lis.Close() }()
 
 			log.Println("listening for consumer")
 
 			server := grpc.NewServer()
-			pb.RegisterProviderServer(server, &prov)
+			pb.RegisterProviderServer(server, prov)
+			pb.RegisterStorageServer(server, store)
 			err = server.Serve(lis)
 		}()
 	}

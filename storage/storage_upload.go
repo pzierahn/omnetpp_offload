@@ -5,6 +5,7 @@ import (
 	pb "github.com/pzierahn/project.go.omnetpp/proto"
 	"google.golang.org/grpc/metadata"
 	"io"
+	"log"
 	"time"
 )
 
@@ -34,7 +35,7 @@ func (client *Client) Upload(data io.Reader, meta FileMeta) (ref *pb.StorageRef,
 
 		err = stream.Send(&parcel)
 		if err != nil {
-			logger.Fatalln(err)
+			log.Fatalln(err)
 		}
 	}
 
@@ -43,7 +44,7 @@ func (client *Client) Upload(data io.Reader, meta FileMeta) (ref *pb.StorageRef,
 		return
 	}
 
-	logger.Printf("upload %v in %v\n", meta, time.Now().Sub(start))
+	log.Printf("upload %v in %v\n", meta, time.Now().Sub(start))
 
 	return
 }

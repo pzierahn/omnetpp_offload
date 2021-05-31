@@ -2,6 +2,7 @@ package storage
 
 import (
 	pb "github.com/pzierahn/project.go.omnetpp/proto"
+	"log"
 	"os"
 	"path/filepath"
 )
@@ -10,7 +11,7 @@ func (server *Server) Pull(req *pb.StorageRef, stream pb.Storage_PullServer) (er
 
 	filename := filepath.Join(storagePath, req.Bucket, req.Filename)
 
-	logger.Println("pull", req.Bucket, req.Filename)
+	log.Println("pull", req.Bucket, req.Filename)
 
 	file, err := os.Open(filename)
 	if err != nil {
@@ -36,15 +37,16 @@ func (server *Server) Pull(req *pb.StorageRef, stream pb.Storage_PullServer) (er
 
 		err = stream.Send(&parcel)
 		if err != nil {
-			logger.Fatalln(err)
+			log.Fatalln(err)
 		}
 
 		packages++
 
-		logger.Printf("packages %s->%s send %0.2f%%\n", req.Bucket, req.Filename, 100.0*(float64(chunk.offset+chunk.size)/float64(stat.Size())))
+		log.Printf("packages %s->%s send %0.2f%%",
+			req.Bucket, req.Filename, 100.0*(float64(chunk.offset+chunk.size)/float64(stat.Size())))
 	}
 
-	logger.Println("packages send", packages)
+	log.Println("packages send", packages)
 
 	return
 }

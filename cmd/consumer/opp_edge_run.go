@@ -1,9 +1,11 @@
 package main
 
 import (
+	"encoding/json"
 	"flag"
 	"github.com/pzierahn/project.go.omnetpp/consumer"
 	"github.com/pzierahn/project.go.omnetpp/gconfig"
+	"io/ioutil"
 	"log"
 	"path/filepath"
 )
@@ -14,6 +16,8 @@ var configPath string
 var config gconfig.Config
 
 func init() {
+	log.SetFlags(log.LstdFlags | log.Lshortfile)
+
 	flag.StringVar(&path, "path", ".", "simulation path")
 	flag.StringVar(&configPath, "config", "opp-edge-config.json", "simulation config JSON")
 
@@ -30,15 +34,15 @@ func main() {
 	var runConfig consumer.Config
 	runConfig.Path = path
 
-	//byt, err := ioutil.ReadFile(configPath)
-	//if err != nil {
-	//	log.Panicln(err)
-	//}
-	//
-	//err = json.Unmarshal(byt, &runConfig)
-	//if err != nil {
-	//	log.Panicln(err)
-	//}
+	byt, err := ioutil.ReadFile(configPath)
+	if err != nil {
+		log.Panicln(err)
+	}
+
+	err = json.Unmarshal(byt, &runConfig)
+	if err != nil {
+		log.Panicln(err)
+	}
 
 	err = consumer.Run(config.Broker, &runConfig)
 	if err != nil {

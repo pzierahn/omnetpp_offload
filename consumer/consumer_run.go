@@ -1,15 +1,18 @@
 package consumer
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"github.com/pzierahn/project.go.omnetpp/gconfig"
 	pb "github.com/pzierahn/project.go.omnetpp/proto"
 	"github.com/pzierahn/project.go.omnetpp/simple"
 	"github.com/pzierahn/project.go.omnetpp/stargate"
+	"github.com/pzierahn/project.go.omnetpp/storage"
 	"github.com/pzierahn/project.go.omnetpp/utils"
 	"google.golang.org/grpc"
 	"log"
+	"net"
 	"path/filepath"
 	"time"
 )
@@ -19,6 +22,8 @@ func Run(gConf gconfig.GRPCConnection, config *Config) (err error) {
 	if config.Tag == "" {
 		config.Tag = filepath.Base(config.Path)
 	}
+
+	simulationId := simple.NamedId(config.Tag, 8)
 
 	log.Printf("connecting to broker (%v)", gConf.DialAddr())
 
@@ -51,7 +56,10 @@ func Run(gConf gconfig.GRPCConnection, config *Config) (err error) {
 
 		ctx, _ := context.WithTimeout(context.Background(), time.Second*4)
 
-		pconn, remote, err := stargate.Dial(ctx, prov.ProviderId)
+		var pconn *net.UDPConn
+		var remote *net.UDPAddr
+
+		pconn, remote, err = stargate.Dial(ctx, prov.ProviderId)
 		if err != nil {
 			// Connection failed!
 			log.Println(err)
@@ -60,7 +68,8 @@ func Run(gConf gconfig.GRPCConnection, config *Config) (err error) {
 
 		log.Printf("connected to %v", remote)
 
-		qconn, err := grpc.Dial(
+		var qconn *grpc.ClientConn
+		qconn, err = grpc.Dial(
 			remote.String(),
 			grpc.WithInsecure(),
 			grpc.WithBlock(),
@@ -71,24 +80,42 @@ func Run(gConf gconfig.GRPCConnection, config *Config) (err error) {
 		}
 
 		provider := pb.NewProviderClient(qconn)
+		store := pb.NewStorageClient(qconn)
+		storeCli := storage.FromClient(store)
 
-		start := time.Now()
+		log.Println("zipping", config.Path)
 
-		for inx := 0; inx < 5000; inx++ {
-			if inx%100 == 0 {
-				log.Printf("request: %v", inx)
-			}
-
-			_, err = provider.Info(context.Background(), &pb.Empty{})
-			if err != nil {
-				log.Fatalln(err)
-			}
+		var buf bytes.Buffer
+		buf, err = simple.TarGz(config.Path, simulationId, config.Exclude...)
+		if err != nil {
+			log.Fatalln(err)
 		}
 
-		end := time.Now()
+		log.Printf("uploading source %s\n", simulationId)
 
-		log.Printf("exectime: %v", end.Sub(start))
-		log.Printf("average exectime: %v", end.Sub(start)/10_000)
+		var ref *pb.StorageRef
+		ref, err = storeCli.Upload(&buf, storage.FileMeta{
+			Bucket:   simulationId,
+			Filename: "source.tar.gz",
+		})
+
+		log.Printf("uploaded to %v", ref)
+
+		_, err = provider.Checkout(context.Background(), &pb.Bundle{
+			SimulationId: simulationId,
+			Source:       ref,
+		})
+		if err != nil {
+			log.Fatalln(err)
+		}
+
+		_, err = provider.Compile(context.Background(), &pb.Simulation{
+			Id:        simulationId,
+			OppConfig: config.OppConfig,
+		})
+		if err != nil {
+			log.Fatalln(err)
+		}
 
 		_ = pconn.Close()
 	}

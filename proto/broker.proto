@@ -26,14 +26,14 @@ message Ping {
 
 message Empty {}
 
-message OS {
+message Arch {
   string os = 1;
   string arch = 2;
 }
 
 message ProviderInfo {
   string providerId = 1;
-  OS os = 2;
+  Arch arch = 2;
   uint32 numCPUs = 3;
 }
 
@@ -57,27 +57,21 @@ message Utilizations {
 //
 
 service Provider {
-  rpc Info         (Empty)         returns (ProviderInfo) {}
-  rpc Status       (Empty)         returns (Utilization)  {}
+  rpc Info   (Empty) returns (ProviderInfo) {}
+  rpc Status (Empty) returns (Utilization)  {}
 
-  rpc Init         (Simulation)    returns (Empty)        {}
-  rpc CompileSync  (SimulationId)  returns (Binary)       {}
-  rpc CompileAsync (SimulationId)  returns (Accepted)     {}
-  rpc RunSync      (SimulationRun) returns (StorageRef)   {}
-  rpc RunAsync     (SimulationRun) returns (Accepted)     {}
-}
-
-message Accepted {
-  bool accepted = 1;
-}
-
-message SimulationId {
-  string id = 1;
+  rpc Checkout (Bundle)        returns (Empty)      {}
+  rpc Compile  (Simulation)    returns (Binary)     {}
+  rpc Run      (SimulationRun) returns (StorageRef) {}
 }
 
 message Simulation {
-  string simulationId = 1;
+  string id = 1;
   OppConfig oppConfig = 2;
+}
+
+message Bundle {
+  string simulationId = 1;
   StorageRef source = 3;
 }
 
@@ -85,10 +79,11 @@ message SimulationRun {
   string simulationId = 1;
   string config = 2;
   string runNum = 3;
+  OppConfig oppConfig = 4;
 }
 
 message Binary {
   string simulationId = 1;
-  OS os = 2;
-  StorageRef bin = 3;
+  Arch arch = 2;
+  StorageRef ref = 3;
 }

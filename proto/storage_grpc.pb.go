@@ -20,8 +20,6 @@ const _ = grpc.SupportPackageIsVersion7
 type StorageClient interface {
 	Pull(ctx context.Context, in *StorageRef, opts ...grpc.CallOption) (Storage_PullClient, error)
 	Push(ctx context.Context, opts ...grpc.CallOption) (Storage_PushClient, error)
-	Delete(ctx context.Context, in *StorageRef, opts ...grpc.CallOption) (*StorageStatus, error)
-	List(ctx context.Context, in *StorageRef, opts ...grpc.CallOption) (*StorageList, error)
 }
 
 type storageClient struct {
@@ -98,32 +96,12 @@ func (x *storagePushClient) CloseAndRecv() (*StorageRef, error) {
 	return m, nil
 }
 
-func (c *storageClient) Delete(ctx context.Context, in *StorageRef, opts ...grpc.CallOption) (*StorageStatus, error) {
-	out := new(StorageStatus)
-	err := c.cc.Invoke(ctx, "/service.Storage/Delete", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *storageClient) List(ctx context.Context, in *StorageRef, opts ...grpc.CallOption) (*StorageList, error) {
-	out := new(StorageList)
-	err := c.cc.Invoke(ctx, "/service.Storage/List", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
 // StorageServer is the server API for Storage service.
 // All implementations must embed UnimplementedStorageServer
 // for forward compatibility
 type StorageServer interface {
 	Pull(*StorageRef, Storage_PullServer) error
 	Push(Storage_PushServer) error
-	Delete(context.Context, *StorageRef) (*StorageStatus, error)
-	List(context.Context, *StorageRef) (*StorageList, error)
 	mustEmbedUnimplementedStorageServer()
 }
 
@@ -136,12 +114,6 @@ func (UnimplementedStorageServer) Pull(*StorageRef, Storage_PullServer) error {
 }
 func (UnimplementedStorageServer) Push(Storage_PushServer) error {
 	return status.Errorf(codes.Unimplemented, "method Push not implemented")
-}
-func (UnimplementedStorageServer) Delete(context.Context, *StorageRef) (*StorageStatus, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method Delete not implemented")
-}
-func (UnimplementedStorageServer) List(context.Context, *StorageRef) (*StorageList, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method List not implemented")
 }
 func (UnimplementedStorageServer) mustEmbedUnimplementedStorageServer() {}
 
@@ -203,58 +175,13 @@ func (x *storagePushServer) Recv() (*StorageParcel, error) {
 	return m, nil
 }
 
-func _Storage_Delete_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(StorageRef)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(StorageServer).Delete(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/service.Storage/Delete",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(StorageServer).Delete(ctx, req.(*StorageRef))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _Storage_List_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(StorageRef)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(StorageServer).List(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/service.Storage/List",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(StorageServer).List(ctx, req.(*StorageRef))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
 // Storage_ServiceDesc is the grpc.ServiceDesc for Storage service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
 var Storage_ServiceDesc = grpc.ServiceDesc{
 	ServiceName: "service.Storage",
 	HandlerType: (*StorageServer)(nil),
-	Methods: []grpc.MethodDesc{
-		{
-			MethodName: "Delete",
-			Handler:    _Storage_Delete_Handler,
-		},
-		{
-			MethodName: "List",
-			Handler:    _Storage_List_Handler,
-		},
-	},
+	Methods:     []grpc.MethodDesc{},
 	Streams: []grpc.StreamDesc{
 		{
 			StreamName:    "Pull",

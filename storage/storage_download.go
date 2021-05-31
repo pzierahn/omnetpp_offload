@@ -5,6 +5,7 @@ import (
 	"context"
 	pb "github.com/pzierahn/project.go.omnetpp/proto"
 	"io"
+	"log"
 	"time"
 )
 
@@ -28,18 +29,18 @@ func (client *Client) Download(file *pb.StorageRef) (buf bytes.Buffer, err error
 		}
 
 		if err != nil {
-			logger.Fatalln(err)
+			log.Fatalln(err)
 		}
 
 		_, err = buf.Write(parcel.Payload)
 		if err != nil {
-			logger.Fatalln(err)
+			log.Fatalln(err)
 		}
 
 		packages++
 	}
 
-	logger.Printf("received %d packages in %v\n", packages, time.Now().Sub(start))
+	log.Printf("received %d packages in %v", packages, time.Now().Sub(start))
 
 	return
 }

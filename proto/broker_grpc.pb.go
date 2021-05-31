@@ -177,11 +177,9 @@ var Broker_ServiceDesc = grpc.ServiceDesc{
 type ProviderClient interface {
 	Info(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*ProviderInfo, error)
 	Status(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*Utilization, error)
-	Init(ctx context.Context, in *Simulation, opts ...grpc.CallOption) (*Empty, error)
-	CompileSync(ctx context.Context, in *SimulationId, opts ...grpc.CallOption) (*Binary, error)
-	CompileAsync(ctx context.Context, in *SimulationId, opts ...grpc.CallOption) (*Accepted, error)
-	RunSync(ctx context.Context, in *SimulationRun, opts ...grpc.CallOption) (*StorageRef, error)
-	RunAsync(ctx context.Context, in *SimulationRun, opts ...grpc.CallOption) (*Accepted, error)
+	Checkout(ctx context.Context, in *Bundle, opts ...grpc.CallOption) (*Empty, error)
+	Compile(ctx context.Context, in *Simulation, opts ...grpc.CallOption) (*Binary, error)
+	Run(ctx context.Context, in *SimulationRun, opts ...grpc.CallOption) (*StorageRef, error)
 }
 
 type providerClient struct {
@@ -210,45 +208,27 @@ func (c *providerClient) Status(ctx context.Context, in *Empty, opts ...grpc.Cal
 	return out, nil
 }
 
-func (c *providerClient) Init(ctx context.Context, in *Simulation, opts ...grpc.CallOption) (*Empty, error) {
+func (c *providerClient) Checkout(ctx context.Context, in *Bundle, opts ...grpc.CallOption) (*Empty, error) {
 	out := new(Empty)
-	err := c.cc.Invoke(ctx, "/service.Provider/Init", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/service.Provider/Checkout", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *providerClient) CompileSync(ctx context.Context, in *SimulationId, opts ...grpc.CallOption) (*Binary, error) {
+func (c *providerClient) Compile(ctx context.Context, in *Simulation, opts ...grpc.CallOption) (*Binary, error) {
 	out := new(Binary)
-	err := c.cc.Invoke(ctx, "/service.Provider/CompileSync", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/service.Provider/Compile", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *providerClient) CompileAsync(ctx context.Context, in *SimulationId, opts ...grpc.CallOption) (*Accepted, error) {
-	out := new(Accepted)
-	err := c.cc.Invoke(ctx, "/service.Provider/CompileAsync", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *providerClient) RunSync(ctx context.Context, in *SimulationRun, opts ...grpc.CallOption) (*StorageRef, error) {
+func (c *providerClient) Run(ctx context.Context, in *SimulationRun, opts ...grpc.CallOption) (*StorageRef, error) {
 	out := new(StorageRef)
-	err := c.cc.Invoke(ctx, "/service.Provider/RunSync", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *providerClient) RunAsync(ctx context.Context, in *SimulationRun, opts ...grpc.CallOption) (*Accepted, error) {
-	out := new(Accepted)
-	err := c.cc.Invoke(ctx, "/service.Provider/RunAsync", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/service.Provider/Run", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -261,11 +241,9 @@ func (c *providerClient) RunAsync(ctx context.Context, in *SimulationRun, opts .
 type ProviderServer interface {
 	Info(context.Context, *Empty) (*ProviderInfo, error)
 	Status(context.Context, *Empty) (*Utilization, error)
-	Init(context.Context, *Simulation) (*Empty, error)
-	CompileSync(context.Context, *SimulationId) (*Binary, error)
-	CompileAsync(context.Context, *SimulationId) (*Accepted, error)
-	RunSync(context.Context, *SimulationRun) (*StorageRef, error)
-	RunAsync(context.Context, *SimulationRun) (*Accepted, error)
+	Checkout(context.Context, *Bundle) (*Empty, error)
+	Compile(context.Context, *Simulation) (*Binary, error)
+	Run(context.Context, *SimulationRun) (*StorageRef, error)
 	mustEmbedUnimplementedProviderServer()
 }
 
@@ -279,20 +257,14 @@ func (UnimplementedProviderServer) Info(context.Context, *Empty) (*ProviderInfo,
 func (UnimplementedProviderServer) Status(context.Context, *Empty) (*Utilization, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Status not implemented")
 }
-func (UnimplementedProviderServer) Init(context.Context, *Simulation) (*Empty, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method Init not implemented")
+func (UnimplementedProviderServer) Checkout(context.Context, *Bundle) (*Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Checkout not implemented")
 }
-func (UnimplementedProviderServer) CompileSync(context.Context, *SimulationId) (*Binary, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method CompileSync not implemented")
+func (UnimplementedProviderServer) Compile(context.Context, *Simulation) (*Binary, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Compile not implemented")
 }
-func (UnimplementedProviderServer) CompileAsync(context.Context, *SimulationId) (*Accepted, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method CompileAsync not implemented")
-}
-func (UnimplementedProviderServer) RunSync(context.Context, *SimulationRun) (*StorageRef, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method RunSync not implemented")
-}
-func (UnimplementedProviderServer) RunAsync(context.Context, *SimulationRun) (*Accepted, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method RunAsync not implemented")
+func (UnimplementedProviderServer) Run(context.Context, *SimulationRun) (*StorageRef, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Run not implemented")
 }
 func (UnimplementedProviderServer) mustEmbedUnimplementedProviderServer() {}
 
@@ -343,92 +315,56 @@ func _Provider_Status_Handler(srv interface{}, ctx context.Context, dec func(int
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Provider_Init_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _Provider_Checkout_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(Bundle)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ProviderServer).Checkout(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/service.Provider/Checkout",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ProviderServer).Checkout(ctx, req.(*Bundle))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Provider_Compile_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(Simulation)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(ProviderServer).Init(ctx, in)
+		return srv.(ProviderServer).Compile(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/service.Provider/Init",
+		FullMethod: "/service.Provider/Compile",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ProviderServer).Init(ctx, req.(*Simulation))
+		return srv.(ProviderServer).Compile(ctx, req.(*Simulation))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Provider_CompileSync_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(SimulationId)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(ProviderServer).CompileSync(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/service.Provider/CompileSync",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ProviderServer).CompileSync(ctx, req.(*SimulationId))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _Provider_CompileAsync_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(SimulationId)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(ProviderServer).CompileAsync(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/service.Provider/CompileAsync",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ProviderServer).CompileAsync(ctx, req.(*SimulationId))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _Provider_RunSync_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _Provider_Run_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(SimulationRun)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(ProviderServer).RunSync(ctx, in)
+		return srv.(ProviderServer).Run(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/service.Provider/RunSync",
+		FullMethod: "/service.Provider/Run",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ProviderServer).RunSync(ctx, req.(*SimulationRun))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _Provider_RunAsync_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(SimulationRun)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(ProviderServer).RunAsync(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/service.Provider/RunAsync",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ProviderServer).RunAsync(ctx, req.(*SimulationRun))
+		return srv.(ProviderServer).Run(ctx, req.(*SimulationRun))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -449,24 +385,16 @@ var Provider_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _Provider_Status_Handler,
 		},
 		{
-			MethodName: "Init",
-			Handler:    _Provider_Init_Handler,
+			MethodName: "Checkout",
+			Handler:    _Provider_Checkout_Handler,
 		},
 		{
-			MethodName: "CompileSync",
-			Handler:    _Provider_CompileSync_Handler,
+			MethodName: "Compile",
+			Handler:    _Provider_Compile_Handler,
 		},
 		{
-			MethodName: "CompileAsync",
-			Handler:    _Provider_CompileAsync_Handler,
-		},
-		{
-			MethodName: "RunSync",
-			Handler:    _Provider_RunSync_Handler,
-		},
-		{
-			MethodName: "RunAsync",
-			Handler:    _Provider_RunAsync_Handler,
+			MethodName: "Run",
+			Handler:    _Provider_Run_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

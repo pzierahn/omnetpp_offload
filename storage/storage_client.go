@@ -7,16 +7,16 @@ import (
 )
 
 type Client struct {
-	conn    *grpc.ClientConn
 	storage pb.StorageClient
 }
 
-func (client *Client) Close() {
-	_ = client.conn.Close()
+func FromClient(storeClient pb.StorageClient) (client Client) {
+	client.storage = storeClient
+
+	return
 }
 
-func ConnectClient(conn *grpc.ClientConn) (client Client) {
-	client.conn = conn
+func FromConnection(conn *grpc.ClientConn) (client Client) {
 	client.storage = pb.NewStorageClient(conn)
 
 	return
@@ -28,7 +28,6 @@ func InitClient(server gconfig.GRPCConnection) (client Client) {
 		return
 	}
 
-	client.conn = conn
 	client.storage = pb.NewStorageClient(conn)
 
 	return
