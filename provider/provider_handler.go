@@ -15,10 +15,8 @@ type provider struct {
 
 func (prov *provider) Info(_ context.Context, _ *pb.Empty) (info *pb.ProviderInfo, err error) {
 
-	//log.Printf("Info:")
-	//info = prov.info()
-
-	info = &pb.ProviderInfo{}
+	log.Printf("Info:")
+	info = prov.info()
 
 	return
 }

@@ -62,7 +62,7 @@ func Start(conf gconfig.Config) {
 				log.Fatalln(err)
 			}
 
-			log.Printf("Start: send utilization %v", util.CpuUsage)
+			//log.Printf("Start: send utilization %v", util.CpuUsage)
 
 			err = stream.Send(&pb.Ping{Cast: &pb.Ping_Util{Util: util}})
 			if err != nil {

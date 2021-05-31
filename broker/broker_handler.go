@@ -63,7 +63,7 @@ func (broker *broker) Register(stream pb.Broker_RegisterServer) (err error) {
 				continue
 			}
 
-			log.Printf("Register: id=%v utilization=%v", id, data.Util.CpuUsage)
+			//log.Printf("Register: id=%v utilization=%v", id, data.Util.CpuUsage)
 
 			broker.umu.Lock()
 			broker.utilization[id] = data.Util
@@ -71,7 +71,7 @@ func (broker *broker) Register(stream pb.Broker_RegisterServer) (err error) {
 		}
 	}
 
-	log.Printf("Register: disconecct id=%v", id)
+	log.Printf("Register: disconnect id=%v", id)
 
 	go func() {
 		broker.pmu.Lock()
