@@ -45,6 +45,7 @@ func (broker *broker) Register(stream pb.Broker_RegisterServer) (err error) {
 
 		switch data := ping.Cast.(type) {
 		case *pb.Ping_Register:
+
 			id = data.Register.ProviderId
 			log.Printf("Register: connect id=%v", id)
 
