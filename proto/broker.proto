@@ -42,11 +42,14 @@ message Providers {
 }
 
 message Utilization {
-  string providerId = 1;
-  float cpuUsage = 2;
-  uint64 memoryTotal = 3;
-  uint64 memoryUsed = 4;
-  google.protobuf.Timestamp updated = 5;
+  float cpuUsage = 1;
+  uint64 memoryTotal = 2;
+  uint64 memoryUsed = 3;
+  google.protobuf.Timestamp updated = 4;
+}
+
+message Utilizations {
+  map<string, Utilization> providers = 1;
 }
 
 //

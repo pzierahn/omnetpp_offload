@@ -58,6 +58,10 @@ func (broker *broker) Register(stream pb.Broker_RegisterServer) (err error) {
 				continue
 			}
 
+			if data.Util == nil {
+				continue
+			}
+
 			log.Printf("Register: id=%v utilization=%v", id, data.Util.CpuUsage)
 
 			broker.umu.Lock()

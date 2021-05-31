@@ -41,9 +41,7 @@ func Start(conf Config) (err error) {
 		utilization: make(map[string]*pb.Utilization),
 	}
 
-	if conf.WebInterface {
-		go brk.startWebService()
-	}
+	go brk.startWebService()
 
 	server := grpc.NewServer()
 	pb.RegisterBrokerServer(server, &brk)
