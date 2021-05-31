@@ -91,7 +91,7 @@ func Run(gConf gconfig.GRPCConnection, config *Config) (err error) {
 			log.Fatalln(err)
 		}
 
-		log.Printf("uploading source %s\n", simulationId)
+		log.Printf("upload: %s (%d bytes)", simulationId, buf.Len())
 
 		var ref *pb.StorageRef
 		ref, err = storeCli.Upload(&buf, storage.FileMeta{
@@ -99,7 +99,7 @@ func Run(gConf gconfig.GRPCConnection, config *Config) (err error) {
 			Filename: "source.tar.gz",
 		})
 
-		log.Printf("uploaded to %v", ref)
+		log.Printf("checkout: %v", simulationId)
 
 		_, err = provider.Checkout(context.Background(), &pb.Bundle{
 			SimulationId: simulationId,
@@ -109,6 +109,8 @@ func Run(gConf gconfig.GRPCConnection, config *Config) (err error) {
 			log.Fatalln(err)
 		}
 
+		log.Printf("compile: %v", simulationId)
+
 		_, err = provider.Compile(context.Background(), &pb.Simulation{
 			Id:        simulationId,
 			OppConfig: config.OppConfig,
@@ -116,6 +118,19 @@ func Run(gConf gconfig.GRPCConnection, config *Config) (err error) {
 		if err != nil {
 			log.Fatalln(err)
 		}
+
+		log.Printf("list run numbers: %v", simulationId)
+
+		runNums, err := provider.ListRunNums(context.Background(), &pb.Simulation{
+			Id:        simulationId,
+			OppConfig: config.OppConfig,
+			Config:    config.SimulateConfigs[0],
+		})
+		if err != nil {
+			log.Fatalln(err)
+		}
+
+		log.Printf("runNums: %v", runNums)
 
 		_ = pconn.Close()
 	}

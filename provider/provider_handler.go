@@ -3,6 +3,7 @@ package provider
 import (
 	"bytes"
 	"context"
+	"fmt"
 	pb "github.com/pzierahn/project.go.omnetpp/proto"
 	"github.com/pzierahn/project.go.omnetpp/simple"
 	"github.com/pzierahn/project.go.omnetpp/storage"
@@ -58,6 +59,31 @@ func (prov *provider) Checkout(_ context.Context, bundle *pb.Bundle) (empty *pb.
 func (prov *provider) Compile(_ context.Context, simulation *pb.Simulation) (bin *pb.Binary, err error) {
 	log.Printf("Compile: %v", simulation.Id)
 	return prov.compile(simulation)
+}
+
+func (prov *provider) ListRunNums(_ context.Context, simulation *pb.Simulation) (runs *pb.SimulationRuns, err error) {
+
+	log.Printf("ListRunNums: id=%v config='%s'", simulation.Id, simulation.Config)
+
+	if simulation.Config == "" {
+		err = fmt.Errorf("simulation config missing")
+		return
+	}
+
+	_, opp := newOpp(simulation)
+
+	runNums, err := opp.GetRunNumbers(simulation.Config)
+	if err != nil {
+		return
+	}
+
+	runs = &pb.SimulationRuns{
+		SimulationId: simulation.Id,
+		Config:       simulation.Config,
+		Runs:         runNums,
+	}
+
+	return
 }
 
 func (prov *provider) Run(_ context.Context, run *pb.SimulationRun) (ref *pb.StorageRef, err error) {

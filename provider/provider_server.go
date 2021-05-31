@@ -13,6 +13,7 @@ import (
 	"github.com/pzierahn/project.go.omnetpp/utils"
 	"google.golang.org/grpc"
 	"log"
+	"net"
 	"runtime"
 	"time"
 )
@@ -87,7 +88,7 @@ func Start(conf gconfig.Config) {
 			log.Fatalln(err)
 		}
 
-		go func() {
+		go func(conn *net.UDPConn) {
 			defer func() { _ = conn.Close() }()
 
 			tlsConf, _ := utils.GenerateTLSConfig()
@@ -106,7 +107,7 @@ func Start(conf gconfig.Config) {
 			pb.RegisterProviderServer(server, prov)
 			pb.RegisterStorageServer(server, store)
 			err = server.Serve(lis)
-		}()
+		}(conn)
 	}
 
 	return

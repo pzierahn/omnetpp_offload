@@ -60,14 +60,22 @@ service Provider {
   rpc Info   (Empty) returns (ProviderInfo) {}
   rpc Status (Empty) returns (Utilization)  {}
 
-  rpc Checkout (Bundle)        returns (Empty)      {}
-  rpc Compile  (Simulation)    returns (Binary)     {}
-  rpc Run      (SimulationRun) returns (StorageRef) {}
+  rpc Checkout    (Bundle)        returns (Empty)          {}
+  rpc Compile     (Simulation)    returns (Binary)         {}
+  rpc ListRunNums (Simulation)    returns (SimulationRuns) {}
+  rpc Run         (SimulationRun) returns (StorageRef)     {}
 }
 
 message Simulation {
   string id = 1;
   OppConfig oppConfig = 2;
+  string config = 3;
+}
+
+message SimulationRuns {
+  string simulationId = 1;
+  string config = 2;
+  repeated string runs = 3;
 }
 
 message Bundle {

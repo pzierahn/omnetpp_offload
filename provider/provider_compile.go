@@ -10,16 +10,22 @@ import (
 	"path/filepath"
 )
 
-func (prov *provider) compile(simulation *pb.Simulation) (bin *pb.Binary, err error) {
-
-	base := filepath.Join(cachePath, simulation.Id)
+func newOpp(simulation *pb.Simulation) (base string, opp omnetpp.OmnetProject) {
+	base = filepath.Join(cachePath, simulation.Id)
 
 	conf := &omnetpp.Config{
 		OppConfig: simulation.OppConfig,
 		Path:      base,
 	}
 
-	opp := omnetpp.New(conf)
+	opp = omnetpp.New(conf)
+
+	return
+}
+
+func (prov *provider) compile(simulation *pb.Simulation) (bin *pb.Binary, err error) {
+
+	base, opp := newOpp(simulation)
 	err = opp.Clean()
 	if err != nil {
 		return
