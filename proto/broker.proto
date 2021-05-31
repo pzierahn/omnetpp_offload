@@ -60,16 +60,17 @@ service Provider {
   rpc Info   (Empty) returns (ProviderInfo) {}
   rpc Status (Empty) returns (Utilization)  {}
 
-  rpc Checkout    (Bundle)        returns (Empty)          {}
-  rpc Compile     (Simulation)    returns (Binary)         {}
-  rpc ListRunNums (Simulation)    returns (SimulationRuns) {}
-  rpc Run         (SimulationRun) returns (StorageRef)     {}
+  rpc Checkout    (Bundle)     returns (Empty)          {}
+  rpc Compile     (Simulation) returns (Binary)         {}
+  rpc ListRunNums (Simulation) returns (SimulationRuns) {}
+  rpc Run         (Simulation) returns (StorageRef)     {}
 }
 
 message Simulation {
   string id = 1;
   OppConfig oppConfig = 2;
   string config = 3;
+  string runNum = 4;
 }
 
 message SimulationRuns {
@@ -81,13 +82,6 @@ message SimulationRuns {
 message Bundle {
   string simulationId = 1;
   StorageRef source = 3;
-}
-
-message SimulationRun {
-  string simulationId = 1;
-  string config = 2;
-  string runNum = 3;
-  OppConfig oppConfig = 4;
 }
 
 message Binary {

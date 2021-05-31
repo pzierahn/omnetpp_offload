@@ -14,6 +14,7 @@ import (
 	"log"
 	"net"
 	"path/filepath"
+	"sync"
 	"time"
 )
 
@@ -131,6 +132,37 @@ func Run(gConf gconfig.GRPCConnection, config *Config) (err error) {
 		}
 
 		log.Printf("runNums: %v", runNums)
+
+		var wg sync.WaitGroup
+		work := make(chan *pb.Simulation)
+
+		for inx := 0; inx < 4; inx++ {
+			go func(agent int) {
+				for sim := range work {
+					log.Printf("[%d] run: %v", agent, sim.RunNum)
+
+					ref, err = provider.Run(context.Background(), sim)
+					if err != nil {
+						log.Fatalln(err)
+					}
+
+					log.Printf("[%d] result: %v", agent, ref)
+					wg.Done()
+				}
+			}(inx)
+		}
+
+		for _, num := range runNums.Runs {
+			wg.Add(1)
+			work <- &pb.Simulation{
+				Id:        simulationId,
+				OppConfig: config.OppConfig,
+				Config:    runNums.Config,
+				RunNum:    num,
+			}
+		}
+
+		wg.Wait()
 
 		_ = pconn.Close()
 	}

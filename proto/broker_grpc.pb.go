@@ -180,7 +180,7 @@ type ProviderClient interface {
 	Checkout(ctx context.Context, in *Bundle, opts ...grpc.CallOption) (*Empty, error)
 	Compile(ctx context.Context, in *Simulation, opts ...grpc.CallOption) (*Binary, error)
 	ListRunNums(ctx context.Context, in *Simulation, opts ...grpc.CallOption) (*SimulationRuns, error)
-	Run(ctx context.Context, in *SimulationRun, opts ...grpc.CallOption) (*StorageRef, error)
+	Run(ctx context.Context, in *Simulation, opts ...grpc.CallOption) (*StorageRef, error)
 }
 
 type providerClient struct {
@@ -236,7 +236,7 @@ func (c *providerClient) ListRunNums(ctx context.Context, in *Simulation, opts .
 	return out, nil
 }
 
-func (c *providerClient) Run(ctx context.Context, in *SimulationRun, opts ...grpc.CallOption) (*StorageRef, error) {
+func (c *providerClient) Run(ctx context.Context, in *Simulation, opts ...grpc.CallOption) (*StorageRef, error) {
 	out := new(StorageRef)
 	err := c.cc.Invoke(ctx, "/service.Provider/Run", in, out, opts...)
 	if err != nil {
@@ -254,7 +254,7 @@ type ProviderServer interface {
 	Checkout(context.Context, *Bundle) (*Empty, error)
 	Compile(context.Context, *Simulation) (*Binary, error)
 	ListRunNums(context.Context, *Simulation) (*SimulationRuns, error)
-	Run(context.Context, *SimulationRun) (*StorageRef, error)
+	Run(context.Context, *Simulation) (*StorageRef, error)
 	mustEmbedUnimplementedProviderServer()
 }
 
@@ -277,7 +277,7 @@ func (UnimplementedProviderServer) Compile(context.Context, *Simulation) (*Binar
 func (UnimplementedProviderServer) ListRunNums(context.Context, *Simulation) (*SimulationRuns, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListRunNums not implemented")
 }
-func (UnimplementedProviderServer) Run(context.Context, *SimulationRun) (*StorageRef, error) {
+func (UnimplementedProviderServer) Run(context.Context, *Simulation) (*StorageRef, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Run not implemented")
 }
 func (UnimplementedProviderServer) mustEmbedUnimplementedProviderServer() {}
@@ -384,7 +384,7 @@ func _Provider_ListRunNums_Handler(srv interface{}, ctx context.Context, dec fun
 }
 
 func _Provider_Run_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(SimulationRun)
+	in := new(Simulation)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -396,7 +396,7 @@ func _Provider_Run_Handler(srv interface{}, ctx context.Context, dec func(interf
 		FullMethod: "/service.Provider/Run",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ProviderServer).Run(ctx, req.(*SimulationRun))
+		return srv.(ProviderServer).Run(ctx, req.(*Simulation))
 	}
 	return interceptor(ctx, in, info, handler)
 }

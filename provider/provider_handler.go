@@ -86,6 +86,20 @@ func (prov *provider) ListRunNums(_ context.Context, simulation *pb.Simulation) 
 	return
 }
 
-func (prov *provider) Run(_ context.Context, run *pb.SimulationRun) (ref *pb.StorageRef, err error) {
-	return
+func (prov *provider) Run(_ context.Context, simulation *pb.Simulation) (ref *pb.StorageRef, err error) {
+
+	log.Printf("ListRunNums: id=%v config='%s' runNum='%s'",
+		simulation.Id, simulation.Config, simulation.RunNum)
+
+	if simulation.Config == "" {
+		err = fmt.Errorf("simulation config missing")
+		return
+	}
+
+	if simulation.RunNum == "" {
+		err = fmt.Errorf("simulation run number missing")
+		return
+	}
+
+	return prov.run(simulation)
 }
