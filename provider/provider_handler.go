@@ -43,6 +43,7 @@ func (prov *provider) Checkout(_ context.Context, bundle *pb.Bundle) (empty *pb.
 
 	byt, err := prov.store.Get(bundle.Source)
 	if err != nil {
+		log.Printf("Checkout: error %v", err)
 		return
 	}
 
@@ -50,6 +51,7 @@ func (prov *provider) Checkout(_ context.Context, bundle *pb.Bundle) (empty *pb.
 
 	err = simple.UnTarGz(cachePath, bytes.NewReader(byt))
 	if err != nil {
+		log.Printf("Checkout: error %v", err)
 		_ = os.RemoveAll(path)
 	}
 

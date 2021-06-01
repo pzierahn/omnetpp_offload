@@ -35,7 +35,7 @@ func (client *Client) Upload(data io.Reader, meta FileMeta) (ref *pb.StorageRef,
 
 		err = stream.Send(&parcel)
 		if err != nil {
-			log.Fatalln(err)
+			return
 		}
 	}
 
