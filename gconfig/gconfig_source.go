@@ -5,7 +5,6 @@ import (
 	"flag"
 	"fmt"
 	"github.com/pzierahn/project.go.omnetpp/defines"
-	"github.com/pzierahn/project.go.omnetpp/simple"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -24,7 +23,7 @@ func Source() (config Config) {
 		}
 
 		if config.Worker.Name == "" {
-			config.Worker.Name = simple.GetHostnameShort()
+			config.Worker.Name = runtime.GOOS + "-" + runtime.GOARCH
 		}
 
 		if config.Worker.DevoteCPUs == 0 {

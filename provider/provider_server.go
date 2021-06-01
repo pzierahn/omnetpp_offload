@@ -14,7 +14,6 @@ import (
 	"google.golang.org/grpc"
 	"log"
 	"net"
-	"runtime"
 	"time"
 )
 
@@ -23,7 +22,7 @@ func Start(conf gconfig.Config) {
 	store := &storage.Server{}
 
 	prov := &provider{
-		providerId: simple.NamedId(runtime.GOOS+"-"+runtime.GOARCH, 8),
+		providerId: simple.NamedId(conf.Worker.Name, 8),
 		store:      store,
 	}
 
