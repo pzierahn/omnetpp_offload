@@ -37,7 +37,8 @@ func (server *Server) Push(stream pb.Storage_PushServer) (err error) {
 	}
 
 	dataFile := filepath.Join(storagePath, bucket, filename)
-	_ = os.MkdirAll(filepath.Base(dataFile), 0755)
+	dir, _ := filepath.Split(dataFile)
+	_ = os.MkdirAll(dir, 0755)
 
 	log.Println("push", dataFile)
 
