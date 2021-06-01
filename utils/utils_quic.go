@@ -11,7 +11,6 @@ import (
 	"github.com/pzierahn/project.go.omnetpp/adapter"
 	"math/big"
 	"net"
-	"time"
 )
 
 func GenerateTLSConfig() (tlsConf *tls.Config, err error) {
@@ -75,8 +74,8 @@ func GRPCDialer(pconn *net.UDPConn) (dialer Dialer) {
 		//log.Printf("quic.DialAddrContext rAddr=%v", rAddr)
 
 		sess, err := quic.DialContext(ctx, pconn, rAddr, "", tlsConf, &quic.Config{
-			KeepAlive:      true,
-			MaxIdleTimeout: time.Millisecond * 500,
+			KeepAlive: true,
+			//MaxIdleTimeout: time.Millisecond * 500,
 		})
 		if err != nil {
 			return
