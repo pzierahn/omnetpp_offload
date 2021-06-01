@@ -1,6 +1,7 @@
 package consumer
 
 import (
+	"bytes"
 	"context"
 	pb "github.com/pzierahn/project.go.omnetpp/proto"
 	"github.com/pzierahn/project.go.omnetpp/simple"
@@ -12,7 +13,12 @@ func (cons *consumer) zipSource() (err error) {
 
 	log.Printf("zipping simulation source: %s", cons.config.Path)
 
-	cons.simulationTgz, err = simple.TarGz(cons.config.Path, cons.simulation.Id, cons.config.Ignore...)
+	buf, err := simple.TarGz(cons.config.Path, cons.simulation.Id, cons.config.Ignore...)
+	if err != nil {
+		return
+	}
+
+	cons.simulationTgz = buf.Bytes()
 
 	return
 }
@@ -23,11 +29,12 @@ func (cons *consumer) checkoutSimulations() (err error) {
 	defer cons.connMu.RUnlock()
 
 	for id, conn := range cons.connections {
-		log.Printf("upload: %s to %s (%d bytes)", cons.simulation.Id, id, cons.simulationTgz.Len())
+
+		log.Printf("upload: %s to %s (%d bytes)", cons.simulation.Id, id, len(cons.simulationTgz))
 
 		storeCli := storage.FromClient(conn.store)
 		var ref *pb.StorageRef
-		ref, err = storeCli.Upload(&cons.simulationTgz, storage.FileMeta{
+		ref, err = storeCli.Upload(bytes.NewReader(cons.simulationTgz), storage.FileMeta{
 			Bucket:   cons.simulation.Id,
 			Filename: "source.tar.gz",
 		})

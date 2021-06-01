@@ -14,7 +14,7 @@ func (cons *consumer) compile() (err error) {
 
 	cons.connMu.RLock()
 
-	bins := make(map[string]bytes.Buffer)
+	bins := make(map[string][]byte)
 
 	for id, conn := range cons.connections {
 
@@ -25,7 +25,7 @@ func (cons *consumer) compile() (err error) {
 			log.Printf("compile: id=%s arch=%s cached", id, archSig)
 
 			var ref *pb.StorageRef
-			ref, err = storeCli.Upload(&buf, storage.FileMeta{
+			ref, err = storeCli.Upload(bytes.NewReader(buf), storage.FileMeta{
 				Bucket:   cons.simulation.Id,
 				Filename: fmt.Sprintf("binary/%s.tgz", archSig),
 			})
@@ -57,7 +57,7 @@ func (cons *consumer) compile() (err error) {
 			return
 		}
 
-		bins[archSig] = buf
+		bins[archSig] = buf.Bytes()
 	}
 
 	defer cons.connMu.RUnlock()

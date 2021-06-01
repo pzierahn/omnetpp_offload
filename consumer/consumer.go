@@ -1,7 +1,6 @@
 package consumer
 
 import (
-	"bytes"
 	pb "github.com/pzierahn/project.go.omnetpp/proto"
 	"sync"
 )
@@ -13,6 +12,6 @@ type consumer struct {
 	connections map[string]*connection
 
 	// TODO: Persist bytes to HD
-	simulationTgz bytes.Buffer
-	binaries      map[string]bytes.Buffer
+	simulationTgz []byte
+	binaries      map[string][]byte
 }
