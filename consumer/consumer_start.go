@@ -71,5 +71,12 @@ func Start(gConf gconfig.GRPCConnection, config *Config) {
 		log.Fatalln(err)
 	}
 
+	err = cons.run()
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+	log.Printf("simulation finished!")
+
 	return
 }

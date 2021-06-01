@@ -11,6 +11,7 @@ var cachePath string
 
 func init() {
 	log.SetFlags(log.LstdFlags | log.Lshortfile)
+	log.SetPrefix("Provider ")
 
 	cachePath = filepath.Join(defines.CacheDir(), "simulations")
 	_ = os.MkdirAll(cachePath, 0755)

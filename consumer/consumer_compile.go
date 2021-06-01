@@ -13,6 +13,7 @@ import (
 func (cons *consumer) compile() (err error) {
 
 	cons.connMu.RLock()
+	defer cons.connMu.RUnlock()
 
 	bins := make(map[string][]byte)
 
@@ -59,8 +60,6 @@ func (cons *consumer) compile() (err error) {
 
 		bins[archSig] = buf.Bytes()
 	}
-
-	defer cons.connMu.RUnlock()
 
 	return
 }
