@@ -13,7 +13,11 @@ func Arch() (arch *pb.Arch) {
 	return
 }
 
-func ArchSignature() (arch string) {
-	arch = runtime.GOOS + "_" + runtime.GOARCH
+func ArchSignature() (sig string) {
+	return Signature(Arch())
+}
+
+func Signature(arch *pb.Arch) (sig string) {
+	sig = arch.Os + "_" + arch.Arch
 	return
 }

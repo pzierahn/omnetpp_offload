@@ -44,8 +44,5 @@ func main() {
 		log.Panicln(err)
 	}
 
-	err = consumer.Run(config.Broker, &runConfig)
-	if err != nil {
-		panic(err)
-	}
+	consumer.Start(config.Broker, &runConfig)
 }
