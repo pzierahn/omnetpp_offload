@@ -3,7 +3,7 @@ package main
 import (
 	"errors"
 	"log"
-	"math/rand"
+	"net"
 )
 
 type Args struct {
@@ -43,11 +43,31 @@ func main() {
 	//test["3"] = true
 	//test["4"] = true
 
-	localSID := rand.Uint32()
-	remoteSID := rand.Uint32()
+	ifaces, _ := net.Interfaces()
+	// handle err
+	for _, iface := range ifaces {
+		addrs, _ := iface.Addrs()
 
-	log.Printf("localSID: %08x --> %04x", localSID, uint16(localSID))
-	log.Printf("remoteSID: %08x --> %04x", remoteSID, uint16(remoteSID))
+		log.Println(iface.Name)
+		// handle err
+		for _, addr := range addrs {
+			//var ip net.IP
+			//switch v := addr.(type) {
+			//case *net.IPNet:
+			//	ip = v.IP
+			//case *net.IPAddr:
+			//	ip = v.IP
+			//}
+			//// process IP address
+			log.Printf("addr: %v", addr)
+		}
+	}
+
+	//localSID := rand.Uint32()
+	//remoteSID := rand.Uint32()
+
+	//log.Printf("localSID: %08x --> %04x", localSID, uint16(localSID))
+	//log.Printf("remoteSID: %08x --> %04x", remoteSID, uint16(remoteSID))
 
 	//pairTic := time.NewTicker(time.Second * 1)
 	//pairTic.
