@@ -63,6 +63,7 @@ docker buildx build \
     --platform linux/arm64,linux/amd64 \
     --tag pzierahn/omnetpp_edge:latest .
 
+docker pull pzierahn/omnetpp_edge
 docker build -t pzierahn/omnetpp_edge .
 docker run --rm pzierahn/omnetpp_edge opp_edge_worker -broker 31.18.129.212 -name `hostname -s`
 ```

@@ -11,6 +11,7 @@ var storagePath string
 
 func init() {
 	log.SetFlags(log.LstdFlags | log.Lshortfile)
+	log.SetPrefix("Storage ")
 
 	storagePath = filepath.Join(defines.CacheDir(), "storage")
 	_ = os.MkdirAll(storagePath, 0755)
