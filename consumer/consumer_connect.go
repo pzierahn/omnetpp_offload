@@ -29,8 +29,6 @@ func (cons *consumer) connect(prov *pb.ProviderInfo) (conn *connection, err erro
 		return
 	}
 
-	log.Printf("connected to %v", remote)
-
 	var cConn *grpc.ClientConn
 	cConn, err = grpc.Dial(
 		remote.String(),

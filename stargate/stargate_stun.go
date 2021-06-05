@@ -3,7 +3,74 @@ package stargate
 import (
 	"log"
 	"net"
+	"sync"
+	"time"
 )
+
+var matchMu sync.RWMutex
+var match = make(map[string]map[string]*net.UDPAddr)
+
+var buffer = make([]byte, 1024)
+
+func ping(conn *net.UDPConn) {
+	matchMu.RLock()
+	defer matchMu.RUnlock()
+
+	for _, register := range match {
+		for _, addr := range register {
+			log.Printf("send ping to dial candidate %v", addr)
+
+			_, err := conn.WriteTo([]byte("ping"), addr)
+			if err != nil {
+				log.Fatalln(err)
+			}
+		}
+	}
+}
+
+func receiveStun(conn *net.UDPConn) {
+
+	br, remoteAddr, err := conn.ReadFromUDP(buffer)
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+	connectId := string(buffer[0:br])
+	log.Printf("connectId %s %v", connectId, remoteAddr)
+
+	matchMu.Lock()
+	defer matchMu.Unlock()
+
+	if _, ok := match[connectId]; !ok {
+		match[connectId] = make(map[string]*net.UDPAddr)
+	}
+
+	match[connectId][remoteAddr.String()] = remoteAddr
+
+	if len(match[connectId]) != 2 {
+		return
+	}
+
+	hosts := make([]*net.UDPAddr, 2)
+
+	var inx int
+	for _, host := range match[connectId] {
+		hosts[inx] = host
+		inx++
+	}
+
+	_, err = conn.WriteToUDP([]byte(hosts[0].String()), hosts[1])
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+	_, err = conn.WriteToUDP([]byte(hosts[1].String()), hosts[0])
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+	delete(match, connectId)
+}
 
 func Server() {
 
@@ -14,38 +81,14 @@ func Server() {
 
 	log.Printf("stun server on %v", conn.LocalAddr())
 
-	cache := make(map[string][]string)
-	buffer := make([]byte, 1024)
+	go func() {
+		for range time.Tick(time.Second * 20) {
+			ping(conn)
+		}
+	}()
 
 	for {
-		bytesRead, remoteAddr, err := conn.ReadFromUDP(buffer)
-		if err != nil {
-			log.Fatalln(err)
-		}
-
-		connectId := string(buffer[0:bytesRead])
-		log.Printf("connectId %s %v", connectId, remoteAddr)
-
-		cache[connectId] = append(cache[connectId], remoteAddr.String())
-
-		if len(cache[connectId]) != 2 {
-			continue
-		}
-
-		host1, _ := net.ResolveUDPAddr("udp", cache[connectId][0])
-		host2, _ := net.ResolveUDPAddr("udp", cache[connectId][1])
-
-		_, err = conn.WriteToUDP([]byte(host2.String()), host1)
-		if err != nil {
-			log.Fatalln(err)
-		}
-
-		_, err = conn.WriteToUDP([]byte(host1.String()), host2)
-		if err != nil {
-			log.Fatalln(err)
-		}
-
-		delete(cache, connectId)
+		receiveStun(conn)
 	}
 }
 

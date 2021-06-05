@@ -10,34 +10,61 @@ import (
 )
 
 func dialAddr(ctx context.Context, conn *net.UDPConn, connectionId string) (remote *net.UDPAddr, err error) {
-	log.Printf("connectionId=%s rendezvousAddr=%v conn=%v",
+	log.Printf("dialAddr: connectionId=%s rendezvousAddr=%v conn=%v",
 		connectionId, rendezvousAddr, conn.LocalAddr())
 
-	wr, err := conn.WriteTo([]byte(connectionId), rendezvousAddr)
+	receiveConnect := make(chan bool)
+	defer close(receiveConnect)
+
+	go func() {
+		buf := make([]byte, 1024)
+		var read int
+
+		for {
+			read, err = conn.Read(buf)
+			if err != nil {
+				log.Fatalln(err)
+			}
+
+			msg := string(buf[0:read])
+			if msg == "ping" {
+				continue
+			}
+
+			remote, err = net.ResolveUDPAddr("udp", msg)
+			if err != nil {
+				log.Fatalln(err)
+			}
+
+			break
+		}
+
+		receiveConnect <- true
+	}()
+
+	// send initial udp package to stun server
+	log.Printf("send stun signal (%s)", connectionId)
+	_, err = conn.WriteTo([]byte(connectionId), rendezvousAddr)
 	if err != nil {
 		return
 	}
 
-	log.Printf("send register connectionId=%s (%d bytes)", connectionId, wr)
-
-	success := make(chan bool)
-	defer close(success)
+	// Send ever 30 seconds a stun signal to the broker keep the NAT open
+	signalTick := time.NewTicker(time.Second * 20)
+	defer signalTick.Stop()
 
 	go func() {
-		buffer := make([]byte, 1024)
-		var read int
-
-		read, err = conn.Read(buffer)
-		if err != nil {
-			return
+		for range signalTick.C {
+			log.Printf("send stun signal (%s)", connectionId)
+			_, err = conn.WriteTo([]byte(connectionId), rendezvousAddr)
+			if err != nil {
+				log.Fatalln(err)
+			}
 		}
-
-		remote, err = net.ResolveUDPAddr("udp", string(buffer[0:read]))
-		success <- true
 	}()
 
 	select {
-	case <-success:
+	case <-receiveConnect:
 	case <-ctx.Done():
 		_ = conn.Close()
 		err = fmt.Errorf("error: rendezvou server did not responde in time")
@@ -53,12 +80,13 @@ func Dial(ctx context.Context, connectionId string) (conn *net.UDPConn, remote *
 		return
 	}
 
+	// Get counterpart udp address
 	remote, err = dialAddr(ctx, conn, connectionId)
 	if err != nil {
 		return
 	}
 
-	log.Printf("connect to %v", remote)
+	log.Printf("connecting to %v", remote)
 
 	sendPings := 2
 
@@ -73,7 +101,7 @@ func Dial(ctx context.Context, connectionId string) (conn *net.UDPConn, remote *
 				log.Fatalln(err)
 			}
 
-			log.Printf("send '%s' (%d bytes)\n", message, w)
+			log.Printf("send message='%s' (%d bytes)\n", message, w)
 
 			// Wait for to seconds to ensure nat hole punching works!
 			if inx == 0 {
@@ -84,37 +112,35 @@ func Dial(ctx context.Context, connectionId string) (conn *net.UDPConn, remote *
 		}
 	}()
 
+	done := make(chan bool)
+	defer close(done)
+
+	go func() {
+		buffer := make([]byte, 1024)
+		read, remote, err := conn.ReadFromUDP(buffer)
+		if err != nil {
+			log.Println(err)
+			return
+		}
+
+		log.Printf("received message='%s' from %v\n", string(buffer[0:read]), remote)
+
+		done <- true
+	}()
+
 	select {
-	case <-listen(conn):
+	case <-done:
 		// everything is okay
+		log.Printf("connected to %v", remote)
+
 	case <-ctx.Done():
 		// connection timeout: close stuff
 		_ = conn.Close()
-		err = fmt.Errorf("error: could not establish connection in time")
+		err = fmt.Errorf("error: could not establish connection to %v in time", remote)
 		return
 	}
 
 	wg.Wait()
-
-	return
-}
-
-func listen(conn *net.UDPConn) (done chan bool) {
-
-	done = make(chan bool)
-
-	go func() {
-		buffer := make([]byte, 1024)
-		bytesRead, remote, err := conn.ReadFromUDP(buffer)
-		if err != nil {
-			//log.Println(err)
-			return
-		}
-
-		log.Printf("receive '%s' from %v\n", string(buffer[0:bytesRead]), remote)
-
-		done <- true
-	}()
 
 	return
 }
