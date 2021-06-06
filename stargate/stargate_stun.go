@@ -16,9 +16,9 @@ func ping(conn *net.UDPConn) {
 	matchMu.RLock()
 	defer matchMu.RUnlock()
 
-	for _, register := range match {
+	for id, register := range match {
 		for _, addr := range register {
-			log.Printf("send ping to dial candidate %v", addr)
+			log.Printf("send ping to dial %v candidate %v", id, addr)
 
 			_, err := conn.WriteTo([]byte("ping"), addr)
 			if err != nil {

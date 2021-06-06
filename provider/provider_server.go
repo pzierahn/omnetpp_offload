@@ -70,6 +70,7 @@ func Start(conf gconfig.Config) {
 
 			err = stream.Send(&pb.Ping{Cast: &pb.Ping_Util{Util: util}})
 			if err != nil {
+				// TODO reconnect after EOF
 				log.Fatalln(err)
 			}
 		}

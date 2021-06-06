@@ -17,4 +17,5 @@ var rendezvousAddr = &net.UDPAddr{
 
 func init() {
 	log.SetFlags(log.LstdFlags | log.Lshortfile)
+	log.SetPrefix("Stargate ")
 }

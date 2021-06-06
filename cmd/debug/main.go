@@ -1,9 +1,11 @@
 package main
 
 import (
+	"context"
 	"errors"
 	"log"
 	"net"
+	"time"
 )
 
 type Args struct {
@@ -33,6 +35,28 @@ func (t *Arith) Divide(args *Args, quo *Quotient) error {
 func main() {
 
 	log.SetFlags(log.LstdFlags | log.Lshortfile)
+
+	ctx, cnl := context.WithCancel(context.Background())
+
+	go func() {
+		select {
+		case <-ctx.Done():
+			log.Printf("Done 1")
+		}
+	}()
+
+	go func() {
+		select {
+		case <-ctx.Done():
+			log.Printf("Done 2")
+		}
+	}()
+
+	time.Sleep(time.Second)
+
+	cnl()
+
+	time.Sleep(time.Second * 2)
 
 	//log.Println(math.Ceil(1.0))
 	//log.Printf("0x%x", (int64(0x12345678)<<32) | int64(0xa))
