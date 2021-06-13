@@ -3,6 +3,7 @@ package storage
 import (
 	"context"
 	pb "github.com/pzierahn/project.go.omnetpp/proto"
+	"github.com/pzierahn/project.go.omnetpp/simple"
 	"google.golang.org/grpc/metadata"
 	"io"
 	"log"
@@ -36,6 +37,11 @@ func (client *Client) Upload(data io.Reader, meta FileMeta) (ref *pb.StorageRef,
 		err = stream.Send(&parcel)
 		if err != nil {
 			return
+		}
+
+		if chunk.offset%8 == 0 {
+			log.Printf("uploaded %s (%v)",
+				simple.ByteSize(uint64(chunk.size+chunk.offset)), meta.Filename)
 		}
 	}
 

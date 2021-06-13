@@ -116,14 +116,16 @@ func Dial(ctx context.Context, connectionId string) (conn *net.UDPConn, remote *
 	defer close(done)
 
 	go func() {
-		buffer := make([]byte, 1024)
-		read, remote, err := conn.ReadFromUDP(buffer)
+		buf := make([]byte, 1024)
+		read, remote, err := conn.ReadFromUDP(buf)
 		if err != nil {
 			log.Println(err)
 			return
 		}
 
-		log.Printf("received message='%s' from %v\n", string(buffer[0:read]), remote)
+		// TODO: Check for corrupt messages
+		msg := string(buf[0:read])
+		log.Printf("received message='%s' from %v\n", msg, remote)
 
 		done <- true
 	}()

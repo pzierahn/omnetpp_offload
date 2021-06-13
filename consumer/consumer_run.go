@@ -6,6 +6,7 @@ import (
 	"github.com/pzierahn/project.go.omnetpp/storage"
 	"log"
 	"sync"
+	"time"
 )
 
 func (cons *consumer) run() (err error) {
@@ -38,13 +39,21 @@ func (cons *consumer) run() (err error) {
 		for inx := uint32(0); inx < conn.info.NumCPUs; inx++ {
 			go func(conn *connection, agent uint32) {
 				for task := range tasks {
-					log.Printf("[%s-%d] %v-%v", conn.info.ProviderId, agent, task.Config, task.RunNum)
+
+					runName := task.Config + "-" + task.RunNum
+					log.Printf("[%s-%d] %s start", conn.info.ProviderId, agent, runName)
+
+					startExec := time.Now()
+
 					resultRef, err := conn.provider.Run(context.Background(), task)
 					if err != nil {
 						log.Fatalln(err)
 					}
 
-					log.Printf("[%s-%d] result: %v", conn.info.ProviderId, agent, resultRef)
+					endExec := time.Now()
+
+					log.Printf("[%s-%d] %s finished (%v)",
+						conn.info.ProviderId, agent, runName, endExec.Sub(startExec))
 
 					store := storage.FromClient(conn.store)
 					buf, err := store.Download(resultRef)
@@ -52,7 +61,8 @@ func (cons *consumer) run() (err error) {
 						log.Fatalln(err)
 					}
 
-					log.Printf("[%s-%d] downloaded %d bytes", conn.info.ProviderId, agent, buf.Len())
+					log.Printf("[%s-%d] %s downloaded results %d bytes (%v)",
+						conn.info.ProviderId, agent, runName, buf.Len(), time.Now().Sub(endExec))
 
 					wg.Done()
 				}

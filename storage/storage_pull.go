@@ -5,6 +5,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"time"
 )
 
 func (server *Server) Pull(req *pb.StorageRef, stream pb.Storage_PullServer) (err error) {
@@ -25,6 +26,7 @@ func (server *Server) Pull(req *pb.StorageRef, stream pb.Storage_PullServer) (er
 	}
 
 	var packages int
+	start := time.Now()
 
 	reader := streamReader(file)
 
@@ -42,11 +44,11 @@ func (server *Server) Pull(req *pb.StorageRef, stream pb.Storage_PullServer) (er
 
 		packages++
 
-		log.Printf("packages %s->%s send %0.2f%%",
+		log.Printf("package %s->%s send %0.2f%%",
 			req.Bucket, req.Filename, 100.0*(float64(chunk.offset+chunk.size)/float64(stat.Size())))
 	}
 
-	log.Println("packages send", packages)
+	log.Printf("%s->%s packges %d in %v", req.Bucket, req.Filename, packages, time.Now().Sub(start))
 
 	return
 }

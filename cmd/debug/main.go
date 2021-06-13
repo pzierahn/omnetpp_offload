@@ -1,62 +1,34 @@
 package main
 
 import (
-	"context"
-	"errors"
 	"log"
-	"net"
 	"time"
 )
 
-type Args struct {
-	A, B int
-}
-
-type Quotient struct {
-	Quo, Rem int
-}
-
-type Arith int
-
-func (t *Arith) Multiply(args *Args, reply *int) error {
-	*reply = args.A * args.B
-	return nil
-}
-
-func (t *Arith) Divide(args *Args, quo *Quotient) error {
-	if args.B == 0 {
-		return errors.New("divide by zero")
+func fib(n float64) float64 {
+	if n < 2 {
+		return n
 	}
-	quo.Quo = args.A / args.B
-	quo.Rem = args.A % args.B
-	return nil
+	return fib(n-1) + fib(n-2)
 }
+
+var result float64
 
 func main() {
 
 	log.SetFlags(log.LstdFlags | log.Lshortfile)
 
-	ctx, cnl := context.WithCancel(context.Background())
+	startTime := time.Now()
 
-	go func() {
-		select {
-		case <-ctx.Done():
-			log.Printf("Done 1")
-		}
-	}()
+	var r float64
 
-	go func() {
-		select {
-		case <-ctx.Done():
-			log.Printf("Done 2")
-		}
-	}()
+	for inx := 0; inx < 100; inx++ {
+		r = fib(30)
+	}
 
-	time.Sleep(time.Second)
+	result = r
 
-	cnl()
-
-	time.Sleep(time.Second * 2)
+	log.Printf("Duration: %v", time.Now().Sub(startTime))
 
 	//log.Println(math.Ceil(1.0))
 	//log.Printf("0x%x", (int64(0x12345678)<<32) | int64(0xa))
@@ -67,25 +39,25 @@ func main() {
 	//test["3"] = true
 	//test["4"] = true
 
-	ifaces, _ := net.Interfaces()
-	// handle err
-	for _, iface := range ifaces {
-		addrs, _ := iface.Addrs()
-
-		log.Println(iface.Name)
-		// handle err
-		for _, addr := range addrs {
-			//var ip net.IP
-			//switch v := addr.(type) {
-			//case *net.IPNet:
-			//	ip = v.IP
-			//case *net.IPAddr:
-			//	ip = v.IP
-			//}
-			//// process IP address
-			log.Printf("addr: %v", addr)
-		}
-	}
+	//ifaces, _ := net.Interfaces()
+	//// handle err
+	//for _, iface := range ifaces {
+	//	addrs, _ := iface.Addrs()
+	//
+	//	log.Println(iface.Name)
+	//	// handle err
+	//	for _, addr := range addrs {
+	//		//var ip net.IP
+	//		//switch v := addr.(type) {
+	//		//case *net.IPNet:
+	//		//	ip = v.IP
+	//		//case *net.IPAddr:
+	//		//	ip = v.IP
+	//		//}
+	//		//// process IP address
+	//		log.Printf("addr: %v", addr)
+	//	}
+	//}
 
 	//localSID := rand.Uint32()
 	//remoteSID := rand.Uint32()
