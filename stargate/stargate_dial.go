@@ -3,7 +3,6 @@ package stargate
 import (
 	"context"
 	"fmt"
-	"log"
 	"net"
 	"sync"
 	"time"

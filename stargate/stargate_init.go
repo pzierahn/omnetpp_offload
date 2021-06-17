@@ -1,8 +1,9 @@
 package stargate
 
 import (
-	"log"
+	lg "log"
 	"net"
+	"os"
 )
 
 const (
@@ -15,7 +16,8 @@ var rendezvousAddr = &net.UDPAddr{
 	Port: stunPort,
 }
 
+var log *lg.Logger
+
 func init() {
-	log.SetFlags(log.LstdFlags | log.Lshortfile)
-	log.SetPrefix("Stargate ")
+	log = lg.New(os.Stderr, "Stargate ", lg.LstdFlags|lg.Lshortfile)
 }

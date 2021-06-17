@@ -1,7 +1,6 @@
 package consumer
 
 import (
-	"context"
 	"github.com/pzierahn/project.go.omnetpp/gconfig"
 	pb "github.com/pzierahn/project.go.omnetpp/proto"
 	"github.com/pzierahn/project.go.omnetpp/simple"
@@ -9,6 +8,7 @@ import (
 	"google.golang.org/grpc"
 	"log"
 	"path/filepath"
+	"time"
 )
 
 func Start(gConf gconfig.GRPCConnection, config *Config) {
@@ -41,42 +41,31 @@ func Start(gConf gconfig.GRPCConnection, config *Config) {
 		},
 		connections: make(map[string]*connection),
 	}
-	err = cons.zipSource()
+
+	log.Printf("zipping simulation source: %s", cons.config.Path)
+
+	buf, err := simple.TarGz(cons.config.Path, cons.simulation.Id, cons.config.Ignore...)
 	if err != nil {
-		log.Fatalln(err)
+		return
 	}
+
+	cons.simulationTgz = buf.Bytes()
 
 	broker := pb.NewBrokerClient(conn)
-	providers, err := broker.GetProviders(context.Background(), &pb.Empty{})
-	if err != nil {
-		log.Fatalln(err)
+	go cons.availableProvider(broker)
+
+	for {
+		log.Printf("Dispatch tasks (%d providers)", len(cons.connections))
+
+		time.Sleep(time.Second * 3)
 	}
 
-	log.Printf("providers: %v", simple.PrettyString(providers.Items))
-
-	for _, prov := range providers.Items {
-		_, err = cons.connect(prov)
-		if err != nil {
-			log.Println(err)
-		}
-	}
-
-	err = cons.checkoutSimulations()
-	if err != nil {
-		log.Fatalln(err)
-	}
-
-	err = cons.compile()
-	if err != nil {
-		log.Fatalln(err)
-	}
-
-	err = cons.run()
-	if err != nil {
-		log.Fatalln(err)
-	}
-
-	log.Printf("simulation finished!")
+	//err = cons.run()
+	//if err != nil {
+	//	log.Fatalln(err)
+	//}
+	//
+	//log.Printf("simulation finished!")
 
 	return
 }

@@ -4,7 +4,6 @@ import (
 	pb "github.com/pzierahn/project.go.omnetpp/proto"
 	"io"
 	"io/ioutil"
-	"log"
 	"os"
 	"path/filepath"
 )

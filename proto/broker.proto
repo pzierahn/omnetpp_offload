@@ -13,7 +13,7 @@ import "opp_config.proto";
 //
 
 service Broker {
-  rpc GetProviders (Empty)       returns (Providers) {}
+  rpc GetProviders (Empty)       returns (stream Providers) {}
   rpc Register     (stream Ping) returns (Empty)     {}
 }
 

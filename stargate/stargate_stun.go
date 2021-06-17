@@ -1,7 +1,6 @@
 package stargate
 
 import (
-	"log"
 	"net"
 	"sync"
 	"time"
@@ -36,7 +35,7 @@ func receiveStun(conn *net.UDPConn) {
 	}
 
 	connectId := string(buffer[0:br])
-	log.Printf("connectId %s %v", connectId, remoteAddr)
+	log.Printf("connectId=%s remoteAddr=%v", connectId, remoteAddr)
 
 	matchMu.Lock()
 	defer matchMu.Unlock()

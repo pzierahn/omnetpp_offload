@@ -39,6 +39,7 @@ func Start(conf Config) (err error) {
 	brk := broker{
 		providers:   make(map[string]*pb.ProviderInfo),
 		utilization: make(map[string]*pb.Utilization),
+		listener:    make(map[string]chan<- *pb.Providers),
 	}
 
 	go brk.startWebService()

@@ -5,7 +5,6 @@ import (
 	"context"
 	pb "github.com/pzierahn/project.go.omnetpp/proto"
 	"io"
-	"log"
 	"time"
 )
 

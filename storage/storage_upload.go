@@ -6,7 +6,6 @@ import (
 	"github.com/pzierahn/project.go.omnetpp/simple"
 	"google.golang.org/grpc/metadata"
 	"io"
-	"log"
 	"time"
 )
 

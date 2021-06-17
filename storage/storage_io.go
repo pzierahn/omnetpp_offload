@@ -2,7 +2,6 @@ package storage
 
 import (
 	"io"
-	"log"
 )
 
 const (

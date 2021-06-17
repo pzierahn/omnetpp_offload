@@ -16,11 +16,15 @@ type connection struct {
 	store    pb.StorageClient
 }
 
-func (cons *consumer) connect(prov *pb.ProviderInfo) (conn *connection, err error) {
+func (conn *connection) name() (name string) {
+	return conn.info.ProviderId
+}
 
-	log.Printf("connect to provider (%v)", prov.ProviderId)
+func connect(prov *pb.ProviderInfo) (conn *connection, err error) {
 
-	ctx, cln := context.WithTimeout(context.Background(), time.Second*4)
+	log.Printf("connect to provider %v", prov.ProviderId)
+
+	ctx, cln := context.WithTimeout(context.Background(), time.Second*5)
 	defer cln()
 
 	gate, remote, err := stargate.Dial(ctx, prov.ProviderId)
@@ -45,10 +49,6 @@ func (cons *consumer) connect(prov *pb.ProviderInfo) (conn *connection, err erro
 		provider: pb.NewProviderClient(cConn),
 		store:    pb.NewStorageClient(cConn),
 	}
-
-	cons.connMu.Lock()
-	cons.connections[prov.ProviderId] = conn
-	cons.connMu.Unlock()
 
 	// TODO: Handle disconnect!
 

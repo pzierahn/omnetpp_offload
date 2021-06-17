@@ -6,7 +6,6 @@ import (
 	"github.com/pzierahn/project.go.omnetpp/utils"
 	"google.golang.org/grpc/metadata"
 	"io"
-	"log"
 	"os"
 	"path/filepath"
 )

@@ -2,7 +2,6 @@ package storage
 
 import (
 	pb "github.com/pzierahn/project.go.omnetpp/proto"
-	"log"
 	"os"
 	"path/filepath"
 	"time"

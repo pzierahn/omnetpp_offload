@@ -8,57 +8,95 @@ import (
 	"github.com/pzierahn/project.go.omnetpp/storage"
 	"github.com/pzierahn/project.go.omnetpp/sysinfo"
 	"log"
+	"sync"
 )
 
-func (cons *consumer) compile() (err error) {
+var archMu sync.Mutex
+var archLock = make(map[string]*sync.Mutex)
 
-	cons.connMu.RLock()
-	defer cons.connMu.RUnlock()
+var binaryMu sync.RWMutex
+var binaries = make(map[string][]byte)
 
-	bins := make(map[string][]byte)
+func (conn *connection) compile(simulation *pb.Simulation) (err error) {
 
-	for id, conn := range cons.connections {
+	arch := sysinfo.Signature(conn.info.Arch)
+	store := storage.FromClient(conn.store)
 
-		archSig := sysinfo.Signature(conn.info.Arch)
-		storeCli := storage.FromClient(conn.store)
+	log.Printf("[%s] compile: %s", conn.name(), arch)
 
-		if buf, ok := bins[archSig]; ok {
-			log.Printf("compile: id=%s arch=%s cached", id, archSig)
+	var bin *pb.Binary
+	bin, err = conn.provider.Compile(context.Background(), simulation)
+	if err != nil {
+		return
+	}
 
-			var ref *pb.StorageRef
-			ref, err = storeCli.Upload(bytes.NewReader(buf), storage.FileMeta{
-				Bucket:   cons.simulation.Id,
-				Filename: fmt.Sprintf("binary/%s.tgz", archSig),
-			})
-			if err != nil {
-				return
-			}
+	var buf bytes.Buffer
+	buf, err = store.Download(bin.Ref)
+	if err != nil {
+		return
+	}
 
-			_, err = conn.provider.Checkout(context.Background(), &pb.Bundle{
-				SimulationId: cons.simulation.Id,
-				Source:       ref,
-			})
-			if err != nil {
-				return
-			}
+	binaryMu.Lock()
+	binaries[arch] = buf.Bytes()
+	binaryMu.Unlock()
 
-			continue
-		}
+	log.Printf("[%s] compile: %s done", conn.name(), arch)
 
-		log.Printf("compile: id=%s arch=%s", id, archSig)
-		var bin *pb.Binary
-		bin, err = conn.provider.Compile(context.Background(), cons.simulation)
-		if err != nil {
-			return
-		}
+	return
+}
 
-		var buf bytes.Buffer
-		buf, err = storeCli.Download(bin.Ref)
-		if err != nil {
-			return
-		}
+func (conn *connection) uploadBinary(simulation *pb.Simulation, buf []byte) (err error) {
 
-		bins[archSig] = buf.Bytes()
+	log.Printf("[%s] uploadBinary:", conn.name())
+
+	arch := sysinfo.Signature(conn.info.Arch)
+	store := storage.FromClient(conn.store)
+
+	var ref *pb.StorageRef
+	ref, err = store.Upload(bytes.NewReader(buf), storage.FileMeta{
+		Bucket:   simulation.Id,
+		Filename: fmt.Sprintf("binary/%s.tgz", arch),
+	})
+	if err != nil {
+		return
+	}
+
+	_, err = conn.provider.Checkout(context.Background(), &pb.Bundle{
+		SimulationId: simulation.Id,
+		Source:       ref,
+	})
+
+	log.Printf("[%s] uploadBinary: done", conn.name())
+
+	return
+}
+
+func (conn *connection) setup(simulation *pb.Simulation) (err error) {
+
+	arch := sysinfo.Signature(conn.info.Arch)
+
+	// TODO: Find an easy way to do this
+	var lock *sync.Mutex
+	archMu.Lock()
+	if aLock, ok := archLock[arch]; ok {
+		lock = aLock
+	} else {
+		lock = &sync.Mutex{}
+		archLock[arch] = lock
+	}
+	archMu.Unlock()
+
+	lock.Lock()
+	defer lock.Unlock()
+
+	binaryMu.RLock()
+	buf, ok := binaries[arch]
+	binaryMu.RUnlock()
+
+	if ok {
+		err = conn.uploadBinary(simulation, buf)
+	} else {
+		err = conn.compile(simulation)
 	}
 
 	return

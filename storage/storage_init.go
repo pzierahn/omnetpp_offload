@@ -2,16 +2,17 @@ package storage
 
 import (
 	"github.com/pzierahn/project.go.omnetpp/defines"
-	"log"
+	lg "log"
 	"os"
 	"path/filepath"
 )
 
 var storagePath string
 
+var log *lg.Logger
+
 func init() {
-	log.SetFlags(log.LstdFlags | log.Lshortfile)
-	log.SetPrefix("Storage ")
+	log = lg.New(os.Stderr, "Storage ", lg.LstdFlags|lg.Lshortfile)
 
 	storagePath = filepath.Join(defines.CacheDir(), "storage")
 	_ = os.MkdirAll(storagePath, 0755)
