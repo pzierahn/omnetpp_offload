@@ -76,7 +76,7 @@ func GRPCDialer(pconn *net.UDPConn) (dialer Dialer) {
 
 		sess, err := quic.DialContext(ctx, pconn, rAddr, "", tlsConf, &quic.Config{
 			KeepAlive:      true,
-			MaxIdleTimeout: time.Millisecond * 2000,
+			MaxIdleTimeout: time.Millisecond * 3200,
 		})
 		if err != nil {
 			return
