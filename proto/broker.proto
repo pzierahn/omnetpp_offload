@@ -60,10 +60,20 @@ service Provider {
   rpc Info   (Empty) returns (ProviderInfo) {}
   rpc Status (Empty) returns (Utilization)  {}
 
+  rpc Schedule    (stream AllocateRequest) returns (stream AllocatedSlots) {}
+
   rpc Checkout    (Bundle)     returns (Empty)          {}
   rpc Compile     (Simulation) returns (Binary)         {}
   rpc ListRunNums (Simulation) returns (SimulationRuns) {}
   rpc Run         (Simulation) returns (StorageRef)     {}
+}
+
+message AllocateRequest {
+  uint32 request = 1;
+}
+
+message AllocatedSlots {
+  uint32 slots = 1;
 }
 
 message Simulation {

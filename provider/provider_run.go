@@ -37,10 +37,10 @@ func (prov *provider) run(simulation *pb.Simulation) (ref *pb.StorageRef, err er
 	}
 
 	var results map[string]bool
-	var filesBefor map[string]bool
+	var filesBefore map[string]bool
 	var filesAfter map[string]bool
 
-	filesBefor, err = simple.ListDir(simulationPath)
+	filesBefore, err = simple.ListDir(simulationPath)
 	if err != nil {
 		return
 	}
@@ -70,7 +70,7 @@ func (prov *provider) run(simulation *pb.Simulation) (ref *pb.StorageRef, err er
 	//
 
 	var buf bytes.Buffer
-	results = simple.DirDiff(filesBefor, filesAfter)
+	results = simple.DirDiff(filesBefore, filesAfter)
 	buf, err = simple.TarGzFiles(simulationPath, simulation.Id, results)
 	if err != nil {
 		return

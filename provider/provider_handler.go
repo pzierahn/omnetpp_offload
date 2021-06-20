@@ -9,14 +9,24 @@ import (
 	"github.com/pzierahn/project.go.omnetpp/storage"
 	"github.com/pzierahn/project.go.omnetpp/sysinfo"
 	"log"
+	"math/rand"
 	"os"
 	"path/filepath"
+	"sync"
 )
+
+type consumerId = string
 
 type provider struct {
 	pb.UnimplementedProviderServer
 	providerId string
 	store      *storage.Server
+
+	mu          sync.RWMutex
+	freeSlots   uint32
+	requests    map[consumerId]uint32
+	assignments map[consumerId]uint32
+	allocate    map[consumerId]chan<- uint32
 }
 
 func (prov *provider) Info(_ context.Context, _ *pb.Empty) (info *pb.ProviderInfo, err error) {
@@ -90,7 +100,7 @@ func (prov *provider) ListRunNums(_ context.Context, simulation *pb.Simulation) 
 
 func (prov *provider) Run(_ context.Context, simulation *pb.Simulation) (ref *pb.StorageRef, err error) {
 
-	log.Printf("ListRunNums: id=%v config='%s' runNum='%s'",
+	log.Printf("Run: id=%v config='%s' runNum='%s'",
 		simulation.Id, simulation.Config, simulation.RunNum)
 
 	if simulation.Config == "" {
@@ -103,5 +113,76 @@ func (prov *provider) Run(_ context.Context, simulation *pb.Simulation) (ref *pb
 		return
 	}
 
+	if prov.freeSlots == 0 {
+		err = fmt.Errorf("no free slots avilable")
+		return
+	}
+
+	prov.mu.Lock()
+	prov.freeSlots--
+	prov.mu.Unlock()
+
+	defer func() {
+		prov.mu.Lock()
+		prov.freeSlots++
+		prov.mu.Unlock()
+	}()
+
 	return prov.run(simulation)
+}
+
+func (prov *provider) Schedule(stream pb.Provider_ScheduleServer) (err error) {
+
+	jobs, err := stream.Recv()
+	if err != nil {
+		log.Println(err)
+		return
+	}
+
+	cId := fmt.Sprintf("%x", rand.Uint32())
+	log.Printf("Schedule: register cId=%v", cId)
+
+	allocate := make(chan uint32)
+	prov.mu.Lock()
+	prov.allocate[cId] = allocate
+	prov.requests[cId] = jobs.Request
+	prov.mu.Unlock()
+
+	defer func() {
+		prov.mu.Lock()
+		delete(prov.allocate, cId)
+		prov.mu.Unlock()
+		close(allocate)
+	}()
+
+	go func() {
+		for slots := range allocate {
+			log.Printf("Schedule: cId=%s allocate=%d", cId, slots)
+
+			err = stream.Send(&pb.AllocatedSlots{
+				Slots: slots,
+			})
+			if err != nil {
+				log.Println(err)
+				break
+			}
+		}
+	}()
+
+	for {
+		jobs, err = stream.Recv()
+		if err != nil {
+			break
+		}
+
+		log.Printf("Schedule: cId=%s request=%d", cId, jobs.Request)
+
+		prov.mu.Lock()
+		prov.requests[cId] = jobs.Request
+		prov.mu.Unlock()
+	}
+
+	log.Printf("Schedule: unregister cId=%v", cId)
+
+	return
 }

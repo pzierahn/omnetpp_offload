@@ -1,8 +1,8 @@
 package main
 
 import (
+	"github.com/pzierahn/project.go.omnetpp/simple"
 	"log"
-	"time"
 )
 
 func fib(n float64) float64 {
@@ -14,21 +14,43 @@ func fib(n float64) float64 {
 
 var result float64
 
+func resultt() int {
+	log.Println("resultt")
+	return 88
+}
+
+func test() (res int) {
+
+	defer func() {
+		log.Println("defer")
+	}()
+
+	return resultt()
+}
+
 func main() {
 
 	log.SetFlags(log.LstdFlags | log.Lshortfile)
 
-	startTime := time.Now()
+	freeSlots := uint32(8)
+	assign := simple.MathMinUint32(freeSlots, 134)
+	freeSlots -= assign
 
-	var r float64
+	log.Println(assign, freeSlots, freeSlots-1)
 
-	for inx := 0; inx < 100; inx++ {
-		r = fib(30)
-	}
+	//test()
 
-	result = r
+	//startTime := time.Now()
 
-	log.Printf("Duration: %v", time.Now().Sub(startTime))
+	//var r float64
+	//
+	//for inx := 0; inx < 100; inx++ {
+	//	r = fib(30)
+	//}
+	//
+	//result = r
+	//
+	//log.Printf("Duration: %v", time.Now().Sub(startTime))
 
 	//log.Println(math.Ceil(1.0))
 	//log.Printf("0x%x", (int64(0x12345678)<<32) | int64(0xa))

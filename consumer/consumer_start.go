@@ -54,18 +54,14 @@ func Start(gConf gconfig.GRPCConnection, config *Config) {
 	broker := pb.NewBrokerClient(conn)
 	go cons.availableProvider(broker)
 
-	for {
-		log.Printf("Dispatch tasks (%d providers)", len(cons.connections))
+	time.Sleep(time.Second * 15)
 
-		time.Sleep(time.Second * 3)
+	err = cons.dispatchTasks()
+	if err != nil {
+		log.Fatalln(err)
 	}
 
-	//err = cons.run()
-	//if err != nil {
-	//	log.Fatalln(err)
-	//}
-	//
-	//log.Printf("simulation finished!")
+	log.Printf("simulation finished!")
 
 	return
 }

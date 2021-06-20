@@ -203,6 +203,7 @@ var Broker_ServiceDesc = grpc.ServiceDesc{
 type ProviderClient interface {
 	Info(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*ProviderInfo, error)
 	Status(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*Utilization, error)
+	Schedule(ctx context.Context, opts ...grpc.CallOption) (Provider_ScheduleClient, error)
 	Checkout(ctx context.Context, in *Bundle, opts ...grpc.CallOption) (*Empty, error)
 	Compile(ctx context.Context, in *Simulation, opts ...grpc.CallOption) (*Binary, error)
 	ListRunNums(ctx context.Context, in *Simulation, opts ...grpc.CallOption) (*SimulationRuns, error)
@@ -233,6 +234,37 @@ func (c *providerClient) Status(ctx context.Context, in *Empty, opts ...grpc.Cal
 		return nil, err
 	}
 	return out, nil
+}
+
+func (c *providerClient) Schedule(ctx context.Context, opts ...grpc.CallOption) (Provider_ScheduleClient, error) {
+	stream, err := c.cc.NewStream(ctx, &Provider_ServiceDesc.Streams[0], "/service.Provider/Schedule", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &providerScheduleClient{stream}
+	return x, nil
+}
+
+type Provider_ScheduleClient interface {
+	Send(*AllocateRequest) error
+	Recv() (*AllocatedSlots, error)
+	grpc.ClientStream
+}
+
+type providerScheduleClient struct {
+	grpc.ClientStream
+}
+
+func (x *providerScheduleClient) Send(m *AllocateRequest) error {
+	return x.ClientStream.SendMsg(m)
+}
+
+func (x *providerScheduleClient) Recv() (*AllocatedSlots, error) {
+	m := new(AllocatedSlots)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
 }
 
 func (c *providerClient) Checkout(ctx context.Context, in *Bundle, opts ...grpc.CallOption) (*Empty, error) {
@@ -277,6 +309,7 @@ func (c *providerClient) Run(ctx context.Context, in *Simulation, opts ...grpc.C
 type ProviderServer interface {
 	Info(context.Context, *Empty) (*ProviderInfo, error)
 	Status(context.Context, *Empty) (*Utilization, error)
+	Schedule(Provider_ScheduleServer) error
 	Checkout(context.Context, *Bundle) (*Empty, error)
 	Compile(context.Context, *Simulation) (*Binary, error)
 	ListRunNums(context.Context, *Simulation) (*SimulationRuns, error)
@@ -293,6 +326,9 @@ func (UnimplementedProviderServer) Info(context.Context, *Empty) (*ProviderInfo,
 }
 func (UnimplementedProviderServer) Status(context.Context, *Empty) (*Utilization, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Status not implemented")
+}
+func (UnimplementedProviderServer) Schedule(Provider_ScheduleServer) error {
+	return status.Errorf(codes.Unimplemented, "method Schedule not implemented")
 }
 func (UnimplementedProviderServer) Checkout(context.Context, *Bundle) (*Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Checkout not implemented")
@@ -353,6 +389,32 @@ func _Provider_Status_Handler(srv interface{}, ctx context.Context, dec func(int
 		return srv.(ProviderServer).Status(ctx, req.(*Empty))
 	}
 	return interceptor(ctx, in, info, handler)
+}
+
+func _Provider_Schedule_Handler(srv interface{}, stream grpc.ServerStream) error {
+	return srv.(ProviderServer).Schedule(&providerScheduleServer{stream})
+}
+
+type Provider_ScheduleServer interface {
+	Send(*AllocatedSlots) error
+	Recv() (*AllocateRequest, error)
+	grpc.ServerStream
+}
+
+type providerScheduleServer struct {
+	grpc.ServerStream
+}
+
+func (x *providerScheduleServer) Send(m *AllocatedSlots) error {
+	return x.ServerStream.SendMsg(m)
+}
+
+func (x *providerScheduleServer) Recv() (*AllocateRequest, error) {
+	m := new(AllocateRequest)
+	if err := x.ServerStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
 }
 
 func _Provider_Checkout_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
@@ -459,6 +521,13 @@ var Provider_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _Provider_Run_Handler,
 		},
 	},
-	Streams:  []grpc.StreamDesc{},
+	Streams: []grpc.StreamDesc{
+		{
+			StreamName:    "Schedule",
+			Handler:       _Provider_Schedule_Handler,
+			ServerStreams: true,
+			ClientStreams: true,
+		},
+	},
 	Metadata: "broker.proto",
 }
