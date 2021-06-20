@@ -89,7 +89,7 @@ func (conn *connection) startScheduler(count <-chan uint32, tasks chan *pb.Simul
 					err := conn.run(task)
 					if err != nil {
 						//
-						// Job failed: Reschedule task
+						// Job failed: reschedule task
 						//
 						log.Printf("[%s] job %s-%s failed: %v",
 							conn.name(), task.Config, task.RunNum, err)
