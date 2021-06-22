@@ -5,11 +5,11 @@ import (
 	"log"
 )
 
-func (prov *provider) distributeSlots() {
+func (prov *provider) allocateSlots() {
 
 	prov.mu.RLock()
 
-	log.Printf("distributeSlots: slots=%d requesters=%d", prov.freeSlots, len(prov.requests))
+	log.Printf("allocateSlots: slots=%d requesters=%d", prov.freeSlots, len(prov.requests))
 
 	for cId, req := range prov.requests {
 

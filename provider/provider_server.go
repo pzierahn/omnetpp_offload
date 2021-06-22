@@ -87,7 +87,7 @@ func Start(conf gconfig.Config) {
 
 	go func() {
 		for range time.Tick(time.Millisecond * 2000) {
-			prov.distributeSlots()
+			prov.allocateSlots()
 		}
 	}()
 

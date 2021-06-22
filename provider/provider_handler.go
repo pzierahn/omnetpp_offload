@@ -131,7 +131,7 @@ func (prov *provider) Run(_ context.Context, simulation *pb.Simulation) (ref *pb
 	return prov.run(simulation)
 }
 
-func (prov *provider) Schedule(stream pb.Provider_ScheduleServer) (err error) {
+func (prov *provider) Allocate(stream pb.Provider_AllocateServer) (err error) {
 
 	jobs, err := stream.Recv()
 	if err != nil {

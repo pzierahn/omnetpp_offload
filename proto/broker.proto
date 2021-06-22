@@ -60,7 +60,7 @@ service Provider {
   rpc Info   (Empty) returns (ProviderInfo) {}
   rpc Status (Empty) returns (Utilization)  {}
 
-  rpc Schedule    (stream AllocateRequest) returns (stream AllocatedSlots) {}
+  rpc Allocate (stream AllocateRequest) returns (stream AllocatedSlots) {}
 
   rpc Checkout    (Bundle)     returns (Empty)          {}
   rpc Compile     (Simulation) returns (Binary)         {}

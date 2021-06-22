@@ -44,7 +44,7 @@ func (conn *connection) startScheduler(count <-chan uint32, tasks chan *pb.Simul
 
 	log.Printf("startScheduler: %s", conn.name())
 
-	stream, err := conn.provider.Schedule(context.Background())
+	stream, err := conn.provider.Allocate(context.Background())
 	if err != nil {
 		return
 	}
