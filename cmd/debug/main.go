@@ -1,7 +1,6 @@
 package main
 
 import (
-	"github.com/pzierahn/project.go.omnetpp/simple"
 	"log"
 )
 
@@ -32,11 +31,11 @@ func main() {
 
 	log.SetFlags(log.LstdFlags | log.Lshortfile)
 
-	freeSlots := uint32(8)
-	assign := simple.MathMinUint32(freeSlots, 134)
-	freeSlots -= assign
-
-	log.Println(assign, freeSlots, freeSlots-1)
+	//freeSlots := uint32(8)
+	//assign := simple.MathMinUint32(freeSlots, 134)
+	//freeSlots -= assign
+	//
+	//log.Println(assign, freeSlots, freeSlots-1)
 
 	//test()
 

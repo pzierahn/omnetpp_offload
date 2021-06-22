@@ -1,9 +1,17 @@
 package consumer
 
 import (
+	"github.com/pzierahn/project.go.omnetpp/omnetpp"
 	pb "github.com/pzierahn/project.go.omnetpp/proto"
 	"sync"
 )
+
+type Config struct {
+	omnetpp.Config
+	Tag             string   `json:"tag"`
+	SimulateConfigs []string `json:"run"`
+	Ignore          []string `json:"ignore"`
+}
 
 type consumer struct {
 	config      *Config

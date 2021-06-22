@@ -11,9 +11,8 @@ import (
 
 func (conn *connection) checkout(simulation *pb.Simulation, tgz []byte) (err error) {
 
-	provId := conn.info.ProviderId
 	log.Printf("[%s] upload: %s (%v)",
-		provId, simulation.Id, simple.ByteSize(uint64(len(tgz))))
+		conn.name(), simulation.Id, simple.ByteSize(uint64(len(tgz))))
 
 	storeCli := storage.FromClient(conn.store)
 	var ref *pb.StorageRef
@@ -25,16 +24,16 @@ func (conn *connection) checkout(simulation *pb.Simulation, tgz []byte) (err err
 		return
 	}
 
-	log.Printf("[%s] upload: %s done", provId, simulation.Id)
+	log.Printf("[%s] upload: %s done", conn.name(), simulation.Id)
 
-	log.Printf("[%s] checkout: %s...", provId, simulation.Id)
+	log.Printf("[%s] checkout: %s...", conn.name(), simulation.Id)
 
 	_, err = conn.provider.Checkout(context.Background(), &pb.Bundle{
 		SimulationId: simulation.Id,
 		Source:       ref,
 	})
 
-	log.Printf("[%s] checkout: %s done", provId, simulation.Id)
+	log.Printf("[%s] checkout: %s done", conn.name(), simulation.Id)
 
 	return
 }

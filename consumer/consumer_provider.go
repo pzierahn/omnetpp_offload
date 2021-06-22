@@ -69,7 +69,6 @@ func (cons *consumer) availableProvider(broker pb.BrokerClient) {
 				mux.Lock()
 				connections[prov.ProviderId] = conn
 				mux.Unlock()
-
 			}(prov)
 		}
 
