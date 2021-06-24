@@ -18,6 +18,12 @@ type consumer struct {
 	simulation  *pb.Simulation
 	connMu      sync.RWMutex
 	connections map[string]*connection
+
+	finished  sync.WaitGroup
+	allocCond *sync.Cond
+	allocate  []*pb.Simulation
+	allocator chan *pb.Simulation
+
 	// TODO: Persist bytes to HD
 	simulationTgz []byte
 	binaries      map[string][]byte

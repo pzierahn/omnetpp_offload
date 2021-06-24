@@ -140,7 +140,7 @@ func (prov *provider) Allocate(stream pb.Provider_AllocateServer) (err error) {
 	}
 
 	cId := fmt.Sprintf("%x", rand.Uint32())
-	log.Printf("Schedule: register cId=%v", cId)
+	log.Printf("Allocate: register cId=%v", cId)
 
 	allocate := make(chan uint32)
 	prov.mu.Lock()
@@ -149,15 +149,18 @@ func (prov *provider) Allocate(stream pb.Provider_AllocateServer) (err error) {
 	prov.mu.Unlock()
 
 	defer func() {
+		log.Printf("Allocate: unregister cId=%v", cId)
+
 		prov.mu.Lock()
 		delete(prov.allocate, cId)
+		delete(prov.requests, cId)
 		prov.mu.Unlock()
 		close(allocate)
 	}()
 
 	go func() {
 		for slots := range allocate {
-			log.Printf("Schedule: cId=%s allocate=%d", cId, slots)
+			log.Printf("Allocate: cId=%s allocate=%d", cId, slots)
 
 			err = stream.Send(&pb.AllocatedSlots{
 				Slots: slots,
@@ -175,14 +178,12 @@ func (prov *provider) Allocate(stream pb.Provider_AllocateServer) (err error) {
 			break
 		}
 
-		log.Printf("Schedule: cId=%s request=%d", cId, jobs.Request)
+		log.Printf("Allocate: cId=%s request=%d", cId, jobs.Request)
 
 		prov.mu.Lock()
 		prov.requests[cId] = jobs.Request
 		prov.mu.Unlock()
 	}
-
-	log.Printf("Schedule: unregister cId=%v", cId)
 
 	return
 }

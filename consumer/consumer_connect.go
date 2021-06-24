@@ -7,11 +7,14 @@ import (
 	"github.com/pzierahn/project.go.omnetpp/utils"
 	"google.golang.org/grpc"
 	"log"
+	"net"
 	"time"
 )
 
 type connection struct {
 	info     *pb.ProviderInfo
+	conn     *net.UDPConn
+	cConn    *grpc.ClientConn
 	provider pb.ProviderClient
 	store    pb.StorageClient
 }
@@ -46,11 +49,16 @@ func connect(prov *pb.ProviderInfo) (conn *connection, err error) {
 
 	conn = &connection{
 		info:     prov,
+		conn:     gate,
+		cConn:    cConn,
 		provider: pb.NewProviderClient(cConn),
 		store:    pb.NewStorageClient(cConn),
 	}
 
-	// TODO: Handle disconnect!
-
 	return
+}
+
+func (conn *connection) close() {
+	_ = conn.cConn.Close()
+	_ = conn.conn.Close()
 }

@@ -8,7 +8,7 @@ import (
 	"google.golang.org/grpc"
 	"log"
 	"path/filepath"
-	"time"
+	"sync"
 )
 
 func Start(gConf gconfig.GRPCConnection, config *Config) {
@@ -40,21 +40,21 @@ func Start(gConf gconfig.GRPCConnection, config *Config) {
 			OppConfig: config.OppConfig,
 		},
 		connections: make(map[string]*connection),
+		allocCond:   sync.NewCond(&sync.Mutex{}),
+		allocator:   make(chan *pb.Simulation),
 	}
 
 	log.Printf("zipping simulation source: %s", cons.config.Path)
 
 	buf, err := simple.TarGz(cons.config.Path, cons.simulation.Id, cons.config.Ignore...)
 	if err != nil {
-		return
+		log.Fatalln(err)
 	}
 
 	cons.simulationTgz = buf.Bytes()
 
 	broker := pb.NewBrokerClient(conn)
-	go cons.availableProvider(broker)
-
-	time.Sleep(time.Second * 15)
+	go cons.startConnector(broker)
 
 	err = cons.dispatchTasks()
 	if err != nil {

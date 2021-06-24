@@ -8,11 +8,13 @@ import (
 	"sync"
 )
 
-func (cons *consumer) availableProvider(broker pb.BrokerClient) {
+func (cons *consumer) startConnector(broker pb.BrokerClient) {
 	stream, err := broker.GetProviders(context.Background(), &pb.Empty{})
 	if err != nil {
 		log.Fatalln(err)
 	}
+
+	var once sync.Once
 
 	for {
 		providers, err := stream.Recv()
@@ -23,6 +25,7 @@ func (cons *consumer) availableProvider(broker pb.BrokerClient) {
 		log.Printf("providers updated event: %v", simple.PrettyString(providers.Items))
 
 		var wg sync.WaitGroup
+		var mux sync.RWMutex
 		connections := make(map[string]*connection)
 
 		for _, prov := range providers.Items {
@@ -34,15 +37,13 @@ func (cons *consumer) availableProvider(broker pb.BrokerClient) {
 			if ok {
 
 				//
-				// Connection already established
+				// Connection already established, nothing to do
 				//
 
 				connections[prov.ProviderId] = conn
 
 				continue
 			}
-
-			var mux sync.RWMutex
 
 			wg.Add(1)
 			go func(prov *pb.ProviderInfo) {
@@ -54,17 +55,43 @@ func (cons *consumer) availableProvider(broker pb.BrokerClient) {
 					return
 				}
 
-				err = conn.checkout(cons.simulation, cons.simulationTgz)
+				err = cons.init(conn)
 				if err != nil {
 					log.Println(err)
 					return
 				}
 
-				err = conn.setup(cons.simulation)
-				if err != nil {
-					log.Println(err)
-					return
-				}
+				once.Do(func() {
+					log.Printf("[%s] list simulation run numbers", conn.name())
+
+					runs, err := conn.provider.ListRunNums(context.Background(), &pb.Simulation{
+						Id:        cons.simulation.Id,
+						OppConfig: cons.simulation.OppConfig,
+
+						// TODO: Fix 0 index
+						Config: cons.config.SimulateConfigs[0],
+					})
+					if err != nil {
+						log.Fatalln(err)
+					}
+
+					allocate := make([]*pb.Simulation, len(runs.Runs))
+					for inx, run := range runs.Runs {
+						allocate[inx] = &pb.Simulation{
+							Id:        cons.simulation.Id,
+							OppConfig: cons.simulation.OppConfig,
+							Config:    runs.Config,
+							RunNum:    run,
+						}
+					}
+
+					log.Printf("[%s] created %d jobs", conn.name(), len(allocate))
+
+					cons.allocCond.L.Lock()
+					cons.allocate = allocate
+					cons.allocCond.Broadcast()
+					cons.allocCond.L.Unlock()
+				})
 
 				mux.Lock()
 				connections[prov.ProviderId] = conn
