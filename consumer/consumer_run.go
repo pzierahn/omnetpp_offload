@@ -5,11 +5,13 @@ import (
 	pb "github.com/pzierahn/project.go.omnetpp/proto"
 	"github.com/pzierahn/project.go.omnetpp/simple"
 	"github.com/pzierahn/project.go.omnetpp/storage"
+	"io/ioutil"
 	"log"
+	"path/filepath"
 	"time"
 )
 
-func (conn *connection) run(task *pb.Simulation) (err error) {
+func (conn *connection) run(task *pb.SimulationRun) (err error) {
 	runName := task.Config + "-" + task.RunNum
 	log.Printf("[%s] %s start", conn.name(), runName)
 
@@ -33,6 +35,9 @@ func (conn *connection) run(task *pb.Simulation) (err error) {
 
 	log.Printf("[%s] %s downloaded results %v in %v",
 		conn.name(), runName, simple.ByteSize(uint64(buf.Len())), time.Now().Sub(endExec))
+
+	dump := "/Users/patrick/Desktop/dump"
+	err = ioutil.WriteFile(filepath.Join(dump, runName+".tgz"), buf.Bytes(), 0755)
 
 	return
 }

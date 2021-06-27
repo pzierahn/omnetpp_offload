@@ -9,7 +9,6 @@ import (
 	"github.com/pzierahn/project.go.omnetpp/storage"
 	"github.com/pzierahn/project.go.omnetpp/sysinfo"
 	"log"
-	"math/rand"
 	"os"
 	"path/filepath"
 	"sync"
@@ -23,6 +22,7 @@ type provider struct {
 	store      *storage.Server
 
 	mu          sync.RWMutex
+	slots       uint32
 	freeSlots   uint32
 	requests    map[consumerId]uint32
 	assignments map[consumerId]uint32
@@ -98,18 +98,23 @@ func (prov *provider) ListRunNums(_ context.Context, simulation *pb.Simulation) 
 	return
 }
 
-func (prov *provider) Run(_ context.Context, simulation *pb.Simulation) (ref *pb.StorageRef, err error) {
+func (prov *provider) Run(_ context.Context, run *pb.SimulationRun) (ref *pb.StorageRef, err error) {
 
 	log.Printf("Run: id=%v config='%s' runNum='%s'",
-		simulation.Id, simulation.Config, simulation.RunNum)
+		run.SimulationId, run.Config, run.RunNum)
 
-	if simulation.Config == "" {
+	if run.Config == "" {
 		err = fmt.Errorf("simulation config missing")
 		return
 	}
 
-	if simulation.RunNum == "" {
+	if run.RunNum == "" {
 		err = fmt.Errorf("simulation run number missing")
+		return
+	}
+
+	if run.ConsumerId == "" {
+		err = fmt.Errorf("ConsumerId missing")
 		return
 	}
 
@@ -125,10 +130,11 @@ func (prov *provider) Run(_ context.Context, simulation *pb.Simulation) (ref *pb
 	defer func() {
 		prov.mu.Lock()
 		prov.freeSlots++
+		prov.assignments[run.ConsumerId]--
 		prov.mu.Unlock()
 	}()
 
-	return prov.run(simulation)
+	return prov.run(run)
 }
 
 func (prov *provider) Allocate(stream pb.Provider_AllocateServer) (err error) {
@@ -139,28 +145,30 @@ func (prov *provider) Allocate(stream pb.Provider_AllocateServer) (err error) {
 		return
 	}
 
-	cId := fmt.Sprintf("%x", rand.Uint32())
-	log.Printf("Allocate: register cId=%v", cId)
+	var cId string
 
 	allocate := make(chan uint32)
-	prov.mu.Lock()
-	prov.allocate[cId] = allocate
-	prov.requests[cId] = jobs.Request
-	prov.mu.Unlock()
 
 	defer func() {
-		log.Printf("Allocate: unregister cId=%v", cId)
+		log.Printf("Allocate: unregister ConsumerId=%v", cId)
 
 		prov.mu.Lock()
 		delete(prov.allocate, cId)
 		delete(prov.requests, cId)
+
+		// Clean up assignments
+		if ass, ok := prov.assignments[cId]; ok {
+			prov.freeSlots += ass
+			delete(prov.assignments, cId)
+		}
+
 		prov.mu.Unlock()
 		close(allocate)
 	}()
 
 	go func() {
 		for slots := range allocate {
-			log.Printf("Allocate: cId=%s allocate=%d", cId, slots)
+			log.Printf("Allocate: ConsumerId=%s allocate=%d", cId, slots)
 
 			err = stream.Send(&pb.AllocatedSlots{
 				Slots: slots,
@@ -172,13 +180,31 @@ func (prov *provider) Allocate(stream pb.Provider_AllocateServer) (err error) {
 		}
 	}()
 
+	var once sync.Once
+
 	for {
 		jobs, err = stream.Recv()
 		if err != nil {
 			break
 		}
 
-		log.Printf("Allocate: cId=%s request=%d", cId, jobs.Request)
+		once.Do(func() {
+			cId = jobs.ConsumerId
+			log.Printf("Allocate: register ConsumerId=%v", cId)
+
+			prov.mu.Lock()
+			prov.allocate[cId] = allocate
+			prov.requests[cId] = jobs.Request
+			prov.mu.Unlock()
+		})
+
+		if cId == "" {
+			err = fmt.Errorf("error: missing ConsumerId")
+			log.Println(err)
+			return
+		}
+
+		log.Printf("Allocate: ConsumerId=%s request=%d", cId, jobs.Request)
 
 		prov.mu.Lock()
 		prov.requests[cId] = jobs.Request

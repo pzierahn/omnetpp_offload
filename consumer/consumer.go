@@ -14,6 +14,7 @@ type Config struct {
 }
 
 type consumer struct {
+	consumerId  string
 	config      *Config
 	simulation  *pb.Simulation
 	connMu      sync.RWMutex
@@ -21,8 +22,8 @@ type consumer struct {
 
 	finished  sync.WaitGroup
 	allocCond *sync.Cond
-	allocate  []*pb.Simulation
-	allocator chan *pb.Simulation
+	allocate  []*pb.SimulationRun
+	allocator chan *pb.SimulationRun
 
 	// TODO: Persist bytes to HD
 	simulationTgz []byte

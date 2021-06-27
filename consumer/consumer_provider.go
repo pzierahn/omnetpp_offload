@@ -75,20 +75,22 @@ func (cons *consumer) startConnector(broker pb.BrokerClient) {
 						log.Fatalln(err)
 					}
 
-					allocate := make([]*pb.Simulation, len(runs.Runs))
+					allocate := make([]*pb.SimulationRun, len(runs.Runs))
 					for inx, run := range runs.Runs {
-						allocate[inx] = &pb.Simulation{
-							Id:        cons.simulation.Id,
-							OppConfig: cons.simulation.OppConfig,
-							Config:    runs.Config,
-							RunNum:    run,
+						allocate[inx] = &pb.SimulationRun{
+							ConsumerId:   cons.consumerId,
+							SimulationId: cons.simulation.Id,
+							OppConfig:    cons.simulation.OppConfig,
+							Config:       runs.Config,
+							RunNum:       run,
 						}
 					}
 
 					log.Printf("[%s] created %d jobs", conn.name(), len(allocate))
 
 					cons.allocCond.L.Lock()
-					cons.allocate = allocate
+					// TODO: Remove slice cut!
+					cons.allocate = allocate[:20]
 					cons.allocCond.Broadcast()
 					cons.allocCond.L.Unlock()
 				})

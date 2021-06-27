@@ -9,6 +9,7 @@ func (cons *consumer) dispatchTasks() (err error) {
 
 	cond := cons.allocCond
 
+	// Wait for initialisation of the queue
 	cons.allocCond.L.Lock()
 	cons.allocCond.Wait()
 	cons.allocCond.L.Unlock()
@@ -16,7 +17,7 @@ func (cons *consumer) dispatchTasks() (err error) {
 	log.Printf("dispatchTasks:")
 
 	for {
-		var schedule *pb.Simulation
+		var schedule *pb.SimulationRun
 
 		cond.L.Lock()
 

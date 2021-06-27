@@ -62,14 +62,15 @@ service Provider {
 
   rpc Allocate (stream AllocateRequest) returns (stream AllocatedSlots) {}
 
-  rpc Checkout    (Bundle)     returns (Empty)          {}
-  rpc Compile     (Simulation) returns (Binary)         {}
-  rpc ListRunNums (Simulation) returns (SimulationRuns) {}
-  rpc Run         (Simulation) returns (StorageRef)     {}
+  rpc Checkout    (Bundle)        returns (Empty)          {}
+  rpc Compile     (Simulation)    returns (Binary)         {}
+  rpc ListRunNums (Simulation)    returns (SimulationRuns) {}
+  rpc Run         (SimulationRun) returns (StorageRef)     {}
 }
 
 message AllocateRequest {
-  uint32 request = 1;
+  string consumerId = 1;
+  uint32 request = 2;
 }
 
 message AllocatedSlots {
@@ -81,6 +82,14 @@ message Simulation {
   OppConfig oppConfig = 2;
   string config = 3;
   string runNum = 4;
+}
+
+message SimulationRun {
+  string simulationId = 1;
+  string config = 2;
+  string runNum = 3;
+  OppConfig oppConfig = 4;
+  string consumerId = 5;
 }
 
 message SimulationRuns {

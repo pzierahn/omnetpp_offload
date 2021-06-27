@@ -10,28 +10,28 @@ import (
 	"path/filepath"
 )
 
-func (prov *provider) run(simulation *pb.Simulation) (ref *pb.StorageRef, err error) {
+func (prov *provider) run(run *pb.SimulationRun) (ref *pb.StorageRef, err error) {
 
 	//
 	// Setup mirror simulation
 	//
 
 	// Simulation directory with simulation source code
-	simulationBase := filepath.Join(cachePath, simulation.Id)
+	simulationBase := filepath.Join(cachePath, run.SimulationId)
 
 	// This will be the working directory, that contains the results for the job
 	// A symbolic copy is created to use all configs, ned files and ini files
 	simulationPath := filepath.Join(
 		cachePath,
 		"mirrors",
-		simple.NamedId(simulation.Id, 8),
+		simple.NamedId(run.SimulationId, 8),
 	)
 
 	defer func() {
 		_ = os.RemoveAll(simulationPath)
 	}()
 
-	err = simple.SymbolicCopy(simulationBase, simulationPath, simulation.OppConfig.ResultsPath)
+	err = simple.SymbolicCopy(simulationBase, simulationPath)
 	if err != nil {
 		return
 	}
@@ -50,12 +50,12 @@ func (prov *provider) run(simulation *pb.Simulation) (ref *pb.StorageRef, err er
 	//
 
 	oppConf := omnetpp.Config{
-		OppConfig: simulation.OppConfig,
+		OppConfig: run.OppConfig,
 		Path:      simulationPath,
 	}
 
 	opp := omnetpp.New(&oppConf)
-	err = opp.Run(simulation.Config, simulation.RunNum)
+	err = opp.Run(run.Config, run.RunNum)
 	if err != nil {
 		return
 	}
@@ -71,14 +71,14 @@ func (prov *provider) run(simulation *pb.Simulation) (ref *pb.StorageRef, err er
 
 	var buf bytes.Buffer
 	results = simple.DirDiff(filesBefore, filesAfter)
-	buf, err = simple.TarGzFiles(simulationPath, simulation.Id, results)
+	buf, err = simple.TarGzFiles(simulationPath, run.SimulationId, results)
 	if err != nil {
 		return
 	}
 
 	ref = &pb.StorageRef{
-		Bucket:   simulation.Id,
-		Filename: fmt.Sprintf("results/%s_%s.tgz", simulation.Config, simulation.RunNum),
+		Bucket:   run.SimulationId,
+		Filename: fmt.Sprintf("results/%s_%s.tgz", run.Config, run.RunNum),
 	}
 
 	err = prov.store.Put(&buf, ref)

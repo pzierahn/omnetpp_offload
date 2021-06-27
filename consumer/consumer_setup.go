@@ -62,23 +62,27 @@ func (cons *consumer) init(conn *connection) (err error) {
 		// Communicate changes in the allocSlots number to the provider
 		//
 
-		for {
-			cond := cons.allocCond
+		cond := cons.allocCond
 
+		for {
 			cond.L.Lock()
-			cond.Wait()
 			allocateJobs := uint32(len(cons.allocate))
 			cond.L.Unlock()
 
 			log.Printf("[%s] request %d slots", conn.name(), allocateJobs)
 
 			err := stream.Send(&pb.AllocateRequest{
+				//ConsumerId: cons.consumerId,
 				Request: allocateJobs,
 			})
 			if err != nil {
 				log.Println(err)
 				break
 			}
+
+			cond.L.Lock()
+			cond.Wait()
+			cond.L.Unlock()
 		}
 	}()
 

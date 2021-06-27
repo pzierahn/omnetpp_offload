@@ -1,12 +1,14 @@
 package consumer
 
 import (
+	"fmt"
 	"github.com/pzierahn/project.go.omnetpp/gconfig"
 	pb "github.com/pzierahn/project.go.omnetpp/proto"
 	"github.com/pzierahn/project.go.omnetpp/simple"
 	"github.com/pzierahn/project.go.omnetpp/utils"
 	"google.golang.org/grpc"
 	"log"
+	"math/rand"
 	"path/filepath"
 	"sync"
 )
@@ -34,14 +36,15 @@ func Start(gConf gconfig.GRPCConnection, config *Config) {
 	}()
 
 	cons := &consumer{
-		config: config,
+		consumerId: fmt.Sprintf("consumer-%x", rand.Uint32()),
+		config:     config,
 		simulation: &pb.Simulation{
 			Id:        simple.NamedId(config.Tag, 8),
 			OppConfig: config.OppConfig,
 		},
 		connections: make(map[string]*connection),
 		allocCond:   sync.NewCond(&sync.Mutex{}),
-		allocator:   make(chan *pb.Simulation),
+		allocator:   make(chan *pb.SimulationRun),
 	}
 
 	log.Printf("zipping simulation source: %s", cons.config.Path)
