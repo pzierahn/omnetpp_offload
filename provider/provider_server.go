@@ -14,6 +14,7 @@ import (
 	"google.golang.org/grpc"
 	"log"
 	"net"
+	"runtime"
 	"time"
 )
 
@@ -24,9 +25,10 @@ func Start(conf gconfig.Config) {
 	prov := &provider{
 		providerId: simple.NamedId(conf.Worker.Name, 8),
 		store:      store,
-		//freeSlots:   uint32(runtime.NumCPU()),
-		slots:       uint32(3),
-		freeSlots:   uint32(3),
+		slots:      uint32(runtime.NumCPU()),
+		freeSlots:  uint32(runtime.NumCPU()),
+		//slots:       uint32(3),
+		//freeSlots:   uint32(3),
 		requests:    make(map[consumerId]uint32),
 		assignments: make(map[consumerId]uint32),
 		allocate:    make(map[consumerId]chan<- uint32),
