@@ -61,40 +61,6 @@ func (cons *consumer) startConnector(broker pb.BrokerClient) {
 					return
 				}
 
-				once.Do(func() {
-					log.Printf("[%s] list simulation run numbers", conn.name())
-
-					runs, err := conn.provider.ListRunNums(context.Background(), &pb.Simulation{
-						Id:        cons.simulation.Id,
-						OppConfig: cons.simulation.OppConfig,
-
-						// TODO: Fix 0 index
-						Config: cons.config.SimulateConfigs[0],
-					})
-					if err != nil {
-						log.Fatalln(err)
-					}
-
-					allocate := make([]*pb.SimulationRun, len(runs.Runs))
-					for inx, run := range runs.Runs {
-						allocate[inx] = &pb.SimulationRun{
-							ConsumerId:   cons.consumerId,
-							SimulationId: cons.simulation.Id,
-							OppConfig:    cons.simulation.OppConfig,
-							Config:       runs.Config,
-							RunNum:       run,
-						}
-					}
-
-					log.Printf("[%s] created %d jobs", conn.name(), len(allocate))
-
-					cons.allocCond.L.Lock()
-					// TODO: Remove slice cut!
-					cons.allocate = allocate[:20]
-					cons.allocCond.Broadcast()
-					cons.allocCond.L.Unlock()
-				})
-
 				mux.Lock()
 				connections[prov.ProviderId] = conn
 				mux.Unlock()
@@ -102,6 +68,44 @@ func (cons *consumer) startConnector(broker pb.BrokerClient) {
 		}
 
 		wg.Wait()
+
+		for _, conn := range connections {
+			once.Do(func() {
+				log.Printf("[%s] list simulation run numbers", conn.name())
+
+				runs, err := conn.provider.ListRunNums(context.Background(), &pb.Simulation{
+					Id:        cons.simulation.Id,
+					OppConfig: cons.simulation.OppConfig,
+
+					// TODO: Fix 0 index
+					Config: cons.config.SimulateConfigs[0],
+				})
+				if err != nil {
+					log.Fatalln(err)
+				}
+
+				allocate := make([]*pb.SimulationRun, len(runs.Runs))
+				for inx, run := range runs.Runs {
+					allocate[inx] = &pb.SimulationRun{
+						ConsumerId:   cons.consumerId,
+						SimulationId: cons.simulation.Id,
+						OppConfig:    cons.simulation.OppConfig,
+						Config:       runs.Config,
+						RunNum:       run,
+					}
+				}
+
+				log.Printf("[%s] created %d jobs", conn.name(), len(allocate))
+
+				cons.allocCond.L.Lock()
+				// TODO: Remove slice cut!
+				cons.allocate = allocate[:10]
+				cons.allocCond.Broadcast()
+				cons.allocCond.L.Unlock()
+			})
+
+			break
+		}
 
 		cons.connMu.Lock()
 		cons.connections = connections

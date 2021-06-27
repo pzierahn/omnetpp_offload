@@ -16,9 +16,9 @@ func (cons *consumer) dispatchTasks() (err error) {
 
 	log.Printf("dispatchTasks:")
 
-	for {
-		var schedule *pb.SimulationRun
+	var schedule *pb.SimulationRun
 
+	for {
 		cond.L.Lock()
 
 		log.Printf("dispatchTasks: left tasks %d", len(cons.allocate))
@@ -29,13 +29,13 @@ func (cons *consumer) dispatchTasks() (err error) {
 		}
 
 		schedule, cons.allocate = cons.allocate[0], cons.allocate[1:]
+		cons.allocator <- schedule
+
 		cond.Broadcast()
 		cond.L.Unlock()
 
 		log.Printf("dispatchTasks: num=%s", schedule.RunNum)
 		cons.finished.Add(1)
-
-		cons.allocator <- schedule
 	}
 
 	cons.finished.Wait()
