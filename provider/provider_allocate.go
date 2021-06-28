@@ -11,9 +11,7 @@ func (prov *provider) allocator() {
 	cond := prov.cond
 
 	for {
-		log.Printf("########## Lock")
 		cond.L.Lock()
-		log.Printf("########## Wait")
 		cond.Wait()
 
 		freeSlots := atomic.LoadInt32(&prov.freeSlots)
@@ -22,7 +20,7 @@ func (prov *provider) allocator() {
 		for cId, req := range prov.requests {
 
 			if freeSlots == 0 {
-				return
+				break
 			}
 
 			var allocatedSlots uint32
@@ -35,7 +33,7 @@ func (prov *provider) allocator() {
 			log.Printf("allocator: assignable=%d allocatedSlots=%+v", assignable, prov.assignments)
 
 			if assignable == 0 {
-				return
+				break
 			}
 
 			// TODO: remove 1
@@ -44,13 +42,9 @@ func (prov *provider) allocator() {
 			log.Printf("allocator: assign cId=%s slots=%d freeSlots=%d", cId, slots, freeSlots)
 
 			prov.assignments[cId] += slots
-			//prov.freeSlots -= slots
-
-			log.Printf("########## ch")
 			prov.allocate[cId] <- slots
 		}
 
-		log.Printf("########## Unlock")
 		cond.L.Unlock()
 	}
 }

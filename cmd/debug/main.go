@@ -66,6 +66,10 @@ func main() {
 	//	}
 	//}()
 
+	cond.L.Lock()
+	log.Println("val test init", val)
+	cond.L.Unlock()
+
 	for range time.Tick(time.Second) {
 		log.Println("###2 Lock")
 		cond.L.Lock()

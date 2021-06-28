@@ -132,29 +132,17 @@ func (prov *provider) Run(_ context.Context, run *pb.SimulationRun) (ref *pb.Sto
 		log.Printf("Run: id=%v config='%s' runNum='%s' done",
 			run.SimulationId, run.Config, run.RunNum)
 
-		log.Printf("########### handle Lock")
 		cond.L.Lock()
 		atomic.AddInt32(&prov.freeSlots, 1)
 		prov.assignments[run.ConsumerId]--
-		log.Printf("########### handle Broadcast")
 		cond.Broadcast()
-		log.Printf("########### handle Unlock")
 		cond.L.Unlock()
-
-		log.Printf("########### Run: id=%v config='%s' runNum='%s' done done",
-			run.SimulationId, run.Config, run.RunNum)
 	}()
 
 	return prov.run(run)
 }
 
 func (prov *provider) Allocate(stream pb.Provider_AllocateServer) (err error) {
-
-	jobs, err := stream.Recv()
-	if err != nil {
-		log.Println(err)
-		return
-	}
 
 	var cId string
 
@@ -195,13 +183,14 @@ func (prov *provider) Allocate(stream pb.Provider_AllocateServer) (err error) {
 	cond := prov.cond
 
 	for {
-		jobs, err = stream.Recv()
+		var req *pb.AllocateRequest
+		req, err = stream.Recv()
 		if err != nil {
 			break
 		}
 
 		once.Do(func() {
-			cId = jobs.ConsumerId
+			cId = req.ConsumerId
 			log.Printf("Allocate: register ConsumerId=%v", cId)
 
 			cond.L.Lock()
@@ -215,12 +204,12 @@ func (prov *provider) Allocate(stream pb.Provider_AllocateServer) (err error) {
 			return
 		}
 
-		log.Printf("Allocate: ConsumerId=%s request=%d", cId, jobs.Request)
+		log.Printf("Allocate: ConsumerId=%s request=%d", cId, req.Request)
 
 		cond.L.Lock()
 
-		if val, _ := prov.requests[cId]; val != jobs.Request {
-			prov.requests[cId] = jobs.Request
+		if val, _ := prov.requests[cId]; val != req.Request {
+			prov.requests[cId] = req.Request
 			cond.Broadcast()
 		}
 
