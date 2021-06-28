@@ -24,6 +24,7 @@ func (client *Client) Upload(data io.Reader, meta FileMeta) (ref *pb.StorageRef,
 		return
 	}
 
+	var parcels uint32
 	start := time.Now()
 
 	for chunk := range streamReader(data) {
@@ -42,6 +43,8 @@ func (client *Client) Upload(data io.Reader, meta FileMeta) (ref *pb.StorageRef,
 			log.Printf("uploaded %s (%v)",
 				simple.ByteSize(uint64(chunk.size+chunk.offset)), meta.Filename)
 		}
+
+		parcels++
 	}
 
 	ref, err = stream.CloseAndRecv()
@@ -49,7 +52,7 @@ func (client *Client) Upload(data io.Reader, meta FileMeta) (ref *pb.StorageRef,
 		return
 	}
 
-	log.Printf("upload %v in %v\n", meta, time.Now().Sub(start))
+	log.Printf("upload %v time=%v parcels=%v\n", meta, time.Now().Sub(start), parcels)
 
 	return
 }
