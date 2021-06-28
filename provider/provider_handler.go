@@ -12,6 +12,7 @@ import (
 	"os"
 	"path/filepath"
 	"sync"
+	"sync/atomic"
 )
 
 type consumerId = string
@@ -21,9 +22,9 @@ type provider struct {
 	providerId string
 	store      *storage.Server
 
-	mu          sync.RWMutex
+	cond        *sync.Cond
 	slots       uint32
-	freeSlots   uint32
+	freeSlots   int32
 	requests    map[consumerId]uint32
 	assignments map[consumerId]uint32
 	allocate    map[consumerId]chan<- uint32
@@ -118,20 +119,30 @@ func (prov *provider) Run(_ context.Context, run *pb.SimulationRun) (ref *pb.Sto
 		return
 	}
 
-	if prov.freeSlots == 0 {
+	if atomic.LoadInt32(&prov.freeSlots) == 0 {
 		err = fmt.Errorf("no free slots avilable")
 		return
 	}
 
-	prov.mu.Lock()
-	prov.freeSlots--
-	prov.mu.Unlock()
+	cond := prov.cond
+
+	atomic.AddInt32(&prov.freeSlots, -1)
 
 	defer func() {
-		prov.mu.Lock()
-		prov.freeSlots++
+		log.Printf("Run: id=%v config='%s' runNum='%s' done",
+			run.SimulationId, run.Config, run.RunNum)
+
+		log.Printf("########### handle Lock")
+		cond.L.Lock()
+		atomic.AddInt32(&prov.freeSlots, 1)
 		prov.assignments[run.ConsumerId]--
-		prov.mu.Unlock()
+		log.Printf("########### handle Broadcast")
+		cond.Broadcast()
+		log.Printf("########### handle Unlock")
+		cond.L.Unlock()
+
+		log.Printf("########### Run: id=%v config='%s' runNum='%s' done done",
+			run.SimulationId, run.Config, run.RunNum)
 	}()
 
 	return prov.run(run)
@@ -152,17 +163,16 @@ func (prov *provider) Allocate(stream pb.Provider_AllocateServer) (err error) {
 	defer func() {
 		log.Printf("Allocate: unregister ConsumerId=%v", cId)
 
-		prov.mu.Lock()
+		cond := prov.cond
+
+		cond.L.Lock()
 		delete(prov.allocate, cId)
 		delete(prov.requests, cId)
+		delete(prov.assignments, cId)
 
-		// Clean up assignments
-		if ass, ok := prov.assignments[cId]; ok {
-			prov.freeSlots += ass
-			delete(prov.assignments, cId)
-		}
+		cond.Broadcast()
+		cond.L.Unlock()
 
-		prov.mu.Unlock()
 		close(allocate)
 	}()
 
@@ -182,6 +192,8 @@ func (prov *provider) Allocate(stream pb.Provider_AllocateServer) (err error) {
 
 	var once sync.Once
 
+	cond := prov.cond
+
 	for {
 		jobs, err = stream.Recv()
 		if err != nil {
@@ -192,10 +204,9 @@ func (prov *provider) Allocate(stream pb.Provider_AllocateServer) (err error) {
 			cId = jobs.ConsumerId
 			log.Printf("Allocate: register ConsumerId=%v", cId)
 
-			prov.mu.Lock()
+			cond.L.Lock()
 			prov.allocate[cId] = allocate
-			prov.requests[cId] = jobs.Request
-			prov.mu.Unlock()
+			cond.L.Unlock()
 		})
 
 		if cId == "" {
@@ -206,9 +217,14 @@ func (prov *provider) Allocate(stream pb.Provider_AllocateServer) (err error) {
 
 		log.Printf("Allocate: ConsumerId=%s request=%d", cId, jobs.Request)
 
-		prov.mu.Lock()
-		prov.requests[cId] = jobs.Request
-		prov.mu.Unlock()
+		cond.L.Lock()
+
+		if val, _ := prov.requests[cId]; val != jobs.Request {
+			prov.requests[cId] = jobs.Request
+			cond.Broadcast()
+		}
+
+		cond.L.Unlock()
 	}
 
 	return

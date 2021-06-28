@@ -99,7 +99,8 @@ func (cons *consumer) startConnector(broker pb.BrokerClient) {
 
 				cons.allocCond.L.Lock()
 				// TODO: Remove slice cut!
-				cons.allocate = allocate[:10]
+				cons.allocate = allocate[:20]
+				//cons.allocate = allocate
 				cons.allocCond.Broadcast()
 				cons.allocCond.L.Unlock()
 			})

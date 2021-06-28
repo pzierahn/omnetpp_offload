@@ -29,23 +29,52 @@ func main() {
 
 	log.SetFlags(log.LstdFlags | log.Lshortfile)
 
-	var once sync.Once
+	cond := sync.NewCond(&sync.Mutex{})
 
-	once.Do(func() {
-		//time.Sleep(time.Second * 2)
-		log.Println("Hallo 1")
-	})
-	once.Do(func() {
-		//time.Sleep(time.Second * 2)
-		log.Println("Hallo 2")
-	})
+	var val int
 
-	a := []string{
-		//"123", "asdf", "q3wr",
+	go func() {
+		for {
+			log.Println("###1 Lock")
+			cond.L.Lock()
+			log.Println("###1 Wait")
+			cond.Wait()
+			log.Println("###1 val", val)
+			log.Println("###1 Unlock")
+			cond.L.Unlock()
+		}
+	}()
+
+	//go func() {
+	//	for {
+	//		log.Println("###2 Lock")
+	//		cond.L.Lock()
+	//		log.Println("###2 Wait")
+	//		cond.Wait()
+	//		log.Println("###2 val", val)
+	//		log.Println("###2 Unlock")
+	//		cond.L.Unlock()
+	//	}
+	//}()
+	//
+	//go func() {
+	//	for range time.Tick(time.Second) {
+	//		cond.L.Lock()
+	//		val++
+	//		cond.Broadcast()
+	//		cond.L.Unlock()
+	//	}
+	//}()
+
+	for range time.Tick(time.Second) {
+		log.Println("###2 Lock")
+		cond.L.Lock()
+		val++
+		log.Println("###2 Broadcast")
+		cond.Broadcast()
+		log.Println("###2 Unlock")
+		cond.L.Unlock()
 	}
-	x, a := a[0], a[1:]
-
-	log.Println("x", x)
 
 	//var age = make(map[string]int)
 	//

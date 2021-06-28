@@ -15,6 +15,7 @@ import (
 	"log"
 	"net"
 	"runtime"
+	"sync"
 	"time"
 )
 
@@ -26,9 +27,10 @@ func Start(conf gconfig.Config) {
 		providerId: simple.NamedId(conf.Worker.Name, 8),
 		store:      store,
 		slots:      uint32(runtime.NumCPU()),
-		freeSlots:  uint32(runtime.NumCPU()),
+		freeSlots:  int32(runtime.NumCPU()),
 		//slots:       uint32(3),
 		//freeSlots:   uint32(3),
+		cond:        sync.NewCond(&sync.Mutex{}),
 		requests:    make(map[consumerId]uint32),
 		assignments: make(map[consumerId]uint32),
 		allocate:    make(map[consumerId]chan<- uint32),
@@ -88,11 +90,7 @@ func Start(conf gconfig.Config) {
 	// Start provider
 	//
 
-	go func() {
-		for range time.Tick(time.Millisecond * 2000) {
-			prov.allocateSlots()
-		}
-	}()
+	go prov.allocator()
 
 	for {
 		log.Println("wait for stargate connection")

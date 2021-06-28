@@ -26,15 +26,18 @@ func (cons *consumer) init(conn *connection) (err error) {
 	log.Printf("[%s] startAllocator", conn.name())
 
 	go func() {
+
 		for {
 			alloc, err := stream.Recv()
 			if err != nil {
 				break
 			}
 
-			log.Printf("[%s] allocated %d slots", conn.name(), alloc.Slots)
+			log.Printf("[%s] allocated %d slots",
+				conn.name(), alloc.Slots)
 
 			for inx := uint32(0); inx < alloc.Slots; inx++ {
+
 				task, ok := <-cons.allocator
 				if !ok {
 					//
@@ -65,6 +68,7 @@ func (cons *consumer) init(conn *connection) (err error) {
 		cond := cons.allocCond
 
 		for {
+			// TODO: Change wait and lock
 			cond.L.Lock()
 			allocateJobs := uint32(len(cons.allocate))
 			cond.L.Unlock()
