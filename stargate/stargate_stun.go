@@ -17,7 +17,7 @@ func ping(conn *net.UDPConn) {
 
 	for id, register := range match {
 		for _, addr := range register {
-			log.Printf("send ping to dial %v candidate %v", id, addr)
+			log.Printf("send hello to dial %v candidate %v", id, addr)
 
 			_, err := conn.WriteTo([]byte("hello"), addr)
 			if err != nil {

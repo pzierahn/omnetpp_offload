@@ -127,7 +127,7 @@ func Dial(ctx context.Context, connectionId string) (conn *net.UDPConn, remote *
 			msg := string(buf[0:read])
 
 			// Check for corrupt messages
-			if !strings.HasPrefix("hello", msg) {
+			if !strings.HasPrefix(msg, "hello") {
 				continue
 			}
 
