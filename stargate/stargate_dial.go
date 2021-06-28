@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"net"
+	"strings"
 	"sync"
 	"time"
 )
@@ -26,7 +27,7 @@ func dialAddr(ctx context.Context, conn *net.UDPConn, connectionId string) (remo
 			}
 
 			msg := string(buf[0:read])
-			if msg == "ping" {
+			if msg == "hello" {
 				continue
 			}
 
@@ -94,7 +95,7 @@ func Dial(ctx context.Context, connectionId string) (conn *net.UDPConn, remote *
 
 	go func() {
 		for inx := 0; inx < sendPings; inx++ {
-			message := fmt.Sprintf("ping %d", inx)
+			message := fmt.Sprintf("hello %d", inx)
 			w, err := conn.WriteToUDP([]byte(message), remote)
 			if err != nil {
 				log.Fatalln(err)
@@ -115,18 +116,29 @@ func Dial(ctx context.Context, connectionId string) (conn *net.UDPConn, remote *
 	defer close(done)
 
 	go func() {
-		buf := make([]byte, 1024)
-		read, remote, err := conn.ReadFromUDP(buf)
-		if err != nil {
-			log.Println(err)
-			return
+		for {
+			buf := make([]byte, 1024)
+			read, remote, err := conn.ReadFromUDP(buf)
+			if err != nil {
+				log.Println(err)
+				return
+			}
+
+			// TODO: Check for corrupt messages
+			msg := string(buf[0:read])
+
+			if !strings.HasPrefix("hello", msg) {
+				//
+				// faulty message received
+				//
+				continue
+			}
+
+			log.Printf("received message='%s' from %v\n", msg, remote)
+
+			done <- true
+			break
 		}
-
-		// TODO: Check for corrupt messages
-		msg := string(buf[0:read])
-		log.Printf("received message='%s' from %v\n", msg, remote)
-
-		done <- true
 	}()
 
 	select {
