@@ -53,7 +53,7 @@ func (cons *consumer) init(conn *connection) (err error) {
 
 					err := conn.run(task)
 					if err != nil {
-						log.Fatalln(err)
+						log.Fatalln(conn.name(), err)
 					}
 				}()
 			}

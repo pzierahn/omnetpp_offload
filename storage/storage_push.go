@@ -60,7 +60,7 @@ func (server *Server) Push(stream pb.Storage_PushServer) (err error) {
 			return
 		}
 
-		_, err = file.WriteAt(parcel.Payload, parcel.Offset)
+		_, err = file.WriteAt(parcel.Payload, int64(parcel.Offset))
 		if err != nil {
 			return
 		}

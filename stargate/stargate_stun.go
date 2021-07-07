@@ -40,6 +40,7 @@ func receiveStun(conn *net.UDPConn) {
 	matchMu.Lock()
 	defer matchMu.Unlock()
 
+	// Todo: Remove old stuff
 	if _, ok := match[connectId]; !ok {
 		match[connectId] = make(map[string]*net.UDPAddr)
 	}

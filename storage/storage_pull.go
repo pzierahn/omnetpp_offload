@@ -31,8 +31,8 @@ func (server *Server) Pull(req *pb.StorageRef, stream pb.Storage_PullServer) (er
 
 	for chunk := range reader {
 		parcel := pb.StorageParcel{
-			Size:    int32(chunk.size),
-			Offset:  int64(chunk.offset),
+			Size:    uint32(chunk.size),
+			Offset:  uint64(chunk.offset),
 			Payload: chunk.payload,
 		}
 
