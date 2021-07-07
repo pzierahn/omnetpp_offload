@@ -5,12 +5,10 @@ import (
 	"context"
 	"fmt"
 	pb "github.com/pzierahn/project.go.omnetpp/proto"
-	"github.com/pzierahn/project.go.omnetpp/simple"
 	"github.com/pzierahn/project.go.omnetpp/storage"
 	"github.com/pzierahn/project.go.omnetpp/sysinfo"
 	"log"
 	"sync"
-	"time"
 )
 
 var archMu sync.Mutex
@@ -52,40 +50,17 @@ func (conn *connection) uploadBinary(simulation *pb.Simulation, buf []byte) (err
 	log.Printf("[%s] uploadBinary:", conn.name())
 
 	arch := sysinfo.Signature(conn.info.Arch)
-	store := storage.FromClient(conn.store)
 
 	meta := storage.FileMeta{
 		Bucket:   simulation.Id,
 		Filename: fmt.Sprintf("binary/%s.tgz", arch),
+		Data:     buf,
 	}
 
-	startUpload := time.Now()
-
-	ui := make(chan storage.UploadInfo)
-	defer close(ui)
-
-	go func() {
-		for info := range ui {
-			log.Printf("[%s] upload: simulation=%s uploaded=%v percent=%0.2f",
-				conn.name(),
-				simulation.Id,
-				simple.ByteSize(info.Uploaded),
-				float32(info.Uploaded)/float32(len(buf)))
-		}
-	}()
-
-	ref, err := store.Upload(bytes.NewReader(buf), meta, ui)
+	err = conn.checkout(meta)
 	if err != nil {
 		return
 	}
-
-	_, err = conn.provider.Checkout(context.Background(), &pb.Bundle{
-		SimulationId: simulation.Id,
-		Source:       ref,
-	})
-
-	dur := time.Now().Sub(startUpload)
-	log.Printf("[%s] uploadBinary: finished in %v", conn.name(), dur)
 
 	return
 }

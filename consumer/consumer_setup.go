@@ -3,12 +3,19 @@ package consumer
 import (
 	"context"
 	pb "github.com/pzierahn/project.go.omnetpp/proto"
+	"github.com/pzierahn/project.go.omnetpp/storage"
 	"log"
 )
 
 func (cons *consumer) init(conn *connection) (err error) {
 
-	err = conn.checkout(cons.simulation, cons.simulationTgz)
+	conn.simulation = cons.simulation
+
+	err = conn.checkout(storage.FileMeta{
+		Bucket:   cons.simulation.Id,
+		Filename: "source.tgz",
+		Data:     cons.simulationSource,
+	})
 	if err != nil {
 		return
 	}
@@ -26,7 +33,6 @@ func (cons *consumer) init(conn *connection) (err error) {
 	log.Printf("[%s] startAllocator", conn.name())
 
 	go func() {
-
 		for {
 			alloc, err := stream.Recv()
 			if err != nil {

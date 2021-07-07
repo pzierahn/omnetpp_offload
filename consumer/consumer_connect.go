@@ -2,6 +2,7 @@ package consumer
 
 import (
 	"context"
+	"fmt"
 	pb "github.com/pzierahn/project.go.omnetpp/proto"
 	"github.com/pzierahn/project.go.omnetpp/stargate"
 	"github.com/pzierahn/project.go.omnetpp/utils"
@@ -12,15 +13,16 @@ import (
 )
 
 type connection struct {
-	info     *pb.ProviderInfo
-	conn     *net.UDPConn
-	cConn    *grpc.ClientConn
-	provider pb.ProviderClient
-	store    pb.StorageClient
+	simulation *pb.Simulation
+	info       *pb.ProviderInfo
+	conn       *net.UDPConn
+	cConn      *grpc.ClientConn
+	provider   pb.ProviderClient
+	store      pb.StorageClient
 }
 
 func (conn *connection) name() (name string) {
-	return conn.info.ProviderId
+	return fmt.Sprintf("%-20s", conn.info.ProviderId)
 }
 
 func connect(prov *pb.ProviderInfo) (conn *connection, err error) {

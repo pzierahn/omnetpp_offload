@@ -54,7 +54,7 @@ func Start(gConf gconfig.GRPCConnection, config *Config) {
 		log.Fatalln(err)
 	}
 
-	cons.simulationTgz = buf.Bytes()
+	cons.simulationSource = buf.Bytes()
 
 	broker := pb.NewBrokerClient(conn)
 	go cons.startConnector(broker)

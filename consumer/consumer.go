@@ -26,6 +26,6 @@ type consumer struct {
 	allocator chan *pb.SimulationRun
 
 	// TODO: Persist bytes to HD
-	simulationTgz []byte
-	binaries      map[string][]byte
+	simulationSource []byte
+	binaries         map[string][]byte
 }

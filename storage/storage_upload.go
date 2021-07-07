@@ -1,10 +1,10 @@
 package storage
 
 import (
+	"bytes"
 	"context"
 	pb "github.com/pzierahn/project.go.omnetpp/proto"
 	"google.golang.org/grpc/metadata"
-	"io"
 	"sync/atomic"
 	"time"
 )
@@ -14,7 +14,7 @@ type UploadInfo struct {
 	Uploaded uint64
 }
 
-func (client *Client) Upload(data io.Reader, meta FileMeta, ch chan<- UploadInfo) (ref *pb.StorageRef, err error) {
+func (client *Client) Upload(meta FileMeta, ch chan<- UploadInfo) (ref *pb.StorageRef, err error) {
 
 	md := metadata.New(map[string]string{
 		"bucket":   meta.Bucket,
@@ -46,7 +46,7 @@ func (client *Client) Upload(data io.Reader, meta FileMeta, ch chan<- UploadInfo
 		}()
 	}
 
-	for chunk := range streamReader(data) {
+	for chunk := range streamReader(bytes.NewReader(meta.Data)) {
 		parcel := pb.StorageParcel{
 			Size:    uint32(chunk.size),
 			Offset:  uint64(chunk.offset),
@@ -59,15 +59,13 @@ func (client *Client) Upload(data io.Reader, meta FileMeta, ch chan<- UploadInfo
 		}
 
 		atomic.AddUint32(&parcels, 1)
-		atomic.AddUint64(&uploaded, uint64(chunk.offset+chunk.size))
+		atomic.AddUint64(&uploaded, uint64(chunk.size))
 	}
 
 	ref, err = stream.CloseAndRecv()
 	if err != nil {
 		return
 	}
-
-	//log.Printf("upload %v time=%v parcels=%v\n", meta, time.Now().Sub(start), parcels)
 
 	return
 }
