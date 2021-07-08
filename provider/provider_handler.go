@@ -180,8 +180,6 @@ func (prov *provider) Allocate(stream pb.Provider_AllocateServer) (err error) {
 		}
 	}()
 
-	var once sync.Once
-
 	cond := prov.cond
 
 	for {
@@ -191,14 +189,14 @@ func (prov *provider) Allocate(stream pb.Provider_AllocateServer) (err error) {
 			break
 		}
 
-		once.Do(func() {
+		if cId == "" {
 			cId = req.ConsumerId
 			log.Printf("Allocate: register ConsumerId=%v", cId)
 
 			cond.L.Lock()
 			prov.allocate[cId] = allocate
 			cond.L.Unlock()
-		})
+		}
 
 		if cId == "" {
 			err = fmt.Errorf("error: missing ConsumerId")
