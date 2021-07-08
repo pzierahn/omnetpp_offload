@@ -162,6 +162,8 @@ func (prov *provider) Allocate(stream pb.Provider_AllocateServer) (err error) {
 		cond.L.Unlock()
 
 		close(allocate)
+
+		// TODO: clean up and remove simulation
 	}()
 
 	go func() {
