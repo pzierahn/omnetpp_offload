@@ -2,11 +2,10 @@ package broker
 
 import (
 	"github.com/lucas-clemente/quic-go"
-	pnet "github.com/pzierahn/project.go.omnetpp/adapter"
+	"github.com/pzierahn/project.go.omnetpp/equic"
 	pb "github.com/pzierahn/project.go.omnetpp/proto"
 	"github.com/pzierahn/project.go.omnetpp/stargate"
 	"github.com/pzierahn/project.go.omnetpp/storage"
-	"github.com/pzierahn/project.go.omnetpp/utils"
 	"google.golang.org/grpc"
 	"log"
 	"net"
@@ -26,14 +25,14 @@ func Start(conf Config) (err error) {
 	}
 	defer func() { _ = conn.Close() }()
 
-	tlsConf, _ := utils.GenerateTLSConfig()
+	tlsConf, _ := equic.GenerateTLSConfig()
 
 	ql, err := quic.Listen(conn, tlsConf, nil)
 	if err != nil {
 		log.Fatalln(err)
 	}
 
-	lis := pnet.Listen(ql)
+	lis := equic.Listen(ql)
 	defer func() { _ = lis.Close() }()
 
 	brk := broker{

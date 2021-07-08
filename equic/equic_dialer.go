@@ -1,4 +1,4 @@
-package utils
+package equic
 
 import (
 	"context"
@@ -8,12 +8,9 @@ import (
 	"crypto/x509"
 	"encoding/pem"
 	"github.com/lucas-clemente/quic-go"
-	"github.com/pzierahn/project.go.omnetpp/adapter"
 	"math/big"
 	"net"
 )
-
-// TODO: Move this to a easy-quic (equic) package
 
 func GenerateTLSConfig() (tlsConf *tls.Config, err error) {
 	key, err := rsa.GenerateKey(rand.Reader, 1024)
@@ -91,7 +88,7 @@ func GRPCDialer(pconn *net.UDPConn) (dialer Dialer) {
 
 		//log.Printf("connected target=%v", target)
 
-		conn = &adapter.Conn{Sess: sess, Stream: stream}
+		conn = &Conn{Sess: sess, Stream: stream}
 
 		return
 	}

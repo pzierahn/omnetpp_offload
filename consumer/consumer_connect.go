@@ -3,9 +3,9 @@ package consumer
 import (
 	"context"
 	"fmt"
+	"github.com/pzierahn/project.go.omnetpp/equic"
 	pb "github.com/pzierahn/project.go.omnetpp/proto"
 	"github.com/pzierahn/project.go.omnetpp/stargate"
-	"github.com/pzierahn/project.go.omnetpp/utils"
 	"google.golang.org/grpc"
 	"log"
 	"net"
@@ -43,7 +43,7 @@ func connect(prov *pb.ProviderInfo) (conn *connection, err error) {
 		remote.String(),
 		grpc.WithInsecure(),
 		grpc.WithBlock(),
-		grpc.WithContextDialer(utils.GRPCDialer(gate)),
+		grpc.WithContextDialer(equic.GRPCDialer(gate)),
 	)
 	if err != nil {
 		return

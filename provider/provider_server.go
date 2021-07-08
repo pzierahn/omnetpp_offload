@@ -3,14 +3,13 @@ package provider
 import (
 	"context"
 	"github.com/lucas-clemente/quic-go"
-	"github.com/pzierahn/project.go.omnetpp/adapter"
+	"github.com/pzierahn/project.go.omnetpp/equic"
 	"github.com/pzierahn/project.go.omnetpp/gconfig"
 	pb "github.com/pzierahn/project.go.omnetpp/proto"
 	"github.com/pzierahn/project.go.omnetpp/simple"
 	"github.com/pzierahn/project.go.omnetpp/stargate"
 	"github.com/pzierahn/project.go.omnetpp/storage"
 	"github.com/pzierahn/project.go.omnetpp/sysinfo"
-	"github.com/pzierahn/project.go.omnetpp/utils"
 	"google.golang.org/grpc"
 	"log"
 	"net"
@@ -42,7 +41,7 @@ func Start(conf gconfig.Config) {
 	// Register provider
 	//
 
-	qconn, dialer := utils.GRPCDialerAuto()
+	qconn, dialer := equic.GRPCDialerAuto()
 	log.Printf("quic listener on %v", qconn.LocalAddr())
 
 	brokerConn, err := grpc.Dial(
@@ -103,14 +102,14 @@ func Start(conf gconfig.Config) {
 		go func(conn *net.UDPConn) {
 			defer func() { _ = conn.Close() }()
 
-			tlsConf, _ := utils.GenerateTLSConfig()
+			tlsConf, _ := equic.GenerateTLSConfig()
 			ql, err := quic.Listen(conn, tlsConf, nil)
 			if err != nil {
 				log.Fatalln(err)
 			}
 
 			log.Println("create adapter listener")
-			lis := adapter.Listen(ql)
+			lis := equic.Listen(ql)
 			defer func() { _ = lis.Close() }()
 
 			log.Println("listening for consumer")

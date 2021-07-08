@@ -2,10 +2,10 @@ package consumer
 
 import (
 	"fmt"
+	"github.com/pzierahn/project.go.omnetpp/equic"
 	"github.com/pzierahn/project.go.omnetpp/gconfig"
 	pb "github.com/pzierahn/project.go.omnetpp/proto"
 	"github.com/pzierahn/project.go.omnetpp/simple"
-	"github.com/pzierahn/project.go.omnetpp/utils"
 	"google.golang.org/grpc"
 	"log"
 	"math/rand"
@@ -21,7 +21,7 @@ func Start(gConf gconfig.GRPCConnection, config *Config) {
 
 	log.Printf("connecting to broker (%v)", gConf.DialAddr())
 
-	_, dialer := utils.GRPCDialerAuto()
+	_, dialer := equic.GRPCDialerAuto()
 	conn, err := grpc.Dial(
 		gConf.DialAddr(),
 		grpc.WithInsecure(),
