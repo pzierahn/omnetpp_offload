@@ -13,6 +13,8 @@ import (
 	"net"
 )
 
+// TODO: Move this to a easy-quic (equic) package
+
 func GenerateTLSConfig() (tlsConf *tls.Config, err error) {
 	key, err := rsa.GenerateKey(rand.Reader, 1024)
 	if err != nil {

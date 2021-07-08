@@ -8,6 +8,8 @@ import (
 	"github.com/lucas-clemente/quic-go"
 )
 
+// TODO: Move this to a easy-quic (equic) package
+
 var _ net.Conn = (*Conn)(nil)
 
 type Conn struct {
