@@ -33,6 +33,8 @@ func (conn *connection) run(task *pb.SimulationRun) (err error) {
 		return
 	}
 
+	// TODO: Delete downloaded object from storage
+
 	log.Printf("[%s] %s downloaded results %v in %v",
 		conn.name(), runName, simple.ByteSize(uint64(buf.Len())), time.Now().Sub(endExec))
 
