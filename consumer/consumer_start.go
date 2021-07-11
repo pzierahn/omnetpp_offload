@@ -42,9 +42,8 @@ func Start(gConf gconfig.GRPCConnection, config *Config) {
 			Id:        simple.NamedId(config.Tag, 8),
 			OppConfig: config.OppConfig,
 		},
-		connections: make(map[string]*connection),
-		allocCond:   sync.NewCond(&sync.Mutex{}),
-		allocator:   make(chan *pb.SimulationRun),
+		allocCond: sync.NewCond(&sync.Mutex{}),
+		allocator: make(chan *pb.SimulationRun),
 	}
 
 	log.Printf("zipping simulation source: %s", cons.config.Path)

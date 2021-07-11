@@ -14,7 +14,7 @@ type UploadInfo struct {
 	Uploaded uint64
 }
 
-func (client *Client) Upload(meta FileMeta, ch chan<- UploadInfo) (ref *pb.StorageRef, err error) {
+func (client *Client) Upload(meta *FileMeta, ch chan<- UploadInfo) (ref *pb.StorageRef, err error) {
 
 	md := metadata.New(map[string]string{
 		"bucket":   meta.Bucket,

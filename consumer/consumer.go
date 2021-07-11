@@ -3,6 +3,7 @@ package consumer
 import (
 	"github.com/pzierahn/project.go.omnetpp/omnetpp"
 	pb "github.com/pzierahn/project.go.omnetpp/proto"
+	"log"
 	"sync"
 )
 
@@ -14,11 +15,10 @@ type Config struct {
 }
 
 type consumer struct {
-	consumerId  string
-	config      *Config
-	simulation  *pb.Simulation
-	connMu      sync.RWMutex
-	connections map[string]*connection
+	consumerId string
+	config     *Config
+	simulation *pb.Simulation
+	connMu     sync.RWMutex
 
 	finished  sync.WaitGroup
 	allocCond *sync.Cond
@@ -28,4 +28,9 @@ type consumer struct {
 	// TODO: Persist bytes to HD
 	simulationSource []byte
 	binaries         map[string][]byte
+}
+
+func init() {
+	log.SetFlags(log.LstdFlags | log.Lshortfile)
+	log.SetPrefix("Consumer ")
 }

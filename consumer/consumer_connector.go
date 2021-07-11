@@ -15,6 +15,9 @@ func (cons *consumer) startConnector(broker pb.BrokerClient) {
 	}
 
 	var once sync.Once
+	var wg sync.WaitGroup
+	var mux sync.RWMutex
+	connections := make(map[string]*providerConnection)
 
 	for {
 		providers, err := stream.Recv()
@@ -24,14 +27,10 @@ func (cons *consumer) startConnector(broker pb.BrokerClient) {
 
 		log.Printf("providers updated event: %v", simple.PrettyString(providers.Items))
 
-		var wg sync.WaitGroup
-		var mux sync.RWMutex
-		connections := make(map[string]*connection)
-
 		for _, prov := range providers.Items {
 
 			cons.connMu.RLock()
-			conn, ok := cons.connections[prov.ProviderId]
+			pconn, ok := connections[prov.ProviderId]
 			cons.connMu.RUnlock()
 
 			if ok {
@@ -40,7 +39,7 @@ func (cons *consumer) startConnector(broker pb.BrokerClient) {
 				// Connection already established, nothing to do
 				//
 
-				connections[prov.ProviderId] = conn
+				connections[prov.ProviderId] = pconn
 
 				continue
 			}
@@ -49,20 +48,20 @@ func (cons *consumer) startConnector(broker pb.BrokerClient) {
 			go func(prov *pb.ProviderInfo) {
 				defer wg.Done()
 
-				conn, err := connect(prov)
+				pconn, err = connect(prov)
 				if err != nil {
 					log.Println(err)
 					return
 				}
 
-				err = cons.init(conn)
+				err = pconn.init(cons)
 				if err != nil {
 					log.Println(err)
 					return
 				}
 
 				mux.Lock()
-				connections[prov.ProviderId] = conn
+				connections[prov.ProviderId] = pconn
 				mux.Unlock()
 			}(prov)
 		}
@@ -107,9 +106,5 @@ func (cons *consumer) startConnector(broker pb.BrokerClient) {
 
 			break
 		}
-
-		cons.connMu.Lock()
-		cons.connections = connections
-		cons.connMu.Unlock()
 	}
 }

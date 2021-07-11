@@ -12,20 +12,19 @@ import (
 	"time"
 )
 
-type connection struct {
-	simulation *pb.Simulation
-	info       *pb.ProviderInfo
-	conn       *net.UDPConn
-	cConn      *grpc.ClientConn
-	provider   pb.ProviderClient
-	store      pb.StorageClient
+type providerConnection struct {
+	info     *pb.ProviderInfo
+	conn     *net.UDPConn
+	cConn    *grpc.ClientConn
+	provider pb.ProviderClient
+	store    pb.StorageClient
 }
 
-func (conn *connection) name() (name string) {
-	return fmt.Sprintf("%-20s", conn.info.ProviderId)
+func (pConn *providerConnection) name() (name string) {
+	return fmt.Sprintf("%-20s", pConn.info.ProviderId)
 }
 
-func connect(prov *pb.ProviderInfo) (conn *connection, err error) {
+func connect(prov *pb.ProviderInfo) (conn *providerConnection, err error) {
 
 	log.Printf("connect to provider %v", prov.ProviderId)
 
@@ -49,7 +48,7 @@ func connect(prov *pb.ProviderInfo) (conn *connection, err error) {
 		return
 	}
 
-	conn = &connection{
+	conn = &providerConnection{
 		info:     prov,
 		conn:     gate,
 		cConn:    cConn,
@@ -60,7 +59,7 @@ func connect(prov *pb.ProviderInfo) (conn *connection, err error) {
 	return
 }
 
-func (conn *connection) close() {
-	_ = conn.cConn.Close()
-	_ = conn.conn.Close()
+func (pConn *providerConnection) close() {
+	_ = pConn.cConn.Close()
+	_ = pConn.conn.Close()
 }

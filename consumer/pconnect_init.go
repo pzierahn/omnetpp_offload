@@ -3,36 +3,37 @@ package consumer
 import (
 	"context"
 	pb "github.com/pzierahn/project.go.omnetpp/proto"
-	"github.com/pzierahn/project.go.omnetpp/storage"
 	"log"
 )
 
-func (cons *consumer) init(conn *connection) (err error) {
+func (pConn *providerConnection) init(cons *consumer) (err error) {
 
-	conn.simulation = cons.simulation
+	simulation := cons.simulation
 
-	err = conn.checkout(storage.FileMeta{
-		Bucket:   cons.simulation.Id,
-		Filename: "source.tgz",
-		Data:     cons.simulationSource,
-	})
-	if err != nil {
+	source := &checkoutObject{
+		SimulationId: simulation.Id,
+		Filename:     "source.tgz",
+		Data:         cons.simulationSource,
+	}
+
+	if err = pConn.checkout(source); err != nil {
 		return
 	}
 
-	err = conn.setup(cons.simulation)
-	if err != nil {
+	if err = pConn.setupExecutable(simulation); err != nil {
 		return
 	}
 
-	stream, err := conn.provider.Allocate(context.Background())
+	stream, err := pConn.provider.Allocate(context.Background())
 	if err != nil {
+		// TODO: Do not crash here
 		log.Fatalln(err)
 	}
 
-	log.Printf("[%s] startAllocator", conn.name())
-
 	go func() {
+
+		log.Printf("[%s] startAllocator", pConn.name())
+
 		for {
 			alloc, err := stream.Recv()
 			if err != nil {
@@ -40,7 +41,7 @@ func (cons *consumer) init(conn *connection) (err error) {
 			}
 
 			log.Printf("[%s] allocated %d slots",
-				conn.name(), alloc.Slots)
+				pConn.name(), alloc.Slots)
 
 			for inx := uint32(0); inx < alloc.Slots; inx++ {
 
@@ -57,9 +58,10 @@ func (cons *consumer) init(conn *connection) (err error) {
 					// TODO: Find a better way to handle this
 					defer cons.finished.Done()
 
-					err := conn.run(task)
+					err := pConn.run(task)
 					if err != nil {
-						log.Fatalln(conn.name(), err)
+						// TODO: Don't crash here!
+						log.Fatalln(pConn.name(), err)
 					}
 				}()
 			}
@@ -73,13 +75,12 @@ func (cons *consumer) init(conn *connection) (err error) {
 
 		cond := cons.allocCond
 
-		for {
-			// TODO: Change wait and lock
-			cond.L.Lock()
-			allocateJobs := uint32(len(cons.allocate))
-			cond.L.Unlock()
+		cond.L.Lock()
+		allocateJobs := uint32(len(cons.allocate))
+		cond.L.Unlock()
 
-			log.Printf("[%s] request %d slots", conn.name(), allocateJobs)
+		for {
+			log.Printf("[%s] request %d slots", pConn.name(), allocateJobs)
 
 			err := stream.Send(&pb.AllocateRequest{
 				ConsumerId: cons.consumerId,
@@ -92,6 +93,7 @@ func (cons *consumer) init(conn *connection) (err error) {
 
 			cond.L.Lock()
 			cond.Wait()
+			allocateJobs = uint32(len(cons.allocate))
 			cond.L.Unlock()
 		}
 	}()
