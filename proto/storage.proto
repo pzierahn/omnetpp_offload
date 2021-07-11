@@ -9,6 +9,11 @@ service Storage {
   rpc Pull   (StorageRef)           returns (stream StorageParcel)  {}
   rpc Push   (stream StorageParcel) returns (StorageRef)            {}
   rpc Delete (StorageRef)           returns (google.protobuf.Empty) {}
+  rpc Drop   (BucketRef)            returns (google.protobuf.Empty) {}
+}
+
+message BucketRef {
+  string bucket = 1;
 }
 
 message StorageRef {

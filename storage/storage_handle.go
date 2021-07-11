@@ -19,3 +19,15 @@ func (server *Server) Delete(_ context.Context, ref *pb.StorageRef) (res *emptyp
 
 	return
 }
+
+func (server *Server) Drop(_ context.Context, ref *pb.BucketRef) (res *emptypb.Empty, err error) {
+
+	res = &emptypb.Empty{}
+
+	log.Printf("Drop: %+v", ref)
+
+	filename := filepath.Join(storagePath, ref.Bucket)
+	err = os.RemoveAll(filename)
+
+	return
+}

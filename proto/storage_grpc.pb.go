@@ -22,6 +22,7 @@ type StorageClient interface {
 	Pull(ctx context.Context, in *StorageRef, opts ...grpc.CallOption) (Storage_PullClient, error)
 	Push(ctx context.Context, opts ...grpc.CallOption) (Storage_PushClient, error)
 	Delete(ctx context.Context, in *StorageRef, opts ...grpc.CallOption) (*emptypb.Empty, error)
+	Drop(ctx context.Context, in *BucketRef, opts ...grpc.CallOption) (*emptypb.Empty, error)
 }
 
 type storageClient struct {
@@ -107,6 +108,15 @@ func (c *storageClient) Delete(ctx context.Context, in *StorageRef, opts ...grpc
 	return out, nil
 }
 
+func (c *storageClient) Drop(ctx context.Context, in *BucketRef, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+	out := new(emptypb.Empty)
+	err := c.cc.Invoke(ctx, "/service.Storage/Drop", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // StorageServer is the server API for Storage service.
 // All implementations must embed UnimplementedStorageServer
 // for forward compatibility
@@ -114,6 +124,7 @@ type StorageServer interface {
 	Pull(*StorageRef, Storage_PullServer) error
 	Push(Storage_PushServer) error
 	Delete(context.Context, *StorageRef) (*emptypb.Empty, error)
+	Drop(context.Context, *BucketRef) (*emptypb.Empty, error)
 	mustEmbedUnimplementedStorageServer()
 }
 
@@ -129,6 +140,9 @@ func (UnimplementedStorageServer) Push(Storage_PushServer) error {
 }
 func (UnimplementedStorageServer) Delete(context.Context, *StorageRef) (*emptypb.Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Delete not implemented")
+}
+func (UnimplementedStorageServer) Drop(context.Context, *BucketRef) (*emptypb.Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Drop not implemented")
 }
 func (UnimplementedStorageServer) mustEmbedUnimplementedStorageServer() {}
 
@@ -208,6 +222,24 @@ func _Storage_Delete_Handler(srv interface{}, ctx context.Context, dec func(inte
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Storage_Drop_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(BucketRef)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(StorageServer).Drop(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/service.Storage/Drop",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(StorageServer).Drop(ctx, req.(*BucketRef))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Storage_ServiceDesc is the grpc.ServiceDesc for Storage service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -218,6 +250,10 @@ var Storage_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "Delete",
 			Handler:    _Storage_Delete_Handler,
+		},
+		{
+			MethodName: "Drop",
+			Handler:    _Storage_Drop_Handler,
 		},
 	},
 	Streams: []grpc.StreamDesc{
