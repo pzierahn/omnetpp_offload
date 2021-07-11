@@ -43,19 +43,19 @@ func dialAddr(ctx context.Context, conn *net.UDPConn, connectionId string) (remo
 	}()
 
 	// send initial udp package to stun server
-	log.Printf("send stun signal (%s)", connectionId)
+	log.Printf("send stun signal connectionId=%s", connectionId)
 	_, err = conn.WriteTo([]byte(connectionId), rendezvousAddr)
 	if err != nil {
 		return
 	}
 
-	// Send ever 30 seconds a stun signal to the broker keep the NAT open
+	// Send ever 20 seconds a stun signal to the broker keep the NAT gate open
 	signalTick := time.NewTicker(time.Second * 20)
 	defer signalTick.Stop()
 
 	go func() {
 		for range signalTick.C {
-			log.Printf("send stun signal (%s)", connectionId)
+			log.Printf("send stun signal connectionId=%s", connectionId)
 			_, err = conn.WriteTo([]byte(connectionId), rendezvousAddr)
 			if err != nil {
 				log.Fatalln(err)

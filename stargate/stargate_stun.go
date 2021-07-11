@@ -18,7 +18,7 @@ func ping(conn *net.UDPConn) {
 
 	for id, register := range match {
 		for _, addr := range register {
-			log.Printf("send hello connectionId=%v addr=%v", id, addr)
+			log.Printf("send hello: connectionId=%v addr=%v", id, addr)
 
 			_, err := conn.WriteTo([]byte("hello"), addr)
 			if err != nil {
@@ -61,7 +61,7 @@ func receiveStun(conn *net.UDPConn) {
 				matchMu.Lock()
 				defer matchMu.Unlock()
 
-				delete(match, connectId)
+				delete(match[connectId], remoteAddr.String())
 				delete(timers, timerKey)
 			}
 		}()

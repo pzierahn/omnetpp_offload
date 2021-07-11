@@ -15,7 +15,7 @@ func (prov *provider) allocator() {
 		cond.Wait()
 
 		freeSlots := atomic.LoadInt32(&prov.freeSlots)
-		log.Printf("allocator: freeSlots=%d", freeSlots)
+		log.Printf("allocator: freeSlots=%d requests=%v", freeSlots, prov.requests)
 
 		for cId, req := range prov.requests {
 
@@ -30,7 +30,7 @@ func (prov *provider) allocator() {
 			}
 
 			assignable := prov.slots - allocatedSlots
-			log.Printf("allocator: assignable=%d allocatedSlots=%+v", assignable, prov.assignments)
+			log.Printf("allocator: assignable=%d allocatedSlots=%v", assignable, prov.assignments)
 
 			if assignable == 0 {
 				break
