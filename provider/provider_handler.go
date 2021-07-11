@@ -164,15 +164,14 @@ func (prov *provider) Allocate(stream pb.Provider_AllocateServer) (err error) {
 		close(allocate)
 
 		// TODO: clean up and remove simulation
+		// TODO: cancel running simulations
 	}()
 
 	go func() {
 		for slots := range allocate {
 			log.Printf("Allocate: ConsumerId=%s allocate=%d", cId, slots)
 
-			err = stream.Send(&pb.AllocatedSlots{
-				Slots: slots,
-			})
+			err = stream.Send(&pb.AllocatedSlots{Slots: slots})
 			if err != nil {
 				log.Println(err)
 				break
