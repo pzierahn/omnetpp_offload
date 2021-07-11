@@ -40,6 +40,11 @@ func (pConn *providerConnection) run(task *pb.SimulationRun) (err error) {
 
 	dump := "/Users/patrick/Desktop/dump"
 	err = ioutil.WriteFile(filepath.Join(dump, runName+".tgz"), buf.Bytes(), 0755)
+	if err != nil {
+		return
+	}
+
+	_, err = pConn.store.Delete(context.Background(), resultRef)
 
 	return
 }

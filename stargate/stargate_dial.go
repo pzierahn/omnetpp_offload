@@ -96,12 +96,12 @@ func Dial(ctx context.Context, connectionId string) (conn *net.UDPConn, remote *
 	go func() {
 		for inx := 0; inx < sendPings; inx++ {
 			message := fmt.Sprintf("hello %d", inx)
-			w, err := conn.WriteToUDP([]byte(message), remote)
+			_, err := conn.WriteToUDP([]byte(message), remote)
 			if err != nil {
 				log.Fatalln(err)
 			}
 
-			log.Printf("send message='%s' (%d bytes)\n", message, w)
+			log.Printf("send: message='%s' remote=%v\n", message, remote)
 
 			// Wait for to seconds to ensure nat hole punching works!
 			if inx == 0 {

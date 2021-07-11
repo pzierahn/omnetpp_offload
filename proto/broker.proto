@@ -3,6 +3,7 @@ package service;
 
 option go_package = "./proto";
 
+// TODO: Replace Empty with import "google/protobuf/empty.proto";
 import "google/protobuf/timestamp.proto";
 
 import "storage.proto";

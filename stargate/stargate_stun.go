@@ -10,7 +10,12 @@ var matchMu sync.RWMutex
 var match = make(map[string]map[string]*net.UDPAddr)
 var timers = make(map[string]*time.Timer)
 
-var buffer = make([]byte, 1024)
+func DebugValues() map[string]map[string]*net.UDPAddr {
+	matchMu.RLock()
+	defer matchMu.RUnlock()
+
+	return match
+}
 
 func ping(conn *net.UDPConn) {
 	matchMu.RLock()
@@ -29,6 +34,8 @@ func ping(conn *net.UDPConn) {
 }
 
 func receiveStun(conn *net.UDPConn) {
+
+	buffer := make([]byte, 1024)
 
 	br, remoteAddr, err := conn.ReadFromUDP(buffer)
 	if err != nil {
@@ -63,6 +70,10 @@ func receiveStun(conn *net.UDPConn) {
 
 				delete(match[connectId], remoteAddr.String())
 				delete(timers, timerKey)
+
+				if len(match[connectId]) == 0 {
+					delete(match, connectId)
+				}
 			}
 		}()
 	}

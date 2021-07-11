@@ -2,7 +2,6 @@ package consumer
 
 import (
 	"context"
-	"fmt"
 	"github.com/pzierahn/project.go.omnetpp/equic"
 	pb "github.com/pzierahn/project.go.omnetpp/proto"
 	"github.com/pzierahn/project.go.omnetpp/stargate"
@@ -21,7 +20,7 @@ type providerConnection struct {
 }
 
 func (pConn *providerConnection) name() (name string) {
-	return fmt.Sprintf("%-20s", pConn.info.ProviderId)
+	return pConn.info.ProviderId
 }
 
 func connect(prov *pb.ProviderInfo) (conn *providerConnection, err error) {
