@@ -180,7 +180,8 @@ func (prov *provider) Allocate(stream pb.Provider_AllocateServer) (err error) {
 			}
 		}
 
-		// TODO: clean up and remove simulation (delete simulation bucket)
+		// Clean up and remove simulation (delete simulation bucket)
+		_, _ = prov.store.Drop(nil, &pb.BucketRef{Bucket: sId})
 
 		cond.Broadcast()
 		cond.L.Unlock()
