@@ -28,12 +28,12 @@ func (client *Client) Download(file *pb.StorageRef) (buf bytes.Buffer, err error
 		}
 
 		if err != nil {
-			log.Fatalln(err)
+			return
 		}
 
 		_, err = buf.Write(parcel.Payload)
 		if err != nil {
-			log.Fatalln(err)
+			return
 		}
 
 		packages++

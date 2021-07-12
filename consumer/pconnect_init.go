@@ -32,7 +32,7 @@ func (pConn *providerConnection) init(cons *consumer) (err error) {
 
 	go func() {
 
-		log.Printf("[%s] startAllocator", pConn.name())
+		log.Printf("[%s] start allocator", pConn.name())
 
 		for {
 			alloc, err := stream.Recv()
@@ -56,12 +56,18 @@ func (pConn *providerConnection) init(cons *consumer) (err error) {
 
 				go func() {
 					// TODO: Find a better way to handle this
-					defer cons.finished.Done()
 
 					err := pConn.run(task)
 					if err != nil {
 						// TODO: Don't crash here!
-						log.Fatalln(pConn.name(), err)
+						log.Printf("[%s] error %v", pConn.name(), err)
+
+						// TODO: Add back to queue to send right allocation num
+						log.Printf("[%s] reschedule %s_%s", pConn.name(), task.Config, task.RunNum)
+						// Reschedule task
+						cons.allocator <- task
+					} else {
+						cons.finished.Done()
 					}
 				}()
 			}
@@ -73,11 +79,12 @@ func (pConn *providerConnection) init(cons *consumer) (err error) {
 		// Communicate changes in the allocSlots number to the provider
 		//
 
+		log.Printf("[%s] start allocate requester", pConn.name())
+
 		cond := cons.allocCond
 
-		cond.L.Lock()
+		// TODO: Fix unsynced access!
 		allocateJobs := uint32(len(cons.allocate))
-		cond.L.Unlock()
 
 		for {
 			log.Printf("[%s] request %d slots", pConn.name(), allocateJobs)

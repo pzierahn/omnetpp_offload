@@ -19,8 +19,5 @@ func init() {
 
 func Clean() {
 	log.Printf("cleaning worker cache %s\n", cachePath)
-	err := os.RemoveAll(cachePath)
-	if err != nil {
-		log.Fatalln(err)
-	}
+	_ = os.RemoveAll(cachePath)
 }
