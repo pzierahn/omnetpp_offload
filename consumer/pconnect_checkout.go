@@ -50,6 +50,7 @@ func (pConn *providerConnection) checkout(meta *checkoutObject) (err error) {
 	}
 
 	uploadTime := time.Now().Sub(startUpload)
+	startCheckout := time.Now()
 
 	log.Printf("[%s] upload: finished file=%s packages=%d time=%v",
 		pConn.name(), meta.Filename, info.Parcels, uploadTime)
@@ -61,7 +62,8 @@ func (pConn *providerConnection) checkout(meta *checkoutObject) (err error) {
 		Source:       ref,
 	})
 
-	log.Printf("[%s] checkout: %s done", pConn.name(), meta.Filename)
+	log.Printf("[%s] checkout: %s done (%v)",
+		pConn.name(), meta.Filename, time.Now().Sub(startCheckout))
 
 	return
 }
