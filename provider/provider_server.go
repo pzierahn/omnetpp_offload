@@ -42,14 +42,14 @@ func Start(conf gconfig.Config) {
 	// Register provider
 	//
 
-	qconn, dialer := equic.GRPCDialerAuto()
-	log.Printf("quic listener on %v", qconn.LocalAddr())
+	//qconn, dialer := equic.GRPCDialerAuto()
+	//log.Printf("quic listener on %v", qconn.LocalAddr())
 
 	brokerConn, err := grpc.Dial(
 		conf.Broker.DialAddr(),
 		grpc.WithInsecure(),
 		grpc.WithBlock(),
-		grpc.WithContextDialer(dialer),
+		//grpc.WithContextDialer(dialer),
 	)
 	if err != nil {
 		log.Fatalln(err)

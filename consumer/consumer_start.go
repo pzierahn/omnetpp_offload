@@ -1,7 +1,6 @@
 package consumer
 
 import (
-	"github.com/pzierahn/project.go.omnetpp/equic"
 	"github.com/pzierahn/project.go.omnetpp/gconfig"
 	pb "github.com/pzierahn/project.go.omnetpp/proto"
 	"github.com/pzierahn/project.go.omnetpp/simple"
@@ -19,12 +18,12 @@ func Start(gConf gconfig.GRPCConnection, config *Config) {
 
 	log.Printf("connecting to broker (%v)", gConf.DialAddr())
 
-	_, dialer := equic.GRPCDialerAuto()
+	//_, dialer := equic.GRPCDialerAuto()
 	conn, err := grpc.Dial(
 		gConf.DialAddr(),
 		grpc.WithInsecure(),
 		grpc.WithBlock(),
-		grpc.WithContextDialer(dialer),
+		//grpc.WithContextDialer(dialer),
 	)
 	if err != nil {
 		log.Fatalf("did not connect: %v", err)
