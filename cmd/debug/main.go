@@ -35,34 +35,40 @@ func main() {
 
 	var wg sync.WaitGroup
 
+	go func() {
+		for inx := 0; inx < 2; inx++ {
+
+			log.Println("reader", inx, "lock")
+			cond.L.Lock()
+			log.Println("reader", inx, "lock wait")
+			cond.Wait()
+			log.Println("reader", inx, "value", value)
+			cond.L.Unlock()
+			log.Println("reader", inx, "done")
+		}
+	}()
+
+	time.Sleep(time.Second * 2)
+
 	for inx := 0; inx < 2; inx++ {
 		wg.Add(1)
 
 		go func(inx int) {
 			defer wg.Done()
 
-			log.Println(inx, "Waiting")
+			log.Println("write", inx, "Waiting")
 			cond.L.Lock()
 
-			log.Println(inx, "doing stuff")
+			log.Println("write", inx, "doing stuff")
 			time.Sleep(time.Second * 4)
 
 			value = inx
 			cond.Broadcast()
 
 			cond.L.Unlock()
-			log.Println(inx, "Done")
+			log.Println("write", inx, "Done")
 		}(inx)
 	}
-
-	go func() {
-		for inx := 0; inx < 2; inx++ {
-			cond.L.Lock()
-			cond.Wait()
-			log.Println("value", value)
-			cond.L.Unlock()
-		}
-	}()
 
 	wg.Wait()
 
