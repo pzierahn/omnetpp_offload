@@ -2,7 +2,7 @@ package omnetpp
 
 import (
 	"fmt"
-	"github.com/pzierahn/project.go.omnetpp/shell"
+	"github.com/pzierahn/project.go.omnetpp/simple"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -34,7 +34,7 @@ func (project *OmnetProject) MakeMake() (err error) {
 		args = append(args, "--make-so")
 	}
 
-	makemake := shell.Command("opp_makemake", args...)
+	makemake := simple.ShellCommand("opp_makemake", args...)
 
 	makemake.Dir = filepath.Join(project.Path, src)
 	makemake.Stdout = os.Stdout
@@ -75,7 +75,7 @@ func (project *OmnetProject) Compile() (err error) {
 
 	src, _ := filepath.Split(project.Simulation)
 
-	makeCmd := shell.Command("make", "-j", fmt.Sprint(runtime.NumCPU()), "MODE=release")
+	makeCmd := simple.ShellCommand("make", "-j", fmt.Sprint(runtime.NumCPU()), "MODE=release")
 	makeCmd.Dir = filepath.Join(project.Path, src)
 	makeCmd.Stdout = os.Stdout
 	makeCmd.Stderr = os.Stderr
@@ -93,7 +93,7 @@ func (project *OmnetProject) Clean() (err error) {
 
 	logger.Printf("cleaning %s\n", project.SourcePath)
 
-	makeCmd := shell.Command("make", "cleanall")
+	makeCmd := simple.ShellCommand("make", "cleanall")
 	makeCmd.Dir = filepath.Join(project.Path, project.SourcePath)
 	//makeCmd.Stdout = os.Stdout
 	//makeCmd.Stderr = os.Stderr

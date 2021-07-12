@@ -2,6 +2,7 @@ package provider
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"github.com/pzierahn/project.go.omnetpp/omnetpp"
 	pb "github.com/pzierahn/project.go.omnetpp/proto"
@@ -10,7 +11,7 @@ import (
 	"path/filepath"
 )
 
-func (prov *provider) run(run *pb.SimulationRun) (ref *pb.StorageRef, err error) {
+func (prov *provider) run(ctx context.Context, run *pb.SimulationRun) (ref *pb.StorageRef, err error) {
 
 	//
 	// Setup mirror simulation
@@ -55,7 +56,7 @@ func (prov *provider) run(run *pb.SimulationRun) (ref *pb.StorageRef, err error)
 	}
 
 	opp := omnetpp.New(&oppConf)
-	err = opp.Run(run.Config, run.RunNum)
+	err = opp.RunContext(ctx, run.Config, run.RunNum)
 	if err != nil {
 		return
 	}

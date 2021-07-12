@@ -50,7 +50,7 @@ func (cons *consumer) startConnector(broker pb.BrokerClient) {
 
 				pconn, err = connect(prov)
 				if err != nil {
-					log.Println(err)
+					log.Println(prov.ProviderId, err)
 					return
 				}
 
@@ -86,7 +86,6 @@ func (cons *consumer) startConnector(broker pb.BrokerClient) {
 				allocate := make([]*pb.SimulationRun, len(runs.Runs))
 				for inx, run := range runs.Runs {
 					allocate[inx] = &pb.SimulationRun{
-						ConsumerId:   cons.consumerId,
 						SimulationId: cons.simulation.Id,
 						OppConfig:    cons.simulation.OppConfig,
 						Config:       runs.Config,

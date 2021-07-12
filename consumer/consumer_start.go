@@ -1,14 +1,12 @@
 package consumer
 
 import (
-	"fmt"
 	"github.com/pzierahn/project.go.omnetpp/equic"
 	"github.com/pzierahn/project.go.omnetpp/gconfig"
 	pb "github.com/pzierahn/project.go.omnetpp/proto"
 	"github.com/pzierahn/project.go.omnetpp/simple"
 	"google.golang.org/grpc"
 	"log"
-	"math/rand"
 	"path/filepath"
 	"sync"
 )
@@ -36,8 +34,7 @@ func Start(gConf gconfig.GRPCConnection, config *Config) {
 	}()
 
 	cons := &consumer{
-		consumerId: fmt.Sprintf("consumer-%x", rand.Uint32()),
-		config:     config,
+		config: config,
 		simulation: &pb.Simulation{
 			Id:        simple.NamedId(config.Tag, 8),
 			OppConfig: config.OppConfig,

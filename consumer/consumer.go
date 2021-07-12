@@ -15,7 +15,6 @@ type Config struct {
 }
 
 type consumer struct {
-	consumerId string
 	config     *Config
 	simulation *pb.Simulation
 	connMu     sync.RWMutex

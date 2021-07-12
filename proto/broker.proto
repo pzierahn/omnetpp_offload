@@ -70,7 +70,7 @@ service Provider {
 }
 
 message AllocateRequest {
-  string consumerId = 1;
+  string simulationId = 1;
   uint32 request = 2;
 }
 
@@ -90,7 +90,6 @@ message SimulationRun {
   string config = 2;
   string runNum = 3;
   OppConfig oppConfig = 4;
-  string consumerId = 5;
 }
 
 message SimulationRuns {

@@ -29,7 +29,7 @@ func (pConn *providerConnection) checkout(meta *checkoutObject) (err error) {
 
 	go func() {
 		for info = range ui {
-			log.Printf("[%s] upload: simulation=%s uploaded=%v percent=%0.2f%%",
+			log.Printf("[%s] upload: file=%s uploaded=%v percent=%0.2f%%",
 				pConn.name(),
 				meta.Filename,
 				simple.ByteSize(info.Uploaded),
@@ -51,7 +51,8 @@ func (pConn *providerConnection) checkout(meta *checkoutObject) (err error) {
 
 	uploadTime := time.Now().Sub(startUpload)
 
-	log.Printf("[%s] upload: %s finished packages=%d time=%v", pConn.name(), meta.Filename, info.Parcels, uploadTime)
+	log.Printf("[%s] upload: finished file=%s packages=%d time=%v",
+		pConn.name(), meta.Filename, info.Parcels, uploadTime)
 
 	log.Printf("[%s] checkout: %s...", pConn.name(), meta.Filename)
 

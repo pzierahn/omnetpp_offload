@@ -11,11 +11,13 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"strings"
 	"sync"
 	"sync/atomic"
+	"time"
 )
 
-type consumerId = string
+type simulationId = string
 
 type provider struct {
 	pb.UnimplementedProviderServer
@@ -25,9 +27,10 @@ type provider struct {
 	cond        *sync.Cond
 	slots       uint32
 	freeSlots   int32
-	requests    map[consumerId]uint32
-	assignments map[consumerId]uint32
-	allocate    map[consumerId]chan<- uint32
+	requests    map[simulationId]uint32
+	assignments map[simulationId]uint32
+	runCtx      map[simulationId]context.CancelFunc
+	allocate    map[simulationId]chan<- uint32
 }
 
 func (prov *provider) Info(_ context.Context, _ *pb.Empty) (info *pb.ProviderInfo, err error) {
@@ -114,8 +117,8 @@ func (prov *provider) Run(_ context.Context, run *pb.SimulationRun) (ref *pb.Sto
 		return
 	}
 
-	if run.ConsumerId == "" {
-		err = fmt.Errorf("ConsumerId missing")
+	if run.SimulationId == "" {
+		err = fmt.Errorf("SimulationId missing")
 		return
 	}
 
@@ -124,7 +127,17 @@ func (prov *provider) Run(_ context.Context, run *pb.SimulationRun) (ref *pb.Sto
 		return
 	}
 
+	// Simulation Run Id = srId
+	srId := fmt.Sprintf("%s_%s_%s", run.SimulationId, run.Config, run.RunNum)
+
+	ctx, cnl := context.WithTimeout(context.Background(), time.Minute*60)
+	defer cnl()
+
 	cond := prov.cond
+
+	cond.L.Lock()
+	prov.runCtx[srId] = cnl
+	cond.L.Unlock()
 
 	atomic.AddInt32(&prov.freeSlots, -1)
 
@@ -134,42 +147,50 @@ func (prov *provider) Run(_ context.Context, run *pb.SimulationRun) (ref *pb.Sto
 
 		cond.L.Lock()
 		atomic.AddInt32(&prov.freeSlots, 1)
-		prov.assignments[run.ConsumerId]--
+		prov.assignments[run.SimulationId]--
+		delete(prov.runCtx, srId)
 		cond.Broadcast()
 		cond.L.Unlock()
 	}()
 
-	return prov.run(run)
+	return prov.run(ctx, run)
 }
 
 func (prov *provider) Allocate(stream pb.Provider_AllocateServer) (err error) {
 
-	var cId string
+	var sId string
 
 	allocate := make(chan uint32)
 
 	defer func() {
-		log.Printf("Allocate: unregister ConsumerId=%v", cId)
+		log.Printf("Allocate: unregister SimulationId=%v", sId)
 
 		cond := prov.cond
 
 		cond.L.Lock()
-		delete(prov.allocate, cId)
-		delete(prov.requests, cId)
-		delete(prov.assignments, cId)
+		delete(prov.allocate, sId)
+		delete(prov.requests, sId)
+		delete(prov.assignments, sId)
+
+		// Cancel running simulations
+		for id, cnl := range prov.runCtx {
+			if strings.HasPrefix(id, sId) {
+				log.Printf("Allocate: cancel %s", id)
+				cnl()
+			}
+		}
+
+		// TODO: clean up and remove simulation (delete simulation bucket)
 
 		cond.Broadcast()
 		cond.L.Unlock()
 
 		close(allocate)
-
-		// TODO: clean up and remove simulation
-		// TODO: cancel running simulations
 	}()
 
 	go func() {
 		for slots := range allocate {
-			log.Printf("Allocate: ConsumerId=%s allocate=%d", cId, slots)
+			log.Printf("Allocate: SimulationId=%s allocate=%d", sId, slots)
 
 			err = stream.Send(&pb.AllocatedSlots{Slots: slots})
 			if err != nil {
@@ -188,27 +209,27 @@ func (prov *provider) Allocate(stream pb.Provider_AllocateServer) (err error) {
 			break
 		}
 
-		if cId == "" {
-			cId = req.ConsumerId
-			log.Printf("Allocate: register ConsumerId=%v", cId)
+		if sId == "" {
+			sId = req.SimulationId
+			log.Printf("Allocate: register SimulationId=%v", sId)
 
 			cond.L.Lock()
-			prov.allocate[cId] = allocate
+			prov.allocate[sId] = allocate
 			cond.L.Unlock()
 		}
 
-		if cId == "" {
-			err = fmt.Errorf("error: missing ConsumerId")
+		if sId == "" {
+			err = fmt.Errorf("error: missing SimulationId")
 			log.Println(err)
 			return
 		}
 
-		log.Printf("Allocate: ConsumerId=%s request=%d", cId, req.Request)
+		log.Printf("Allocate: SimulationId=%s request=%d", sId, req.Request)
 
 		cond.L.Lock()
 
-		if val, _ := prov.requests[cId]; val != req.Request {
-			prov.requests[cId] = req.Request
+		if val, _ := prov.requests[sId]; val != req.Request {
+			prov.requests[sId] = req.Request
 			cond.Broadcast()
 		}
 

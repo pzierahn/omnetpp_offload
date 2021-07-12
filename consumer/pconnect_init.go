@@ -83,8 +83,8 @@ func (pConn *providerConnection) init(cons *consumer) (err error) {
 			log.Printf("[%s] request %d slots", pConn.name(), allocateJobs)
 
 			err := stream.Send(&pb.AllocateRequest{
-				ConsumerId: cons.consumerId,
-				Request:    allocateJobs,
+				SimulationId: simulation.Id,
+				Request:      allocateJobs,
 			})
 			if err != nil {
 				log.Println(err)

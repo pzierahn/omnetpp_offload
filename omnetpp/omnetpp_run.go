@@ -3,8 +3,9 @@ package omnetpp
 import (
 	"bufio"
 	"bytes"
+	"context"
 	"fmt"
-	"github.com/pzierahn/project.go.omnetpp/shell"
+	"github.com/pzierahn/project.go.omnetpp/simple"
 	"os/exec"
 	"path/filepath"
 	"regexp"
@@ -15,7 +16,7 @@ import (
 //
 // Get simulation executable. This can ether be a simulationExe
 // or simulationLib in conjunction with opp_run
-func (project *OmnetProject) command(args ...string) (cmd *exec.Cmd, err error) {
+func (project *OmnetProject) commandContext(ctx context.Context, args ...string) (cmd *exec.Cmd, err error) {
 
 	base := filepath.Join(project.Path, project.BasePath)
 
@@ -59,7 +60,7 @@ func (project *OmnetProject) command(args ...string) (cmd *exec.Cmd, err error) 
 
 		args = append(args, "-l", lib)
 
-		cmd = shell.Command("opp_run", args...)
+		cmd = simple.ShellCommandContext(ctx, "opp_run", args...)
 		cmd.Dir = base
 	} else {
 
@@ -73,18 +74,25 @@ func (project *OmnetProject) command(args ...string) (cmd *exec.Cmd, err error) 
 			return
 		}
 
-		cmd = exec.Command(exe, args...)
+		cmd = exec.CommandContext(ctx, exe, args...)
 		cmd.Dir = base
 	}
 
 	return
 }
 
-// Run the simulation with configuration (-c) and run number (-r)
-func (project *OmnetProject) Run(config, run string) (err error) {
+// command
+//
+// Get simulation executable. This can ether be a simulationExe
+// or simulationLib in conjunction with opp_run
+func (project *OmnetProject) command(args ...string) (cmd *exec.Cmd, err error) {
+	return project.commandContext(context.Background(), args...)
+}
 
+// RunContext the simulation with configuration (-c) and run number (-r)
+func (project *OmnetProject) RunContext(ctx context.Context, config, run string) (err error) {
 	// Todo: Add timeout, because some simulations are running indefinitely
-	sim, err := project.command("-c", config, "-r", run)
+	sim, err := project.commandContext(ctx, "-c", config, "-r", run)
 
 	if err != nil {
 		return
@@ -125,4 +133,9 @@ func (project *OmnetProject) Run(config, run string) (err error) {
 	}
 
 	return
+}
+
+// Run the simulation with configuration (-c) and run number (-r)
+func (project *OmnetProject) Run(config, run string) (err error) {
+	return project.RunContext(context.Background(), config, run)
 }

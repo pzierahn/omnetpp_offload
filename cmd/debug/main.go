@@ -29,56 +29,42 @@ func main() {
 
 	log.SetFlags(log.LstdFlags | log.Lshortfile)
 
-	cond := sync.NewCond(&sync.Mutex{})
+	var mu sync.Mutex
+	cond := sync.NewCond(&mu)
+	var value int
 
-	var val int
+	var wg sync.WaitGroup
+
+	for inx := 0; inx < 2; inx++ {
+		wg.Add(1)
+
+		go func(inx int) {
+			defer wg.Done()
+
+			log.Println(inx, "Waiting")
+			cond.L.Lock()
+
+			log.Println(inx, "doing stuff")
+			time.Sleep(time.Second * 4)
+
+			value = inx
+			cond.Broadcast()
+
+			cond.L.Unlock()
+			log.Println(inx, "Done")
+		}(inx)
+	}
 
 	go func() {
-		for {
-			log.Println("###1 Lock")
+		for inx := 0; inx < 2; inx++ {
 			cond.L.Lock()
-			log.Println("###1 Wait")
 			cond.Wait()
-			log.Println("###1 val", val)
-			log.Println("###1 Unlock")
+			log.Println("value", value)
 			cond.L.Unlock()
 		}
 	}()
 
-	//go func() {
-	//	for {
-	//		log.Println("###2 Lock")
-	//		cond.L.Lock()
-	//		log.Println("###2 Wait")
-	//		cond.Wait()
-	//		log.Println("###2 val", val)
-	//		log.Println("###2 Unlock")
-	//		cond.L.Unlock()
-	//	}
-	//}()
-	//
-	//go func() {
-	//	for range time.Tick(time.Second) {
-	//		cond.L.Lock()
-	//		val++
-	//		cond.Broadcast()
-	//		cond.L.Unlock()
-	//	}
-	//}()
-
-	cond.L.Lock()
-	log.Println("val test init", val)
-	cond.L.Unlock()
-
-	for range time.Tick(time.Second) {
-		log.Println("###2 Lock")
-		cond.L.Lock()
-		val++
-		log.Println("###2 Broadcast")
-		cond.Broadcast()
-		log.Println("###2 Unlock")
-		cond.L.Unlock()
-	}
+	wg.Wait()
 
 	//var age = make(map[string]int)
 	//

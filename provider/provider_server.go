@@ -13,7 +13,6 @@ import (
 	"google.golang.org/grpc"
 	"log"
 	"net"
-	"runtime"
 	"sync"
 	"time"
 )
@@ -25,14 +24,15 @@ func Start(conf gconfig.Config) {
 	prov := &provider{
 		providerId: simple.NamedId(conf.Worker.Name, 8),
 		store:      store,
-		slots:      uint32(runtime.NumCPU()),
-		freeSlots:  int32(runtime.NumCPU()),
-		//slots:       uint32(1),
-		//freeSlots:   1,
+		//slots:      uint32(runtime.NumCPU()),
+		//freeSlots:  int32(runtime.NumCPU()),
+		slots:       uint32(1),
+		freeSlots:   1,
 		cond:        sync.NewCond(&sync.Mutex{}),
-		requests:    make(map[consumerId]uint32),
-		assignments: make(map[consumerId]uint32),
-		allocate:    make(map[consumerId]chan<- uint32),
+		requests:    make(map[simulationId]uint32),
+		assignments: make(map[simulationId]uint32),
+		runCtx:      make(map[simulationId]context.CancelFunc),
+		allocate:    make(map[simulationId]chan<- uint32),
 	}
 
 	log.Printf("start provider (%v)", prov.providerId)
