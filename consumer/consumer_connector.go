@@ -30,7 +30,7 @@ func (cons *consumer) startConnector(broker pb.BrokerClient, onInit chan int32) 
 		for _, prov := range providers.Items {
 
 			cons.connMu.RLock()
-			pconn, ok := connections[prov.ProviderId]
+			_, ok := connections[prov.ProviderId]
 			cons.connMu.RUnlock()
 
 			if ok {
@@ -39,8 +39,6 @@ func (cons *consumer) startConnector(broker pb.BrokerClient, onInit chan int32) 
 				// Connection already established, nothing to do
 				//
 
-				connections[prov.ProviderId] = pconn
-
 				continue
 			}
 
@@ -48,7 +46,7 @@ func (cons *consumer) startConnector(broker pb.BrokerClient, onInit chan int32) 
 			go func(prov *pb.ProviderInfo) {
 				defer wg.Done()
 
-				pconn, err = connect(prov)
+				pconn, err := connect(prov)
 				if err != nil {
 					log.Println(prov.ProviderId, err)
 					return
@@ -63,6 +61,8 @@ func (cons *consumer) startConnector(broker pb.BrokerClient, onInit chan int32) 
 				mux.Lock()
 				connections[prov.ProviderId] = pconn
 				mux.Unlock()
+
+				logProviderInfo(prov.ProviderId, prov)
 			}(prov)
 		}
 

@@ -11,6 +11,8 @@ import (
 
 func Start(gConf gconfig.GRPCConnection, config *Config) {
 
+	go statisticJsonApi()
+
 	if config.Tag == "" {
 		config.Tag = filepath.Base(config.Path)
 	}
@@ -59,6 +61,8 @@ func Start(gConf gconfig.GRPCConnection, config *Config) {
 	cons.finished.Wait()
 
 	log.Printf("simulation finished!")
+
+	showStatistic()
 
 	return
 }

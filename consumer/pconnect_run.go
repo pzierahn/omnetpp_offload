@@ -27,6 +27,8 @@ func (pConn *providerConnection) run(task *pb.SimulationRun) (err error) {
 	log.Printf("[%s] %s finished (%v)",
 		pConn.name(), runName, endExec.Sub(startExec))
 
+	logExecTime(pConn.name(), endExec.Sub(startExec))
+
 	store := storage.FromClient(pConn.store)
 	buf, err := store.Download(resultRef)
 	if err != nil {

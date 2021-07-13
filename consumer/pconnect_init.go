@@ -34,7 +34,6 @@ func (pConn *providerConnection) allocationHandler(stream pb.Provider_AllocateCl
 
 				err := pConn.run(task)
 				if err != nil {
-					// TODO: Don't crash here!
 					log.Printf("[%s] error %v", pConn.name(), err)
 					log.Printf("[%s] reschedule %s_%s", pConn.name(), task.Config, task.RunNum)
 
