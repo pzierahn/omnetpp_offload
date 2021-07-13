@@ -38,7 +38,7 @@ func (server *Server) Pull(req *pb.StorageRef, stream pb.Storage_PullServer) (er
 
 		err = stream.Send(&parcel)
 		if err != nil {
-			log.Fatalln(err)
+			return
 		}
 
 		packages++
