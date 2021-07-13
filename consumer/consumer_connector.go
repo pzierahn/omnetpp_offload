@@ -8,7 +8,7 @@ import (
 	"sync"
 )
 
-func (cons *consumer) startConnector(broker pb.BrokerClient) {
+func (cons *consumer) startConnector(broker pb.BrokerClient, onInit chan int32) {
 	stream, err := broker.GetProviders(context.Background(), &pb.Empty{})
 	if err != nil {
 		log.Fatalln(err)
@@ -94,13 +94,8 @@ func (cons *consumer) startConnector(broker pb.BrokerClient) {
 				}
 
 				log.Printf("[%s] created %d jobs", conn.name(), len(allocate))
-
-				cons.allocCond.L.Lock()
-				// TODO: Remove slice cut!
-				//cons.allocate = allocate[:20]
-				cons.allocate = allocate
-				cons.allocCond.Broadcast()
-				cons.allocCond.L.Unlock()
+				cons.allocate.add(allocate[:6]...)
+				onInit <- cons.allocate.len()
 			})
 
 			break

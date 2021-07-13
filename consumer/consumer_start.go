@@ -7,7 +7,6 @@ import (
 	"google.golang.org/grpc"
 	"log"
 	"path/filepath"
-	"sync"
 )
 
 func Start(gConf gconfig.GRPCConnection, config *Config) {
@@ -38,8 +37,7 @@ func Start(gConf gconfig.GRPCConnection, config *Config) {
 			Id:        simple.NamedId(config.Tag, 8),
 			OppConfig: config.OppConfig,
 		},
-		allocCond: sync.NewCond(&sync.Mutex{}),
-		allocator: make(chan *pb.SimulationRun),
+		allocate: newQueue(),
 	}
 
 	log.Printf("zipping simulation source: %s", cons.config.Path)
@@ -51,13 +49,14 @@ func Start(gConf gconfig.GRPCConnection, config *Config) {
 
 	cons.simulationSource = buf.Bytes()
 
-	broker := pb.NewBrokerClient(conn)
-	go cons.startConnector(broker)
+	onInit := make(chan int32)
+	defer close(onInit)
 
-	err = cons.dispatchTasks()
-	if err != nil {
-		log.Fatalln(err)
-	}
+	broker := pb.NewBrokerClient(conn)
+	go cons.startConnector(broker, onInit)
+
+	cons.finished.Add(int(<-onInit))
+	cons.finished.Wait()
 
 	log.Printf("simulation finished!")
 
