@@ -51,13 +51,13 @@ func (prov *provider) Status(_ context.Context, _ *pb.Empty) (util *pb.Utilizati
 
 func (prov *provider) Checkout(_ context.Context, bundle *pb.Bundle) (empty *pb.Empty, err error) {
 
-	log.Printf("Checkout: %v", bundle.SimulationId)
+	log.Printf("Checkout: %v %v", bundle.SimulationId, bundle.Source.Filename)
 
 	empty = &pb.Empty{}
 
 	byt, err := prov.store.Get(bundle.Source)
 	if err != nil {
-		log.Printf("Checkout: error %v", err)
+		log.Printf("Checkout: %v error %v", bundle.SimulationId, err)
 		return
 	}
 
@@ -65,7 +65,7 @@ func (prov *provider) Checkout(_ context.Context, bundle *pb.Bundle) (empty *pb.
 
 	err = simple.UnTarGz(cachePath, bytes.NewReader(byt))
 	if err != nil {
-		log.Printf("Checkout: error %v", err)
+		log.Printf("Checkout: %v error %v", bundle.SimulationId, err)
 		_ = os.RemoveAll(path)
 	}
 

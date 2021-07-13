@@ -94,7 +94,7 @@ func (cons *consumer) startConnector(broker pb.BrokerClient, onInit chan int32) 
 				}
 
 				log.Printf("[%s] created %d jobs", conn.name(), len(allocate))
-				cons.allocate.add(allocate[:6]...)
+				cons.allocate.add(allocate...)
 				onInit <- cons.allocate.len()
 			})
 
