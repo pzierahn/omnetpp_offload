@@ -72,24 +72,25 @@ func (cons *consumer) startConnector(broker pb.BrokerClient, onInit chan int32) 
 			once.Do(func() {
 				log.Printf("[%s] list simulation run numbers", conn.name())
 
-				runs, err := conn.provider.ListRunNums(context.Background(), &pb.Simulation{
-					Id:        cons.simulation.Id,
-					OppConfig: cons.simulation.OppConfig,
+				allocate := make([]*pb.SimulationRun, 0)
 
-					// TODO: Fix 0 index
-					Config: cons.config.SimulateConfigs[0],
-				})
-				if err != nil {
-					log.Fatalln(err)
-				}
+				for _, conf := range cons.config.SimulateConfigs {
+					runs, err := conn.provider.ListRunNums(context.Background(), &pb.Simulation{
+						Id:        cons.simulation.Id,
+						OppConfig: cons.simulation.OppConfig,
+						Config:    conf,
+					})
+					if err != nil {
+						log.Fatalln(err)
+					}
 
-				allocate := make([]*pb.SimulationRun, len(runs.Runs))
-				for inx, run := range runs.Runs {
-					allocate[inx] = &pb.SimulationRun{
-						SimulationId: cons.simulation.Id,
-						OppConfig:    cons.simulation.OppConfig,
-						Config:       runs.Config,
-						RunNum:       run,
+					for _, run := range runs.Runs {
+						allocate = append(allocate, &pb.SimulationRun{
+							SimulationId: cons.simulation.Id,
+							OppConfig:    cons.simulation.OppConfig,
+							Config:       runs.Config,
+							RunNum:       run,
+						})
 					}
 				}
 
