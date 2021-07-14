@@ -22,6 +22,11 @@ type OmnetProject struct {
 }
 
 func New(config *Config) (project OmnetProject) {
+
+	//
+	// TODO: Add default values to config
+	//
+
 	project = OmnetProject{
 		config,
 	}
