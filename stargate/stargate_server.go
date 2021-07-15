@@ -9,30 +9,27 @@ import (
 
 //type dialAddr = string
 
+const (
+	cleanTimeout = time.Second * 40
+)
+
+type waiter struct {
+	addr    *net.UDPAddr
+	timeout *time.Timer
+}
+
+func (wait *waiter) resetTimeout() {
+	wait.timeout.Reset(cleanTimeout)
+}
+
 type stargateServer struct {
-	ctx        context.Context
 	conn       *net.UDPConn
 	mu         sync.RWMutex
-	rendezvous map[string]map[string]*net.UDPAddr
-	timers     map[string]*time.Timer
+	waiting    map[string]*waiter
+	rendezvous map[string]chan *net.UDPAddr
 }
 
-func (server *stargateServer) DebugValues() (values map[string][]string) {
-
-	server.mu.RLock()
-	defer server.mu.RUnlock()
-
-	values = make(map[string][]string)
-	for id, val := range server.rendezvous {
-		for conn := range val {
-			values[id] = append(values[id], conn)
-		}
-	}
-
-	return
-}
-
-func (server *stargateServer) heartbeatDispatcher() {
+func (server *stargateServer) heartbeatDispatcher(ctx context.Context) {
 
 	ticker := time.NewTicker(time.Second * 20)
 	defer ticker.Stop()
@@ -42,20 +39,18 @@ func (server *stargateServer) heartbeatDispatcher() {
 		case <-ticker.C:
 			server.mu.RLock()
 
-			for id, register := range server.rendezvous {
-				for _, addr := range register {
-					log.Printf("send heartbeat: connectionId=%v addr=%v", id, addr)
+			for _, wait := range server.waiting {
+				log.Printf("send heartbeat: addr=%v", wait.addr)
 
-					_, err := server.conn.WriteTo([]byte("hello"), addr)
-					if err != nil {
-						log.Println(err)
-					}
+				_, err := server.conn.WriteTo([]byte("heartbeat"), wait.addr)
+				if err != nil {
+					log.Println(err)
 				}
 			}
 
 			server.mu.RUnlock()
 
-		case <-server.ctx.Done():
+		case <-ctx.Done():
 			//
 			// Exit
 			//
@@ -65,97 +60,90 @@ func (server *stargateServer) heartbeatDispatcher() {
 	}
 }
 
-func (server *stargateServer) resetCleaner(dialAddr, remoteAddr string) {
-	timerKey := dialAddr + "-" + remoteAddr
+func (server *stargateServer) prune(dialAddr string, addr *net.UDPAddr) {
+	server.mu.Lock()
+	defer server.mu.Unlock()
 
-	wait := time.Second * 40
-	timer, ok := server.timers[timerKey]
+	log.Printf("pruning: dialAddr=%v addr=%v", dialAddr, addr)
 
-	if ok {
-
-		//
-		// Reset existing timer
-		//
-
-		timer.Reset(wait)
-		return
+	if ch, ok := server.rendezvous[dialAddr]; ok {
+		delete(server.rendezvous, dialAddr)
+		close(ch)
 	}
 
-	//
-	// Create a new timer to remove obsolete data
-	//
-
-	timer = time.NewTimer(wait)
-	server.timers[timerKey] = timer
-
-	// Create a new go-routine that will delete the data
-	go func() {
-		if _, ok := <-timer.C; ok {
-
-			server.mu.Lock()
-			defer server.mu.Unlock()
-
-			log.Printf("remove old connection trace connectId=%s", dialAddr)
-
-			delete(server.timers, timerKey)
-
-			delete(server.rendezvous[dialAddr], remoteAddr)
-
-			if len(server.rendezvous[dialAddr]) == 0 {
-				delete(server.rendezvous, dialAddr)
-			}
-		}
-	}()
+	delete(server.waiting, addr.String())
 }
 
 func (server *stargateServer) receiveDial() (err error) {
 
 	buffer := make([]byte, 1024)
 
-	br, remoteAddr, err := server.conn.ReadFromUDP(buffer)
+	br, addr, err := server.conn.ReadFromUDP(buffer)
 	if err != nil {
 		return
 	}
 
 	dialAddr := string(buffer[0:br])
-	log.Printf("receive: dialAddr=%s remoteAddr=%v", dialAddr, remoteAddr)
+	log.Printf("receive: dialAddr=%s remoteAddr=%v", dialAddr, addr)
 
 	server.mu.Lock()
 	defer server.mu.Unlock()
 
-	rendezvous := server.rendezvous
+	if wait, ok := server.waiting[addr.String()]; ok {
 
-	if _, ok := rendezvous[dialAddr]; !ok {
-		rendezvous[dialAddr] = make(map[string]*net.UDPAddr)
-	}
+		//
+		// The dialing clients send periodically new dial signals to ensure that the NAT stays open.
+		// When this happens the server reset the waiters timeout to prevent pruning.
+		//
 
-	server.resetCleaner(dialAddr, remoteAddr.String())
-
-	rendezvous[dialAddr][remoteAddr.String()] = remoteAddr
-
-	if len(rendezvous[dialAddr]) != 2 {
+		wait.resetTimeout()
 		return
 	}
 
-	hosts := make([]*net.UDPAddr, 2)
+	if ch, ok := server.rendezvous[dialAddr]; ok {
+		//
+		// Other peer already waiting
+		//
 
-	var inx int
-	for _, host := range rendezvous[dialAddr] {
-		hosts[inx] = host
-		inx++
+		peerAddr := <-ch
+		defer func() {
+			delete(server.rendezvous, dialAddr)
+			close(ch)
+
+			delete(server.waiting, peerAddr.String())
+		}()
+
+		_, err = server.conn.WriteToUDP([]byte(addr.String()), peerAddr)
+		if err != nil {
+			return
+		}
+
+		_, err = server.conn.WriteToUDP([]byte(peerAddr.String()), addr)
+		if err != nil {
+			return
+		}
+	} else {
+		//
+		// Waiting for peer to dial in
+		//
+
+		ch = make(chan *net.UDPAddr, 1)
+		timeout := time.NewTimer(cleanTimeout)
+
+		server.rendezvous[dialAddr] = ch
+		server.waiting[addr.String()] = &waiter{
+			addr:    addr,
+			timeout: timeout,
+		}
+
+		go func() {
+			if _, prune := <-timeout.C; prune {
+				server.prune(dialAddr, addr)
+			}
+		}()
+
+		ch <- addr
 	}
-
-	_, err = server.conn.WriteToUDP([]byte(hosts[0].String()), hosts[1])
-	if err != nil {
-		log.Fatalln(err)
-	}
-
-	_, err = server.conn.WriteToUDP([]byte(hosts[1].String()), hosts[0])
-	if err != nil {
-		log.Fatalln(err)
-	}
-
-	delete(rendezvous, dialAddr)
 
 	return
 }
@@ -170,13 +158,12 @@ func Server(ctx context.Context) (err error) {
 	log.Printf("start stargate server on %v", conn.LocalAddr())
 
 	server := stargateServer{
-		ctx:        ctx,
 		conn:       conn,
-		rendezvous: make(map[string]map[string]*net.UDPAddr),
-		timers:     make(map[string]*time.Timer),
+		waiting:    make(map[string]*waiter),
+		rendezvous: make(map[string]chan *net.UDPAddr),
 	}
 
-	go server.heartbeatDispatcher()
+	go server.heartbeatDispatcher(ctx)
 
 	for {
 		err = server.receiveDial()

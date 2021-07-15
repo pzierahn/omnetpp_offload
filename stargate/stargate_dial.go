@@ -24,16 +24,18 @@ func receiveRemoteAddr(ctx context.Context, conn *net.UDPConn, connectionId stri
 			read, err = conn.Read(buf)
 			if err != nil {
 				ch <- err
+				return
 			}
 
 			msg := string(buf[0:read])
-			if msg == "hello" {
+			if msg == "heartbeat" {
 				continue
 			}
 
 			remote, err = net.ResolveUDPAddr("udp", msg)
 			if err != nil {
 				ch <- err
+				return
 			}
 
 			break
