@@ -18,10 +18,6 @@ type waiter struct {
 	timeout *time.Timer
 }
 
-func (wait *waiter) resetTimeout() {
-	wait.timeout.Reset(cleanTimeout)
-}
-
 type stargateServer struct {
 	conn       *net.UDPConn
 	mu         sync.RWMutex
@@ -96,7 +92,7 @@ func (server *stargateServer) receiveDial() (err error) {
 		// When this happens the server reset the waiters timeout to prevent pruning.
 		//
 
-		wait.resetTimeout()
+		wait.timeout.Reset(cleanTimeout)
 		return
 	}
 
