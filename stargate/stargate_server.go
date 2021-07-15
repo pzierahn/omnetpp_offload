@@ -7,7 +7,7 @@ import (
 	"time"
 )
 
-type dialAddr = string
+type DialAddr = string
 type udpAddr = string
 
 const (
@@ -23,7 +23,7 @@ type stargateServer struct {
 	conn    *net.UDPConn
 	mu      sync.RWMutex
 	waiting map[udpAddr]*waiter
-	peers   map[dialAddr]*net.UDPAddr
+	peers   map[DialAddr]*net.UDPAddr
 }
 
 func (server *stargateServer) heartbeatDispatcher(ctx context.Context) {
@@ -57,7 +57,7 @@ func (server *stargateServer) heartbeatDispatcher(ctx context.Context) {
 	}
 }
 
-func (server *stargateServer) prune(dial dialAddr, addr *net.UDPAddr) {
+func (server *stargateServer) prune(dial DialAddr, addr *net.UDPAddr) {
 	server.mu.Lock()
 	defer server.mu.Unlock()
 
