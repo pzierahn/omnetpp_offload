@@ -3,18 +3,18 @@ package stargate
 import (
 	"context"
 	"fmt"
+	"math/rand"
 	"net"
 	"strings"
-	"sync"
 	"time"
 )
 
-func dialAddr(ctx context.Context, conn *net.UDPConn, connectionId string) (remote *net.UDPAddr, err error) {
-	log.Printf("dialAddr: connectionId=%s rendezvousAddr=%v conn=%v",
+func receiveRemoteAddr(ctx context.Context, conn *net.UDPConn, connectionId string) (remote *net.UDPAddr, err error) {
+	log.Printf("receiveRemoteAddr: connectionId=%s rendezvousAddr=%v conn=%v",
 		connectionId, rendezvousAddr, conn.LocalAddr())
 
-	receiveConnect := make(chan bool)
-	defer close(receiveConnect)
+	ch := make(chan error)
+	defer close(ch)
 
 	go func() {
 		buf := make([]byte, 1024)
@@ -23,7 +23,7 @@ func dialAddr(ctx context.Context, conn *net.UDPConn, connectionId string) (remo
 		for {
 			read, err = conn.Read(buf)
 			if err != nil {
-				log.Fatalln(err)
+				ch <- err
 			}
 
 			msg := string(buf[0:read])
@@ -33,38 +33,38 @@ func dialAddr(ctx context.Context, conn *net.UDPConn, connectionId string) (remo
 
 			remote, err = net.ResolveUDPAddr("udp", msg)
 			if err != nil {
-				log.Fatalln(err)
+				ch <- err
 			}
 
 			break
 		}
 
-		receiveConnect <- true
+		ch <- nil
 	}()
 
-	// send initial udp package to stun server
-	log.Printf("send stun signal connectionId=%s", connectionId)
-	_, err = conn.WriteTo([]byte(connectionId), rendezvousAddr)
-	if err != nil {
-		return
-	}
-
-	// Send ever 20 seconds a stun signal to the broker keep the NAT gate open
+	// Send a heartbeat signal ever 20 seconds to the broker keep the NAT gate open
 	signalTick := time.NewTicker(time.Second * 20)
 	defer signalTick.Stop()
 
 	go func() {
-		for range signalTick.C {
+		for {
 			log.Printf("send stun signal connectionId=%s", connectionId)
 			_, err = conn.WriteTo([]byte(connectionId), rendezvousAddr)
 			if err != nil {
-				log.Fatalln(err)
+				log.Println(err)
+			}
+
+			if _, ok := <-signalTick.C; !ok {
+				break
 			}
 		}
 	}()
 
 	select {
-	case <-receiveConnect:
+	case rec := <-ch:
+		if err == nil {
+			err = rec
+		}
 	case <-ctx.Done():
 		_ = conn.Close()
 		err = fmt.Errorf("error: rendezvou server did not responde in time")
@@ -73,84 +73,110 @@ func dialAddr(ctx context.Context, conn *net.UDPConn, connectionId string) (remo
 	return
 }
 
-func Dial(ctx context.Context, connectionId string) (conn *net.UDPConn, remote *net.UDPAddr, err error) {
+func DialUDP(ctx context.Context, connectionId string) (conn *net.UDPConn, remote *net.UDPAddr, err error) {
 
 	conn, err = net.ListenUDP("udp", &net.UDPAddr{})
 	if err != nil {
 		return
 	}
 
-	// Get counterpart udp address
-	remote, err = dialAddr(ctx, conn, connectionId)
+	// Get counterparts udp address
+	remote, err = receiveRemoteAddr(ctx, conn, connectionId)
 	if err != nil {
 		return
 	}
 
 	log.Printf("connecting to %v", remote)
 
-	sendPings := 2
+	hellos := 2
 
-	var wg sync.WaitGroup
-	wg.Add(sendPings)
+	errCh := make(chan error)
+	defer close(errCh)
 
 	go func() {
-		for inx := 0; inx < sendPings; inx++ {
+
+		//
+		// Send hello messages to open the NAT
+		//
+
+		for inx := 0; inx < hellos; inx++ {
 			message := fmt.Sprintf("hello %d", inx)
-			_, err := conn.WriteToUDP([]byte(message), remote)
+			_, err = conn.WriteToUDP([]byte(message), remote)
 			if err != nil {
-				log.Fatalln(err)
+				errCh <- err
+				return
 			}
 
 			log.Printf("send: message='%s' remote=%v\n", message, remote)
 
-			// Wait for to seconds to ensure nat hole punching works!
+			// Wait for to seconds to ensure NAT hole punching works!
 			if inx == 0 {
 				time.Sleep(time.Second * 2)
 			}
-
-			wg.Done()
 		}
+
+		errCh <- nil
 	}()
 
-	done := make(chan bool)
-	defer close(done)
-
 	go func() {
+
+		//
+		// Receive hello messages from peer
+		//
+
 		for {
 			buf := make([]byte, 1024)
-			read, remote, err := conn.ReadFromUDP(buf)
+			br, remote, err := conn.ReadFromUDP(buf)
 			if err != nil {
-				log.Println(err)
+				errCh <- err
 				return
 			}
 
-			msg := string(buf[0:read])
+			msg := string(buf[0:br])
 
 			// Check for corrupt messages
 			if !strings.HasPrefix(msg, "hello") {
 				continue
 			}
 
-			log.Printf("received message='%s' from %v\n", msg, remote)
-
-			done <- true
+			log.Printf("received: message='%s' from %v\n", msg, remote)
 			break
 		}
+
+		errCh <- nil
 	}()
 
-	select {
-	case <-done:
-		// everything is okay
-		log.Printf("connected to %v", remote)
+	debugId := rand.Uint32()
 
-	case <-ctx.Done():
-		// connection timeout: close stuff
-		_ = conn.Close()
-		err = fmt.Errorf("error: could not establish connection to %v in time", remote)
+	for inx := 0; inx < 2; inx++ {
+		select {
+		//
+		// Receive error or success messages from sender and receiver
+		//
+		case rec := <-errCh:
+			log.Printf("%x error: '%v' receivedErr='%v'", debugId, err, rec)
+
+			if err == nil && rec != nil {
+				err = rec
+				_ = conn.Close()
+			}
+
+		//
+		// Connection timeout: close stuff
+		//
+		case <-ctx.Done():
+			_ = conn.Close()
+			err = fmt.Errorf("error: could not establish connection to %v in time", remote)
+			return
+		}
+	}
+
+	if err != nil {
 		return
 	}
 
-	wg.Wait()
+	// Everything is okay
+	log.Printf("connected to %v", remote)
 
 	return
 }

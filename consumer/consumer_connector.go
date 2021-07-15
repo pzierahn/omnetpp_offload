@@ -54,7 +54,7 @@ func (cons *consumer) startConnector(broker pb.BrokerClient, onInit chan int32) 
 
 				err = pconn.init(cons)
 				if err != nil {
-					log.Println(err)
+					log.Println(prov.ProviderId, err)
 					return
 				}
 

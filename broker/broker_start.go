@@ -1,6 +1,7 @@
 package broker
 
 import (
+	"context"
 	pb "github.com/pzierahn/project.go.omnetpp/proto"
 	"github.com/pzierahn/project.go.omnetpp/stargate"
 	"github.com/pzierahn/project.go.omnetpp/storage"
@@ -11,7 +12,7 @@ import (
 
 func Start(conf Config) (err error) {
 
-	go stargate.Server()
+	go stargate.Server(context.Background())
 
 	log.Printf("start server on :%d", conf.BrokerPort)
 

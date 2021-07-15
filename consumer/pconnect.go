@@ -30,7 +30,7 @@ func connect(prov *pb.ProviderInfo) (conn *providerConnection, err error) {
 	ctx, cln := context.WithTimeout(context.Background(), time.Second*5)
 	defer cln()
 
-	gate, remote, err := stargate.Dial(ctx, prov.ProviderId)
+	gate, remote, err := stargate.DialUDP(ctx, prov.ProviderId)
 	if err != nil {
 		// Connection failed!
 		return

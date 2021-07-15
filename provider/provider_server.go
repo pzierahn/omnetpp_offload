@@ -42,14 +42,10 @@ func Start(conf gconfig.Config) {
 	// Register provider
 	//
 
-	//qconn, dialer := equic.GRPCDialerAuto()
-	//log.Printf("quic listener on %v", qconn.LocalAddr())
-
 	brokerConn, err := grpc.Dial(
 		conf.Broker.DialAddr(),
 		grpc.WithInsecure(),
 		grpc.WithBlock(),
-		//grpc.WithContextDialer(dialer),
 	)
 	if err != nil {
 		log.Fatalln(err)
@@ -95,9 +91,10 @@ func Start(conf gconfig.Config) {
 	for {
 		log.Println("wait for stargate connection")
 
-		conn, _, err := stargate.Dial(context.Background(), prov.providerId)
+		conn, _, err := stargate.DialUDP(context.Background(), prov.providerId)
 		if err != nil {
-			log.Fatalln(err)
+			log.Println(err)
+			continue
 		}
 
 		go func(conn *net.UDPConn) {
