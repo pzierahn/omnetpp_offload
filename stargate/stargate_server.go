@@ -19,10 +19,10 @@ type waiter struct {
 }
 
 type stargateServer struct {
-	conn       *net.UDPConn
-	mu         sync.RWMutex
-	waiting    map[string]*waiter
-	rendezvous map[string]chan *net.UDPAddr
+	conn    *net.UDPConn
+	mu      sync.RWMutex
+	waiting map[string]*waiter
+	peers   map[string]*net.UDPAddr
 }
 
 func (server *stargateServer) heartbeatDispatcher(ctx context.Context) {
@@ -62,11 +62,7 @@ func (server *stargateServer) prune(dialAddr string, addr *net.UDPAddr) {
 
 	log.Printf("pruning: dialAddr=%v addr=%v", dialAddr, addr)
 
-	if ch, ok := server.rendezvous[dialAddr]; ok {
-		delete(server.rendezvous, dialAddr)
-		close(ch)
-	}
-
+	delete(server.peers, dialAddr)
 	delete(server.waiting, addr.String())
 }
 
@@ -96,16 +92,13 @@ func (server *stargateServer) receiveDial() (err error) {
 		return
 	}
 
-	if ch, ok := server.rendezvous[dialAddr]; ok {
+	if peerAddr, ok := server.peers[dialAddr]; ok {
 		//
-		// Other peer already waiting
+		// Other peers already waiting
 		//
 
-		peerAddr := <-ch
 		defer func() {
-			delete(server.rendezvous, dialAddr)
-			close(ch)
-
+			delete(server.peers, dialAddr)
 			delete(server.waiting, peerAddr.String())
 		}()
 
@@ -120,13 +113,12 @@ func (server *stargateServer) receiveDial() (err error) {
 		}
 	} else {
 		//
-		// Waiting for peer to dial in
+		// Waiting for peers to dial in
 		//
 
-		ch = make(chan *net.UDPAddr, 1)
 		timeout := time.NewTimer(cleanTimeout)
 
-		server.rendezvous[dialAddr] = ch
+		server.peers[dialAddr] = addr
 		server.waiting[addr.String()] = &waiter{
 			addr:    addr,
 			timeout: timeout,
@@ -137,8 +129,6 @@ func (server *stargateServer) receiveDial() (err error) {
 				server.prune(dialAddr, addr)
 			}
 		}()
-
-		ch <- addr
 	}
 
 	return
@@ -154,9 +144,9 @@ func Server(ctx context.Context) (err error) {
 	log.Printf("start stargate server on %v", conn.LocalAddr())
 
 	server := stargateServer{
-		conn:       conn,
-		waiting:    make(map[string]*waiter),
-		rendezvous: make(map[string]chan *net.UDPAddr),
+		conn:    conn,
+		waiting: make(map[string]*waiter),
+		peers:   make(map[string]*net.UDPAddr),
 	}
 
 	go server.heartbeatDispatcher(ctx)
