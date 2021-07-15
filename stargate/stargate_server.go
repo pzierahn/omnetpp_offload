@@ -7,7 +7,8 @@ import (
 	"time"
 )
 
-//type dialAddr = string
+type dialAddr = string
+type udpAddr = string
 
 const (
 	cleanTimeout = time.Second * 40
@@ -21,8 +22,8 @@ type waiter struct {
 type stargateServer struct {
 	conn    *net.UDPConn
 	mu      sync.RWMutex
-	waiting map[string]*waiter
-	peers   map[string]*net.UDPAddr
+	waiting map[udpAddr]*waiter
+	peers   map[dialAddr]*net.UDPAddr
 }
 
 func (server *stargateServer) heartbeatDispatcher(ctx context.Context) {
@@ -56,13 +57,13 @@ func (server *stargateServer) heartbeatDispatcher(ctx context.Context) {
 	}
 }
 
-func (server *stargateServer) prune(dialAddr string, addr *net.UDPAddr) {
+func (server *stargateServer) prune(dial dialAddr, addr *net.UDPAddr) {
 	server.mu.Lock()
 	defer server.mu.Unlock()
 
-	log.Printf("pruning: dialAddr=%v addr=%v", dialAddr, addr)
+	log.Printf("pruning: dialAddr=%v addr=%v", dial, addr)
 
-	delete(server.peers, dialAddr)
+	delete(server.peers, dial)
 	delete(server.waiting, addr.String())
 }
 
@@ -75,8 +76,8 @@ func (server *stargateServer) receiveDial() (err error) {
 		return
 	}
 
-	dialAddr := string(buffer[0:br])
-	log.Printf("receive: dialAddr=%s remoteAddr=%v", dialAddr, addr)
+	dial := string(buffer[0:br])
+	log.Printf("receive: dialAddr=%s remoteAddr=%v", dial, addr)
 
 	server.mu.Lock()
 	defer server.mu.Unlock()
@@ -92,13 +93,13 @@ func (server *stargateServer) receiveDial() (err error) {
 		return
 	}
 
-	if peerAddr, ok := server.peers[dialAddr]; ok {
+	if peerAddr, ok := server.peers[dial]; ok {
 		//
 		// Other peers already waiting
 		//
 
 		defer func() {
-			delete(server.peers, dialAddr)
+			delete(server.peers, dial)
 			delete(server.waiting, peerAddr.String())
 		}()
 
@@ -118,7 +119,7 @@ func (server *stargateServer) receiveDial() (err error) {
 
 		timeout := time.NewTimer(cleanTimeout)
 
-		server.peers[dialAddr] = addr
+		server.peers[dial] = addr
 		server.waiting[addr.String()] = &waiter{
 			addr:    addr,
 			timeout: timeout,
@@ -126,7 +127,7 @@ func (server *stargateServer) receiveDial() (err error) {
 
 		go func() {
 			if _, prune := <-timeout.C; prune {
-				server.prune(dialAddr, addr)
+				server.prune(dial, addr)
 			}
 		}()
 	}
