@@ -2,6 +2,9 @@ package stargate
 
 import (
 	"context"
+	"github.com/lucas-clemente/quic-go"
+	"github.com/pzierahn/project.go.omnetpp/equic"
+	"google.golang.org/grpc"
 	"net"
 	"sync"
 	"time"
@@ -82,4 +85,46 @@ func DialUDP(ctx context.Context, dialAddr DialAddr) (conn *net.UDPConn, peer *n
 	log.Printf("DialUDP: dialAddr=%v peer=%v connection established", dialAddr, peer)
 
 	return
+}
+
+func DialGRPCClientConn(ctx context.Context, dialAddr DialAddr) (conn *grpc.ClientConn, err error) {
+	gate, remote, err := DialUDP(ctx, dialAddr)
+	if err != nil {
+		// Connection failed!
+		return
+	}
+
+	conn, err = grpc.Dial(
+		remote.String(),
+		grpc.WithInsecure(),
+		grpc.WithBlock(),
+		grpc.WithContextDialer(equic.GRPCDialer(gate)),
+	)
+
+	return
+}
+
+func DialQUICListener(ctx context.Context, dialAddr DialAddr) (p2p quic.Listener, err error) {
+
+	conn, _, err := DialUDP(ctx, dialAddr)
+	if err != nil {
+		return
+	}
+
+	tlsConf, _ := equic.GenerateTLSConfig()
+
+	return quic.Listen(conn, tlsConf, &quic.Config{
+		KeepAlive: true,
+		//MaxIdleTimeout: time.Millisecond * 4000,
+	})
+}
+
+func DialQUICgRPCListener(ctx context.Context, dialAddr DialAddr) (p2p net.Listener, err error) {
+
+	qLis, err := DialQUICListener(ctx, dialAddr)
+	if err != nil {
+		return
+	}
+
+	return equic.Listen(qLis), err
 }
