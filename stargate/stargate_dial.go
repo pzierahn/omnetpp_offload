@@ -4,6 +4,7 @@ import (
 	"context"
 	"net"
 	"sync"
+	"time"
 )
 
 func DialUDP(ctx context.Context, dialAddr DialAddr) (conn *net.UDPConn, peer *net.UDPAddr, err error) {
@@ -21,6 +22,11 @@ func DialUDP(ctx context.Context, dialAddr DialAddr) (conn *net.UDPConn, peer *n
 		if err != nil {
 			return
 		}
+
+		defer func() {
+			// Reset deadline
+			_ = conn.SetDeadline(time.Time{})
+		}()
 	}
 
 	client := stargateClient{
