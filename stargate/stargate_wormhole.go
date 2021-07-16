@@ -1,6 +1,7 @@
 package stargate
 
 import (
+	"context"
 	"fmt"
 	"net"
 	"strings"
@@ -13,20 +14,28 @@ type dialer struct {
 }
 
 // Send hello messages to open the NAT
-func (dialer *dialer) sendHellos() (err error) {
+func (dialer *dialer) sendHellos(ctx context.Context) (err error) {
+
+	// Wait for two seconds to ensure that all message get received properly
+	timer := time.NewTimer(time.Second * 2)
+	defer timer.Stop()
 
 	for inx := 0; inx < 2; inx++ {
 		message := fmt.Sprintf("hello %d", inx)
+
+		log.Printf("send: message='%s' peer=%v\n", message, dialer.peer)
+
 		_, err = dialer.conn.WriteToUDP([]byte(message), dialer.peer)
 		if err != nil {
 			return
 		}
 
-		log.Printf("send: message='%s' peer=%v\n", message, dialer.peer)
-
 		if inx == 0 {
-			// Wait for two seconds to ensure that all message get received properly
-			time.Sleep(time.Second * 2)
+			select {
+			case <-timer.C:
+			case <-ctx.Done():
+				return
+			}
 		}
 	}
 

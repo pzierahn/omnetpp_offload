@@ -55,7 +55,7 @@ func DialUDP(ctx context.Context, dialAddr DialAddr) (conn *net.UDPConn, peer *n
 	go func() {
 		defer wg.Done()
 
-		sendErr := helper.sendHellos()
+		sendErr := helper.sendHellos(ctx)
 		if sendErr != nil {
 			once.Do(func() {
 				err = sendErr
