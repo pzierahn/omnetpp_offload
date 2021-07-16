@@ -9,19 +9,21 @@ import (
 	"time"
 )
 
-func main() {
-	log.SetFlags(log.LstdFlags | log.Lshortfile)
+var server bool
+var timeout time.Duration
+var dialAddr string
+var write string
 
-	var server bool
-	var timeout time.Duration
-	var dialAddr string
-	var write string
-
+func init() {
 	flag.BoolVar(&server, "server", false, "start stun server")
 	flag.StringVar(&dialAddr, "dialAddr", "", "dial address")
 	flag.StringVar(&write, "write", "", "the message that will be transferred")
 	flag.DurationVar(&timeout, "timeout", time.Minute*8, "timeout for connection")
 	flag.Parse()
+}
+
+func main() {
+	log.SetFlags(log.LstdFlags | log.Lshortfile)
 
 	if server {
 		err := stargate.Server(context.Background())
