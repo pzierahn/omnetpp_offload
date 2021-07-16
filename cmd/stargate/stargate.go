@@ -2,72 +2,46 @@ package main
 
 import (
 	"context"
+	"flag"
 	"github.com/pzierahn/project.go.omnetpp/stargate"
 	"log"
-	"sync"
 	"time"
 )
 
 func main() {
 	log.SetFlags(log.LstdFlags | log.Lshortfile)
 
-	var wg sync.WaitGroup
+	var timeout time.Duration
+	var write string
 
-	wg.Add(1)
-	go func(inx int) {
-		defer wg.Done()
+	flag.StringVar(&write, "write", "", "")
+	flag.DurationVar(&timeout, "timeout", time.Minute*8, "")
+	flag.Parse()
 
-		//ctx, cnl := context.WithTimeout(context.Background(), time.Second*5)
-		//defer cnl()
-		ctx := context.Background()
+	ctx, cnl := context.WithTimeout(context.Background(), timeout)
+	defer cnl()
 
-		conn, peer, err := stargate.DialUDP(ctx, "123456")
+	conn, peer, err := stargate.DialUDP(ctx, "123456")
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+	log.Printf("Connected: local=%v peer=%v", conn.LocalAddr(), peer)
+
+	if write != "" {
+		log.Printf("Write: '%s'", write)
+
+		_, err = conn.WriteTo([]byte(write), peer)
 		if err != nil {
-			log.Printf("error %d: %v", inx, err)
-			return
+			log.Fatalln(err)
 		}
-
-		log.Printf("Connected %d: local=%v peer=%v", inx, conn.LocalAddr(), peer)
-
-		wait := time.Second * 10
-		time.Sleep(wait)
-		log.Printf("Writing stuff...")
-
-		_, err = conn.WriteTo([]byte("Pups"), peer)
-		if err != nil {
-			log.Printf("error %d: %v", inx, err)
-		}
-
-	}(1)
-
-	wait := time.Second * 1
-	log.Printf("Start waiting for %v...", wait)
-	time.Sleep(wait)
-	log.Printf("Done waiting")
-
-	wg.Add(1)
-	go func(inx int) {
-		defer wg.Done()
-
-		ctx, cnl := context.WithTimeout(context.Background(), time.Second*5)
-		defer cnl()
-
-		conn, peer, err := stargate.DialUDP(ctx, "123456")
-		if err != nil {
-			log.Printf("error %d: %v", inx, err)
-			return
-		}
-
-		log.Printf("Connected %d: local=%v peer=%v", inx, conn.LocalAddr(), peer)
-
+	} else {
 		buf := make([]byte, 1024)
 		br, err := conn.Read(buf)
 		if err != nil {
-			log.Printf("error %d: %v", inx, err)
+			log.Fatalln(err)
 		}
 
-		log.Printf("Connected %d: read %s", inx, string(buf[:br]))
-	}(2)
-
-	wg.Wait()
+		log.Printf("Read: '%s'", string(buf[:br]))
+	}
 }
