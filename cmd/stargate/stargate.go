@@ -12,16 +12,22 @@ func main() {
 	log.SetFlags(log.LstdFlags | log.Lshortfile)
 
 	var timeout time.Duration
+	var dialAddr string
 	var write string
 
+	flag.StringVar(&dialAddr, "dialAddr", "", "")
 	flag.StringVar(&write, "write", "", "")
 	flag.DurationVar(&timeout, "timeout", time.Minute*8, "")
 	flag.Parse()
 
+	if dialAddr == "" {
+		log.Fatalln("dialAddr missing!")
+	}
+
 	ctx, cnl := context.WithTimeout(context.Background(), timeout)
 	defer cnl()
 
-	conn, peer, err := stargate.DialUDP(ctx, "123456")
+	conn, peer, err := stargate.DialUDP(ctx, dialAddr)
 	if err != nil {
 		log.Fatalln(err)
 	}
