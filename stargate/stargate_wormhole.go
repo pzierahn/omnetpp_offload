@@ -17,7 +17,7 @@ type dialer struct {
 func (dialer *dialer) sendHellos(ctx context.Context) (err error) {
 
 	// Wait for two seconds to ensure that all message get received properly
-	timer := time.NewTimer(time.Second * 2)
+	timer := time.NewTimer(time.Second * 3)
 	defer timer.Stop()
 
 	for inx := 0; inx < 2; inx++ {
