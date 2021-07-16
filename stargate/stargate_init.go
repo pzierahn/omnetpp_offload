@@ -7,13 +7,17 @@ import (
 )
 
 const (
-	stunAddr = "31.18.129.212"
-	stunPort = 9595
+	defaultAddr = "31.18.129.212"
+	defaultPort = 9595
 )
 
 var rendezvousAddr = &net.UDPAddr{
-	IP:   net.ParseIP(stunAddr),
-	Port: stunPort,
+	IP:   net.ParseIP(defaultAddr),
+	Port: defaultPort,
+}
+
+func SetRendezvousServer(addr *net.UDPAddr) {
+	rendezvousAddr = addr
 }
 
 var log *lg.Logger

@@ -137,7 +137,7 @@ func (server *stargateServer) receiveDial() (err error) {
 
 func Server(ctx context.Context) (err error) {
 
-	conn, err := net.ListenUDP("udp", &net.UDPAddr{Port: stunPort})
+	conn, err := net.ListenUDP("udp", &net.UDPAddr{Port: defaultPort})
 	if err != nil {
 		return
 	}
