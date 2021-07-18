@@ -28,8 +28,9 @@ type provider struct {
 	freeSlots   int32
 	requests    map[simulationId]uint32
 	assignments map[simulationId]uint32
-	runCtx      map[simulationId]context.CancelFunc
-	allocate    map[simulationId]chan<- uint32
+	// TODO: Remove this
+	runCtx   map[simulationId]context.CancelFunc
+	allocate map[simulationId]chan<- uint32
 }
 
 func (prov *provider) Info(_ context.Context, _ *pb.Empty) (info *pb.ProviderInfo, err error) {
