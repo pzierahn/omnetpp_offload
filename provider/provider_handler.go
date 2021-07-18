@@ -73,14 +73,6 @@ func (prov *provider) Checkout(_ context.Context, bundle *pb.Bundle) (empty *pb.
 
 func (prov *provider) Compile(ctx context.Context, simulation *pb.Simulation) (bin *pb.Binary, err error) {
 	log.Printf("Compile: %v", simulation.Id)
-
-	go func() {
-		select {
-		case <-ctx.Done():
-			log.Printf("############ Compile: %v cancel", simulation.Id)
-		}
-	}()
-
 	return prov.compile(ctx, simulation)
 }
 
