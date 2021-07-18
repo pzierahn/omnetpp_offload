@@ -2,6 +2,7 @@ package broker
 
 import (
 	"context"
+	"github.com/pzierahn/project.go.omnetpp/gconfig"
 	pb "github.com/pzierahn/project.go.omnetpp/proto"
 	"github.com/pzierahn/project.go.omnetpp/stargate"
 	"github.com/pzierahn/project.go.omnetpp/storage"
@@ -10,30 +11,17 @@ import (
 	"net"
 )
 
-func Start(conf Config) (err error) {
+func Start() (err error) {
 
-	go stargate.Server(context.Background())
+	go func() {
+		err := stargate.Server(context.Background())
+		if err != nil {
+			log.Fatalln(err)
+		}
+	}()
 
-	log.Printf("start server on :%d", conf.BrokerPort)
+	log.Printf("start broker on :%d", gconfig.BrokerPort())
 
-	//conn, err := net.ListenUDP("udp", &net.UDPAddr{
-	//	Port: conf.BrokerPort,
-	//})
-	//if err != nil {
-	//	log.Fatalln(err)
-	//}
-	//defer func() { _ = conn.Close() }()
-	//
-	//tlsConf, _ := equic.GenerateTLSConfig()
-	//
-	//ql, err := quic.Listen(conn, tlsConf, nil)
-	//if err != nil {
-	//	log.Fatalln(err)
-	//}
-	//
-	//lis := equic.Listen(ql)
-	//defer func() { _ = lis.Close() }()
-	//
 	brk := broker{
 		providers:   make(map[string]*pb.ProviderInfo),
 		utilization: make(map[string]*pb.Utilization),
@@ -43,15 +31,18 @@ func Start(conf Config) (err error) {
 	go brk.startWebService()
 
 	lis, err := net.ListenTCP("tcp", &net.TCPAddr{
-		Port: conf.BrokerPort,
+		Port: gconfig.BrokerPort(),
 	})
 	if err != nil {
-		log.Fatalf("failed to listen: %v", err)
+		log.Fatalln(err)
 	}
 
 	server := grpc.NewServer()
 	pb.RegisterBrokerServer(server, &brk)
 	pb.RegisterStorageServer(server, &storage.Server{})
+	pb.RegisterStargateServer(server, &relayService{
+		match: make(map[string]chan *pb.Port),
+	})
 	err = server.Serve(lis)
 
 	return

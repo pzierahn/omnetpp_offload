@@ -41,7 +41,14 @@ func (client *stargateClient) send(ctx context.Context) (err error) {
 
 	for {
 		log.Printf("send: registration signal (dial=%s)", client.dial)
-		_, err = client.conn.WriteTo([]byte(client.dial), rendezvousAddr)
+
+		var raddr *net.UDPAddr
+		raddr, err = GetRendezvousServer()
+		if err != nil {
+			return
+		}
+
+		_, err = client.conn.WriteTo([]byte(client.dial), raddr)
 		if err != nil {
 			return
 		}

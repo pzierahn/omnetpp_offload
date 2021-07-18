@@ -5,23 +5,21 @@ import (
 	"github.com/pzierahn/project.go.omnetpp/gconfig"
 	pb "github.com/pzierahn/project.go.omnetpp/proto"
 	"github.com/pzierahn/project.go.omnetpp/simple"
-	"github.com/pzierahn/project.go.omnetpp/stargate"
 	"github.com/pzierahn/project.go.omnetpp/storage"
 	"github.com/pzierahn/project.go.omnetpp/sysinfo"
 	"google.golang.org/grpc"
 	"log"
-	"net"
 	"runtime"
 	"sync"
 	"time"
 )
 
-func Start(conf gconfig.Config) {
+func Start() {
 
 	store := &storage.Server{}
 
 	prov := &provider{
-		providerId: simple.NamedId(conf.Worker.Name, 8),
+		providerId: simple.NamedId(gconfig.Config.Worker.Name, 8),
 		store:      store,
 		slots:      uint32(runtime.NumCPU()),
 		freeSlots:  int32(runtime.NumCPU()),
@@ -41,7 +39,7 @@ func Start(conf gconfig.Config) {
 	//
 
 	brokerConn, err := grpc.Dial(
-		conf.Broker.DialAddr(),
+		gconfig.BrokerDialAddr(),
 		grpc.WithInsecure(),
 		grpc.WithBlock(),
 	)
@@ -84,30 +82,9 @@ func Start(conf gconfig.Config) {
 	// Start provider
 	//
 
-	go prov.allocator()
-
-	for {
-		log.Println("wait for peer to peer connect")
-
-		p2p, err := stargate.DialQUICgRPCListener(context.Background(), prov.providerId)
-		if err != nil {
-			log.Println(err)
-			continue
-		}
-
-		go func(p2p net.Listener) {
-
-			defer func() { _ = p2p.Close() }()
-
-			server := grpc.NewServer()
-			pb.RegisterProviderServer(server, prov)
-			pb.RegisterStorageServer(server, store)
-			err := server.Serve(p2p)
-			if err != nil {
-				log.Println(err)
-			}
-		}(p2p)
-	}
+	go prov.listenP2P()
+	go prov.listenRelay(brokerConn)
+	prov.allocator()
 
 	return
 }

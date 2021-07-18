@@ -108,3 +108,19 @@ message Binary {
   Arch arch = 2;
   StorageRef ref = 3;
 }
+
+//
+// ----------------------------------------------------------------------------
+//
+
+service Stargate {
+  rpc Relay (RelayRequest) returns (Port) {}
+}
+
+message Port {
+  uint32 port = 1;
+}
+
+message RelayRequest {
+  string dialAddr = 1;
+}

@@ -9,7 +9,7 @@ import (
 	"path/filepath"
 )
 
-func Start(gConf gconfig.GRPCConnection, config *Config) {
+func Start(config *Config) {
 
 	go statisticJsonApi()
 
@@ -17,14 +17,12 @@ func Start(gConf gconfig.GRPCConnection, config *Config) {
 		config.Tag = filepath.Base(config.Path)
 	}
 
-	log.Printf("connecting to broker (%v)", gConf.DialAddr())
+	log.Printf("connecting to broker (%v)", gconfig.BrokerDialAddr())
 
-	//_, dialer := equic.GRPCDialerAuto()
 	conn, err := grpc.Dial(
-		gConf.DialAddr(),
+		gconfig.BrokerDialAddr(),
 		grpc.WithInsecure(),
 		grpc.WithBlock(),
-		//grpc.WithContextDialer(dialer),
 	)
 	if err != nil {
 		log.Fatalf("did not connect: %v", err)
@@ -35,6 +33,7 @@ func Start(gConf gconfig.GRPCConnection, config *Config) {
 
 	cons := &consumer{
 		config: config,
+		bconn:  conn,
 		simulation: &pb.Simulation{
 			Id:        simple.NamedId(config.Tag, 8),
 			OppConfig: config.OppConfig,
@@ -54,8 +53,7 @@ func Start(gConf gconfig.GRPCConnection, config *Config) {
 	onInit := make(chan int32)
 	defer close(onInit)
 
-	broker := pb.NewBrokerClient(conn)
-	go cons.startConnector(broker, onInit)
+	go cons.startConnector(onInit)
 
 	cons.finished.Add(int(<-onInit))
 	cons.finished.Wait()

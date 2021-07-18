@@ -13,18 +13,16 @@ import (
 var path string
 var configPath string
 
-var config gconfig.Config
-
 func init() {
 	log.SetFlags(log.LstdFlags | log.Lshortfile)
 
 	flag.StringVar(&path, "path", ".", "simulation path")
 	flag.StringVar(&configPath, "config", "opp-edge-config.json", "simulation config JSON")
-
-	config = gconfig.SourceAndParse(gconfig.ParseBroker)
 }
 
 func main() {
+
+	gconfig.ParseFlags()
 
 	path, err := filepath.Abs(path)
 	if err != nil {
@@ -44,5 +42,5 @@ func main() {
 		log.Panicln(err)
 	}
 
-	consumer.Start(config.Broker, &runConfig)
+	consumer.Start(&runConfig)
 }

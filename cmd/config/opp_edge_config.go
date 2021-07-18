@@ -9,19 +9,17 @@ import (
 
 var save bool
 
-var config gconfig.Config
-
 func init() {
 	flag.BoolVar(&save, "save", false, "persist config globally")
-	config = gconfig.SourceAndParse()
+	gconfig.ParseFlags()
 }
 
 func main() {
 
-	jbyt, _ := json.MarshalIndent(config, "", "  ")
+	jbyt, _ := json.MarshalIndent(gconfig.Config, "", "  ")
 	fmt.Println(string(jbyt))
 
 	if save {
-		gconfig.Persist(config)
+		gconfig.Persist()
 	}
 }

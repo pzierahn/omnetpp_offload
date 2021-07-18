@@ -1,19 +1,21 @@
 package stargate
 
 import (
+	"github.com/pzierahn/project.go.omnetpp/gconfig"
 	lg "log"
 	"net"
 	"os"
 )
 
-const (
-	defaultAddr = "31.18.129.212"
-	defaultPort = 9595
-)
+var rendezvousAddr *net.UDPAddr
 
-var rendezvousAddr = &net.UDPAddr{
-	IP:   net.ParseIP(defaultAddr),
-	Port: defaultPort,
+func GetRendezvousServer() (addr *net.UDPAddr, err error) {
+
+	if rendezvousAddr != nil {
+		return rendezvousAddr, nil
+	}
+
+	return net.ResolveUDPAddr("udp", gconfig.StargateAddr())
 }
 
 func SetRendezvousServer(addr *net.UDPAddr) {

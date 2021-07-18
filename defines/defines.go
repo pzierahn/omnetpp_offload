@@ -6,7 +6,6 @@ import (
 )
 
 const (
-	DefaultPort = 50051
 	projectName = "omnetpp-edge"
 )
 

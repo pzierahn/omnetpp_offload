@@ -2,6 +2,7 @@ package stargate
 
 import (
 	"context"
+	"github.com/pzierahn/project.go.omnetpp/gconfig"
 	"net"
 	"sync"
 	"time"
@@ -52,7 +53,7 @@ func (server *stargateServer) heartbeatDispatcher(ctx context.Context) {
 			// Exit
 			//
 
-			break
+			return
 		}
 	}
 }
@@ -137,7 +138,9 @@ func (server *stargateServer) receiveDial() (err error) {
 
 func Server(ctx context.Context) (err error) {
 
-	conn, err := net.ListenUDP("udp", &net.UDPAddr{Port: defaultPort})
+	conn, err := net.ListenUDP("udp", &net.UDPAddr{
+		Port: gconfig.StargatePort(),
+	})
 	if err != nil {
 		return
 	}

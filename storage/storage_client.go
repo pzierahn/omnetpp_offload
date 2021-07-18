@@ -22,8 +22,12 @@ func FromConnection(conn *grpc.ClientConn) (client Client) {
 	return
 }
 
-func InitClient(server gconfig.GRPCConnection) (client Client) {
-	conn, err := grpc.Dial(server.DialAddr(), grpc.WithInsecure(), grpc.WithBlock())
+func InitClient() (client Client) {
+	conn, err := grpc.Dial(
+		gconfig.BrokerDialAddr(),
+		grpc.WithInsecure(),
+		grpc.WithBlock(),
+	)
 	if err != nil {
 		return
 	}

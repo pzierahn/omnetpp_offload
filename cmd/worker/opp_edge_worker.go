@@ -1,27 +1,15 @@
 package main
 
 import (
-	"flag"
 	"github.com/pzierahn/project.go.omnetpp/gconfig"
 	"github.com/pzierahn/project.go.omnetpp/provider"
 	"os"
 	"os/signal"
 )
 
-var config gconfig.Config
-var clean bool
-
-func init() {
-	flag.BoolVar(&clean, "clean", false, "clean cache dir")
-	config = gconfig.SourceAndParse()
-}
-
 func main() {
 
-	if clean {
-		provider.Clean()
-		return
-	}
+	gconfig.ParseFlags()
 
 	ch := make(chan os.Signal)
 	signal.Notify(ch, os.Interrupt)
@@ -32,20 +20,5 @@ func main() {
 		os.Exit(0)
 	}()
 
-	provider.Start(config)
-
-	//conn, err := provider.Init(config)
-	//if err != nil {
-	//	panic(err)
-	//}
-	//
-	//fmt.Println("############# ccc")
-	//
-	//if err = conn.StartLink(context.Background()); err != nil {
-	//	panic(err)
-	//}
-	//
-	//if err = conn.Close(); err != nil {
-	//	panic(err)
-	//}
+	provider.Start()
 }

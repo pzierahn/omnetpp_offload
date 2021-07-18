@@ -8,7 +8,9 @@ import (
 	"sync"
 )
 
-func (cons *consumer) startConnector(broker pb.BrokerClient, onInit chan int32) {
+func (cons *consumer) startConnector(onInit chan int32) {
+
+	broker := pb.NewBrokerClient(cons.bconn)
 	stream, err := broker.GetProviders(context.Background(), &pb.Empty{})
 	if err != nil {
 		log.Fatalln(err)
@@ -46,7 +48,8 @@ func (cons *consumer) startConnector(broker pb.BrokerClient, onInit chan int32) 
 			go func(prov *pb.ProviderInfo) {
 				defer wg.Done()
 
-				pconn, err := connect(prov)
+				var pconn *providerConnection
+				pconn, err = cons.connect(prov)
 				if err != nil {
 					log.Println(prov.ProviderId, err)
 					return

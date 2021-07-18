@@ -3,6 +3,7 @@ package consumer
 import (
 	"github.com/pzierahn/project.go.omnetpp/omnetpp"
 	pb "github.com/pzierahn/project.go.omnetpp/proto"
+	"google.golang.org/grpc"
 	"log"
 	"sync"
 )
@@ -18,6 +19,7 @@ type consumer struct {
 	config     *Config
 	simulation *pb.Simulation
 	connMu     sync.RWMutex
+	bconn      *grpc.ClientConn
 
 	finished sync.WaitGroup
 	//allocCond *sync.Cond
