@@ -2,6 +2,7 @@ package provider
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"github.com/pzierahn/project.go.omnetpp/omnetpp"
 	pb "github.com/pzierahn/project.go.omnetpp/proto"
@@ -23,10 +24,10 @@ func newOpp(simulation *pb.Simulation) (base string, opp omnetpp.OmnetProject) {
 	return
 }
 
-func (prov *provider) compile(simulation *pb.Simulation) (bin *pb.Binary, err error) {
+func (prov *provider) compile(ctx context.Context, simulation *pb.Simulation) (bin *pb.Binary, err error) {
 
 	base, opp := newOpp(simulation)
-	err = opp.Clean()
+	err = opp.Clean(ctx)
 	if err != nil {
 		return
 	}
@@ -42,7 +43,7 @@ func (prov *provider) compile(simulation *pb.Simulation) (bin *pb.Binary, err er
 		return
 	}
 
-	err = opp.Setup(false)
+	err = opp.Setup(ctx, false)
 	if err != nil {
 		return
 	}

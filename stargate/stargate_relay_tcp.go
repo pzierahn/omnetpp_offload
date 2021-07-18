@@ -5,6 +5,11 @@ import (
 )
 
 func RelayServerTCP() (port1, port2 int, err error) {
+
+	//
+	// TODO: remove log.Fatalln from this file
+	//
+
 	listener1, err := net.Listen("tcp", ":0")
 	if err != nil {
 		return
@@ -21,12 +26,12 @@ func RelayServerTCP() (port1, port2 int, err error) {
 	log.Printf("RelayServerTCP: port1=%v port2=%v", port1, port2)
 
 	incoming := make(chan net.Conn)
-	//defer close(incoming)
 
 	go func() {
 		conn, err := listener1.Accept()
 		if err != nil {
-			log.Fatalln(err)
+			log.Println(err)
+			return
 		}
 
 		log.Printf("RelayServerTCP: LocalAddr=%v RemoteAddr=%v", conn.LocalAddr(), conn.RemoteAddr())
@@ -36,7 +41,8 @@ func RelayServerTCP() (port1, port2 int, err error) {
 	go func() {
 		conn, err := listener2.Accept()
 		if err != nil {
-			log.Fatalln(err)
+			log.Println(err)
+			return
 		}
 
 		log.Printf("RelayServerTCP: LocalAddr=%v RemoteAddr=%v", conn.LocalAddr(), conn.RemoteAddr())
@@ -44,9 +50,13 @@ func RelayServerTCP() (port1, port2 int, err error) {
 	}()
 
 	go func() {
-		conn1 := <-incoming
-		conn2 := <-incoming
+		conn1, ok1 := <-incoming
+		conn2, ok2 := <-incoming
 		close(incoming)
+
+		if !ok1 || !ok2 {
+			return
+		}
 
 		go func() {
 			for {

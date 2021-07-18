@@ -21,10 +21,9 @@ func Start() {
 	prov := &provider{
 		providerId: simple.NamedId(gconfig.Config.Worker.Name, 8),
 		store:      store,
-		slots:      uint32(runtime.NumCPU()),
-		freeSlots:  int32(runtime.NumCPU()),
-		//slots:       uint32(1),
-		//freeSlots:   1,
+		// TODO: replace this with gconfig values!
+		slots:       uint32(runtime.NumCPU()),
+		freeSlots:   int32(runtime.NumCPU()),
 		cond:        sync.NewCond(&sync.Mutex{}),
 		requests:    make(map[simulationId]uint32),
 		assignments: make(map[simulationId]uint32),
@@ -37,6 +36,8 @@ func Start() {
 	//
 	// Register provider
 	//
+
+	log.Printf("connect to broker %v", gconfig.BrokerDialAddr())
 
 	brokerConn, err := grpc.Dial(
 		gconfig.BrokerDialAddr(),

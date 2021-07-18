@@ -1,24 +1,28 @@
 package main
 
 import (
-	"flag"
-	"github.com/pzierahn/project.go.omnetpp/stargate"
+	"context"
 	"log"
+	"os/exec"
+	"time"
 )
-
-func init() {
-	_ = flag.Bool("bool", false, "")
-	flag.Parse()
-}
 
 func main() {
 
 	log.SetFlags(log.LstdFlags | log.Lshortfile)
 
-	addr1, addr2, err := stargate.RelayServerTCP()
-	if err != nil {
-		log.Fatalln(err)
+	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+	defer cancel()
+
+	if err := exec.CommandContext(ctx, "sleep", "5").Run(); err != nil {
+		// This will fail after 100 milliseconds. The 5 second sleep
+		// will be interrupted.
 	}
 
-	log.Printf("addr1=%v addr2=%v", addr1, addr2)
+	//addr1, addr2, err := stargate.RelayServerTCP()
+	//if err != nil {
+	//	log.Fatalln(err)
+	//}
+	//
+	//log.Printf("addr1=%v addr2=%v", addr1, addr2)
 }

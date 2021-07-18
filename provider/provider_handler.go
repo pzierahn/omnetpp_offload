@@ -14,7 +14,6 @@ import (
 	"strings"
 	"sync"
 	"sync/atomic"
-	"time"
 )
 
 type simulationId = string
@@ -72,12 +71,20 @@ func (prov *provider) Checkout(_ context.Context, bundle *pb.Bundle) (empty *pb.
 	return
 }
 
-func (prov *provider) Compile(_ context.Context, simulation *pb.Simulation) (bin *pb.Binary, err error) {
+func (prov *provider) Compile(ctx context.Context, simulation *pb.Simulation) (bin *pb.Binary, err error) {
 	log.Printf("Compile: %v", simulation.Id)
-	return prov.compile(simulation)
+
+	go func() {
+		select {
+		case <-ctx.Done():
+			log.Printf("############ Compile: %v cancel", simulation.Id)
+		}
+	}()
+
+	return prov.compile(ctx, simulation)
 }
 
-func (prov *provider) ListRunNums(_ context.Context, simulation *pb.Simulation) (runs *pb.SimulationRuns, err error) {
+func (prov *provider) ListRunNums(ctx context.Context, simulation *pb.Simulation) (runs *pb.SimulationRuns, err error) {
 
 	log.Printf("ListRunNums: id=%v config='%s'", simulation.Id, simulation.Config)
 
@@ -88,7 +95,7 @@ func (prov *provider) ListRunNums(_ context.Context, simulation *pb.Simulation) 
 
 	_, opp := newOpp(simulation)
 
-	runNums, err := opp.GetRunNumbers(simulation.Config)
+	runNums, err := opp.GetRunNumbers(ctx, simulation.Config)
 	if err != nil {
 		return
 	}
@@ -102,7 +109,7 @@ func (prov *provider) ListRunNums(_ context.Context, simulation *pb.Simulation) 
 	return
 }
 
-func (prov *provider) Run(_ context.Context, run *pb.SimulationRun) (ref *pb.StorageRef, err error) {
+func (prov *provider) Run(ctx context.Context, run *pb.SimulationRun) (ref *pb.StorageRef, err error) {
 
 	log.Printf("Run: id=%v config='%s' runNum='%s'",
 		run.SimulationId, run.Config, run.RunNum)
@@ -130,7 +137,7 @@ func (prov *provider) Run(_ context.Context, run *pb.SimulationRun) (ref *pb.Sto
 	// Simulation Run Id = srId
 	srId := fmt.Sprintf("%s_%s_%s", run.SimulationId, run.Config, run.RunNum)
 
-	ctx, cnl := context.WithTimeout(context.Background(), time.Minute*60)
+	ctx, cnl := context.WithCancel(ctx)
 	defer cnl()
 
 	cond := prov.cond

@@ -9,6 +9,7 @@ import (
 	"github.com/pzierahn/project.go.omnetpp/sysinfo"
 	"log"
 	"sync"
+	"time"
 )
 
 var archMu sync.Mutex
@@ -24,8 +25,12 @@ func (pConn *providerConnection) compileAndDownload(simulation *pb.Simulation) (
 
 	log.Printf("[%s] compileAndDownload: %s", pConn.name(), arch)
 
+	// Set compilation timeout to 60m
+	ctx, cnl := context.WithTimeout(context.Background(), time.Minute*30)
+	defer cnl()
+
 	var bin *pb.Binary
-	bin, err = pConn.provider.Compile(context.Background(), simulation)
+	bin, err = pConn.provider.Compile(ctx, simulation)
 	if err != nil {
 		return
 	}

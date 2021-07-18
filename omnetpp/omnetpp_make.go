@@ -1,6 +1,7 @@
 package omnetpp
 
 import (
+	"context"
 	"fmt"
 	"github.com/pzierahn/project.go.omnetpp/simple"
 	"os"
@@ -9,7 +10,7 @@ import (
 	"runtime"
 )
 
-func (project *OmnetProject) MakeMake() (err error) {
+func (project *OmnetProject) MakeMake(ctx context.Context) (err error) {
 
 	if project.BuildScript != "" {
 
@@ -34,7 +35,7 @@ func (project *OmnetProject) MakeMake() (err error) {
 		args = append(args, "--make-so")
 	}
 
-	makemake := simple.ShellCommand("opp_makemake", args...)
+	makemake := simple.ShellCommandContext(ctx, "opp_makemake", args...)
 
 	makemake.Dir = filepath.Join(project.Path, src)
 	makemake.Stdout = os.Stdout
@@ -45,7 +46,7 @@ func (project *OmnetProject) MakeMake() (err error) {
 	return
 }
 
-func (project *OmnetProject) Compile() (err error) {
+func (project *OmnetProject) Compile(ctx context.Context) (err error) {
 
 	if project.BuildScript != "" {
 
@@ -57,7 +58,7 @@ func (project *OmnetProject) Compile() (err error) {
 
 		logger.Printf("running %s\n", project.BuildScript)
 
-		build := exec.Command("sh", script)
+		build := exec.CommandContext(ctx, "sh", script)
 		build.Dir = filepath.Join(project.Path, dir)
 
 		//logger.Printf("############ build.Dir %s\n", build.Dir)
@@ -75,7 +76,7 @@ func (project *OmnetProject) Compile() (err error) {
 
 	src, _ := filepath.Split(project.Simulation)
 
-	makeCmd := simple.ShellCommand("make", "-j", fmt.Sprint(runtime.NumCPU()), "MODE=release")
+	makeCmd := simple.ShellCommandContext(ctx, "make", "-j", fmt.Sprint(runtime.NumCPU()), "MODE=release")
 	makeCmd.Dir = filepath.Join(project.Path, src)
 	makeCmd.Stdout = os.Stdout
 	makeCmd.Stderr = os.Stderr
@@ -85,7 +86,7 @@ func (project *OmnetProject) Compile() (err error) {
 	return
 }
 
-func (project *OmnetProject) Clean() (err error) {
+func (project *OmnetProject) Clean(ctx context.Context) (err error) {
 
 	//
 	// Clean simulation
@@ -93,7 +94,7 @@ func (project *OmnetProject) Clean() (err error) {
 
 	logger.Printf("cleaning %s\n", project.SourcePath)
 
-	makeCmd := simple.ShellCommand("make", "cleanall")
+	makeCmd := simple.ShellCommandContext(ctx, "make", "cleanall")
 	makeCmd.Dir = filepath.Join(project.Path, project.SourcePath)
 	//makeCmd.Stdout = os.Stdout
 	//makeCmd.Stderr = os.Stderr
@@ -103,21 +104,21 @@ func (project *OmnetProject) Clean() (err error) {
 	return
 }
 
-func (project *OmnetProject) Setup(clean bool) (err error) {
+func (project *OmnetProject) Setup(ctx context.Context, clean bool) (err error) {
 
 	if clean {
-		err = project.Clean()
+		err = project.Clean(ctx)
 		if err != nil {
 			return
 		}
 	}
 
-	err = project.MakeMake()
+	err = project.MakeMake(ctx)
 	if err != nil {
 		return
 	}
 
-	err = project.Compile()
+	err = project.Compile(ctx)
 	if err != nil {
 		return
 	}

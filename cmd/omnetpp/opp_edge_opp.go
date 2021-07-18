@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"encoding/json"
 	"flag"
 	"fmt"
@@ -73,29 +74,31 @@ func main() {
 
 	opp := omnetpp.New(&config)
 
+	ctx := context.Background()
+
 	if clean {
-		err = opp.Clean()
+		err = opp.Clean(ctx)
 		if err != nil {
 			panic(err)
 		}
 	}
 
 	if makemake {
-		err = opp.MakeMake()
+		err = opp.MakeMake(ctx)
 		if err != nil {
 			log.Panicln(err)
 		}
 	}
 
 	if compile {
-		err = opp.Compile()
+		err = opp.Compile(ctx)
 		if err != nil {
 			panic(err)
 		}
 	}
 
 	if printConfigs {
-		configs, err := opp.GetConfigs()
+		configs, err := opp.GetConfigs(ctx)
 		if err != nil {
 			panic(err)
 		}
@@ -104,7 +107,7 @@ func main() {
 	}
 
 	if printRunNumbers {
-		numbers, err := opp.GetRunNumbers(configname)
+		numbers, err := opp.GetRunNumbers(ctx, configname)
 		if err != nil {
 			panic(err)
 		}
