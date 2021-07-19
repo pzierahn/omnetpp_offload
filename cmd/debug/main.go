@@ -3,7 +3,7 @@ package main
 import (
 	"context"
 	"log"
-	"os/exec"
+	"sync"
 	"time"
 )
 
@@ -11,13 +11,34 @@ func main() {
 
 	log.SetFlags(log.LstdFlags | log.Lshortfile)
 
-	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+	ctx1, cancel := context.WithTimeout(context.Background(), time.Second)
 	defer cancel()
 
-	if err := exec.CommandContext(ctx, "sleep", "5").Run(); err != nil {
-		// This will fail after 100 milliseconds. The 5 second sleep
-		// will be interrupted.
-	}
+	ctx2, cancel1 := context.WithTimeout(ctx1, time.Second*5)
+	defer cancel1()
+
+	var wg sync.WaitGroup
+	wg.Add(2)
+
+	go func() {
+		defer wg.Done()
+		<-ctx1.Done()
+		log.Printf("ctx1 Done")
+	}()
+	go func() {
+		defer wg.Done()
+		<-ctx2.Done()
+		log.Printf("ctx2 Done")
+	}()
+
+	wg.Wait()
+
+	//select {
+	//case <-ctx1.Done():
+	//	log.Printf("ctx1 Done")
+	//case <-ctx2.Done():
+	//	log.Printf("ctx2 Done")
+	//}
 
 	//addr1, addr2, err := stargate.RelayServerTCP()
 	//if err != nil {

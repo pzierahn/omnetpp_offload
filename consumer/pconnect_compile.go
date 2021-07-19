@@ -36,7 +36,7 @@ func (pConn *providerConnection) compileAndDownload(simulation *pb.Simulation) (
 	}
 
 	var buf bytes.Buffer
-	buf, err = store.Download(bin.Ref)
+	buf, err = store.Download(pConn.ctx, bin.Ref)
 	if err != nil {
 		return
 	}

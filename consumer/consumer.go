@@ -1,6 +1,7 @@
 package consumer
 
 import (
+	"context"
 	"github.com/pzierahn/project.go.omnetpp/omnetpp"
 	pb "github.com/pzierahn/project.go.omnetpp/proto"
 	"google.golang.org/grpc"
@@ -16,6 +17,7 @@ type Config struct {
 }
 
 type consumer struct {
+	ctx        context.Context
 	config     *Config
 	simulation *pb.Simulation
 	connMu     sync.RWMutex

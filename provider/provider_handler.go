@@ -6,28 +6,53 @@ import (
 	"fmt"
 	pb "github.com/pzierahn/project.go.omnetpp/proto"
 	"github.com/pzierahn/project.go.omnetpp/simple"
-	"github.com/pzierahn/project.go.omnetpp/storage"
 	"github.com/pzierahn/project.go.omnetpp/sysinfo"
+	"google.golang.org/protobuf/types/known/timestamppb"
 	"log"
 	"os"
 	"path/filepath"
-	"sync"
 	"sync/atomic"
 )
 
 type simulationId = string
 
-type provider struct {
-	pb.UnimplementedProviderServer
-	providerId string
-	store      *storage.Server
+func (prov *provider) GetSession(ctx context.Context, sim *pb.Simulation) (stat *pb.SessionStatus, err error) {
 
-	cond        *sync.Cond
-	slots       uint32
-	freeSlots   int32
-	requests    map[simulationId]uint32
-	assignments map[simulationId]uint32
-	allocate    map[simulationId]chan<- uint32
+	log.Printf("GetSession: %v", sim.Id)
+
+	prov.mu.Lock()
+	defer prov.mu.Unlock()
+
+	var ok bool
+	if stat, ok = prov.sessions[sim.Id]; ok {
+		return
+	}
+
+	stat = &pb.SessionStatus{
+		SimulationId: sim.Id,
+	}
+
+	if deadline, ok := ctx.Deadline(); ok {
+		stat.Ttl = timestamppb.New(deadline)
+		go prov.nukeSession(sim.Id, deadline)
+	}
+
+	prov.sessions[sim.Id] = stat
+	prov.persistSessions()
+
+	return
+}
+
+func (prov *provider) SetSession(_ context.Context, stat *pb.SessionStatus) (*pb.SessionStatus, error) {
+
+	log.Printf("SetSession: %v", stat)
+
+	prov.mu.Lock()
+	prov.sessions[stat.SimulationId] = stat
+	prov.persistSessions()
+	prov.mu.Unlock()
+
+	return stat, nil
 }
 
 func (prov *provider) Info(_ context.Context, _ *pb.Empty) (info *pb.ProviderInfo, err error) {
@@ -41,7 +66,6 @@ func (prov *provider) Info(_ context.Context, _ *pb.Empty) (info *pb.ProviderInf
 func (prov *provider) Status(ctx context.Context, _ *pb.Empty) (util *pb.Utilization, err error) {
 
 	log.Printf("Status:")
-
 	util, err = sysinfo.GetUtilization(ctx)
 	return
 }
@@ -71,6 +95,15 @@ func (prov *provider) Checkout(_ context.Context, bundle *pb.Bundle) (empty *pb.
 
 func (prov *provider) Compile(ctx context.Context, simulation *pb.Simulation) (bin *pb.Binary, err error) {
 	log.Printf("Compile: %v", simulation.Id)
+
+	sess, err := prov.GetSession(ctx, simulation)
+	if err != nil {
+		return
+	}
+
+	ctx, cnl := context.WithDeadline(ctx, sess.Ttl.AsTime())
+	defer cnl()
+
 	return prov.compile(ctx, simulation)
 }
 
@@ -84,6 +117,14 @@ func (prov *provider) ListRunNums(ctx context.Context, simulation *pb.Simulation
 	}
 
 	_, opp := newOpp(simulation)
+
+	sess, err := prov.GetSession(ctx, simulation)
+	if err != nil {
+		return
+	}
+
+	ctx, cnl := context.WithDeadline(ctx, sess.Ttl.AsTime())
+	defer cnl()
 
 	runNums, err := opp.GetRunNumbers(ctx, simulation.Config)
 	if err != nil {
@@ -138,6 +179,16 @@ func (prov *provider) Run(ctx context.Context, run *pb.SimulationRun) (ref *pb.S
 		cond.L.Unlock()
 	}()
 
+	sess, err := prov.GetSession(ctx, &pb.Simulation{
+		Id: run.SimulationId,
+	})
+	if err != nil {
+		return
+	}
+
+	ctx, cnl := context.WithDeadline(ctx, sess.Ttl.AsTime())
+	defer cnl()
+
 	return prov.run(ctx, run)
 }
 
@@ -151,15 +202,10 @@ func (prov *provider) Allocate(stream pb.Provider_AllocateServer) (err error) {
 		log.Printf("Allocate: unregister SimulationId=%v", sId)
 
 		cond := prov.cond
-
 		cond.L.Lock()
 		delete(prov.allocate, sId)
 		delete(prov.requests, sId)
 		delete(prov.assignments, sId)
-
-		// Clean up and remove simulation (delete simulation bucket)
-		_, _ = prov.store.Drop(nil, &pb.BucketRef{Bucket: sId})
-
 		cond.Broadcast()
 		cond.L.Unlock()
 

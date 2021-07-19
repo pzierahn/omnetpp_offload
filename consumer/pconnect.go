@@ -12,6 +12,7 @@ import (
 )
 
 type providerConnection struct {
+	ctx      context.Context
 	info     *pb.ProviderInfo
 	provider pb.ProviderClient
 	store    pb.StorageClient

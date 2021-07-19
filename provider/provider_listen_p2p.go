@@ -11,13 +11,15 @@ import (
 
 func (prov *provider) listenP2P() {
 	for {
-		log.Println("wait for peer to peer connect")
+		log.Println("listenP2P: waiting for connect")
 
 		p2p, err := stargate.DialQUICgRPCListener(context.Background(), prov.providerId)
 		if err != nil {
 			log.Println(err)
 			continue
 		}
+
+		log.Printf("listenP2P: new connection addr=%v", p2p.Addr())
 
 		go func(p2p net.Listener) {
 

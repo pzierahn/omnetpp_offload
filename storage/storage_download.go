@@ -8,9 +8,9 @@ import (
 	"time"
 )
 
-func (client *Client) Download(file *pb.StorageRef) (buf bytes.Buffer, err error) {
+func (client *Client) Download(ctx context.Context, file *pb.StorageRef) (buf bytes.Buffer, err error) {
 
-	stream, err := client.storage.Pull(context.Background(), file)
+	stream, err := client.storage.Pull(ctx, file)
 	if err != nil {
 		return
 	}

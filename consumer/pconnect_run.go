@@ -17,7 +17,7 @@ func (pConn *providerConnection) run(task *pb.SimulationRun) (err error) {
 
 	startExec := time.Now()
 
-	resultRef, err := pConn.provider.Run(context.Background(), task)
+	resultRef, err := pConn.provider.Run(pConn.ctx, task)
 	if err != nil {
 		return
 	}
@@ -30,7 +30,7 @@ func (pConn *providerConnection) run(task *pb.SimulationRun) (err error) {
 	logExecTime(pConn.name(), endExec.Sub(startExec))
 
 	store := storage.FromClient(pConn.store)
-	buf, err := store.Download(resultRef)
+	buf, err := store.Download(pConn.ctx, resultRef)
 	if err != nil {
 		return
 	}
@@ -38,6 +38,7 @@ func (pConn *providerConnection) run(task *pb.SimulationRun) (err error) {
 	log.Printf("[%s] %s downloaded results %v in %v",
 		pConn.name(), runName, simple.ByteSize(uint64(buf.Len())), time.Now().Sub(endExec))
 
+	// TODO: Replace this
 	dump := "/Users/patrick/Desktop/dump"
 	err = ioutil.WriteFile(filepath.Join(dump, runName+".tgz"), buf.Bytes(), 0755)
 	if err != nil {

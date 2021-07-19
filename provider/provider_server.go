@@ -14,21 +14,40 @@ import (
 	"time"
 )
 
+type provider struct {
+	pb.UnimplementedProviderServer
+	providerId  string
+	store       *storage.Server
+	mu          *sync.RWMutex
+	cond        *sync.Cond
+	slots       uint32
+	freeSlots   int32
+	requests    map[simulationId]uint32
+	assignments map[simulationId]uint32
+	allocate    map[simulationId]chan<- uint32
+	sessions    map[simulationId]*pb.SessionStatus
+}
+
 func Start() {
 
 	store := &storage.Server{}
 
+	mu := &sync.RWMutex{}
 	prov := &provider{
 		providerId: simple.NamedId(gconfig.Config.Worker.Name, 8),
 		store:      store,
 		// TODO: replace this with gconfig values!
 		slots:       uint32(runtime.NumCPU()),
 		freeSlots:   int32(runtime.NumCPU()),
-		cond:        sync.NewCond(&sync.Mutex{}),
+		mu:          mu,
+		cond:        sync.NewCond(mu),
 		requests:    make(map[simulationId]uint32),
 		assignments: make(map[simulationId]uint32),
 		allocate:    make(map[simulationId]chan<- uint32),
+		sessions:    make(map[simulationId]*pb.SessionStatus),
 	}
+
+	prov.recoverSessions()
 
 	log.Printf("start provider (%v)", prov.providerId)
 

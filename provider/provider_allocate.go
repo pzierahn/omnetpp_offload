@@ -1,10 +1,29 @@
 package provider
 
 import (
+	pb "github.com/pzierahn/project.go.omnetpp/proto"
 	"github.com/pzierahn/project.go.omnetpp/simple"
 	"log"
+	"os"
+	"path/filepath"
 	"sync/atomic"
 )
+
+func (prov *provider) drop(id simulationId) {
+
+	log.Printf("drop: simulationId=%v", id)
+
+	delete(prov.allocate, id)
+	delete(prov.requests, id)
+	delete(prov.assignments, id)
+	delete(prov.sessions, id)
+
+	// Clean up and remove simulation (delete simulation bucket)
+	_, _ = prov.store.Drop(nil, &pb.BucketRef{Bucket: id})
+
+	dir := filepath.Join(cachePath, id)
+	_ = os.RemoveAll(dir)
+}
 
 func (prov *provider) allocator() {
 

@@ -1,7 +1,9 @@
 package broker
 
 import (
+	"fmt"
 	pb "github.com/pzierahn/project.go.omnetpp/proto"
+	"github.com/pzierahn/project.go.omnetpp/stargate"
 	"github.com/pzierahn/project.go.omnetpp/utils"
 	"log"
 	"net/http"
@@ -28,26 +30,25 @@ func (broker *broker) pStatusHandle(writer http.ResponseWriter, request *http.Re
 	utils.Response(writer, overview, sendProto)
 }
 
-//func stargateStatus(writer http.ResponseWriter, request *http.Request) {
-//	writer.Header().Set("Access-Control-Allow-Origin", "*")
-//
-//	values := stargate.DebugValues()
-//
-//	if bytes, err := json.MarshalIndent(values, "", "  "); err != nil {
-//		writer.WriteHeader(503)
-//		_, _ = fmt.Fprint(writer, err.Error())
-//		log.Println(err)
-//	} else {
-//		_, _ = writer.Write(bytes)
-//	}
-//}
+func stargateStatus(writer http.ResponseWriter, request *http.Request) {
+	writer.Header().Set("Access-Control-Allow-Origin", "*")
+
+	if bytes, err := stargate.DebugValues(); err != nil {
+		writer.WriteHeader(503)
+		_, _ = fmt.Fprint(writer, err.Error())
+		log.Println(err)
+	} else {
+		_, _ = writer.Write(bytes)
+	}
+}
 
 func (broker *broker) startWebService() {
 
 	log.Println("start web service on http://localhost:8090/providers")
-
 	http.HandleFunc("/providers", broker.pStatusHandle)
-	//http.HandleFunc("/stargate", stargateStatus)
+
+	log.Println("start web service on http://localhost:8090/stargate")
+	http.HandleFunc("/stargate", stargateStatus)
 
 	err := http.ListenAndServe(":8090", nil)
 	if err != nil {

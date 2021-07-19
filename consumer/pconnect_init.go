@@ -1,7 +1,6 @@
 package consumer
 
 import (
-	"context"
 	pb "github.com/pzierahn/project.go.omnetpp/proto"
 	"log"
 )
@@ -63,6 +62,15 @@ func (pConn *providerConnection) init(cons *consumer) (err error) {
 
 	simulation := cons.simulation
 
+	pConn.ctx = cons.ctx
+
+	session, err := pConn.provider.GetSession(cons.ctx, simulation)
+	if err != nil {
+		return
+	}
+
+	log.Printf("######### deadline=%v", session.Ttl.AsTime())
+
 	source := &checkoutObject{
 		SimulationId: simulation.Id,
 		Filename:     "source.tgz",
@@ -77,7 +85,7 @@ func (pConn *providerConnection) init(cons *consumer) (err error) {
 		return
 	}
 
-	stream, err := pConn.provider.Allocate(context.Background())
+	stream, err := pConn.provider.Allocate(cons.ctx)
 	if err != nil {
 		return
 	}
