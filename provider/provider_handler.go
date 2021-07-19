@@ -11,7 +11,6 @@ import (
 	"log"
 	"os"
 	"path/filepath"
-	"strings"
 	"sync"
 	"sync/atomic"
 )
@@ -28,9 +27,7 @@ type provider struct {
 	freeSlots   int32
 	requests    map[simulationId]uint32
 	assignments map[simulationId]uint32
-	// TODO: Remove this
-	runCtx   map[simulationId]context.CancelFunc
-	allocate map[simulationId]chan<- uint32
+	allocate    map[simulationId]chan<- uint32
 }
 
 func (prov *provider) Info(_ context.Context, _ *pb.Empty) (info *pb.ProviderInfo, err error) {
@@ -127,28 +124,16 @@ func (prov *provider) Run(ctx context.Context, run *pb.SimulationRun) (ref *pb.S
 		return
 	}
 
-	// Simulation Run Id = srId
-	srId := fmt.Sprintf("%s_%s_%s", run.SimulationId, run.Config, run.RunNum)
-
-	ctx, cnl := context.WithCancel(ctx)
-	defer cnl()
-
-	cond := prov.cond
-
-	cond.L.Lock()
-	prov.runCtx[srId] = cnl
-	cond.L.Unlock()
-
 	atomic.AddInt32(&prov.freeSlots, -1)
 
 	defer func() {
 		log.Printf("Run: id=%v config='%s' runNum='%s' done",
 			run.SimulationId, run.Config, run.RunNum)
 
+		cond := prov.cond
 		cond.L.Lock()
 		atomic.AddInt32(&prov.freeSlots, 1)
 		prov.assignments[run.SimulationId]--
-		delete(prov.runCtx, srId)
 		cond.Broadcast()
 		cond.L.Unlock()
 	}()
@@ -171,14 +156,6 @@ func (prov *provider) Allocate(stream pb.Provider_AllocateServer) (err error) {
 		delete(prov.allocate, sId)
 		delete(prov.requests, sId)
 		delete(prov.assignments, sId)
-
-		// Cancel running simulations
-		for id, cnl := range prov.runCtx {
-			if strings.HasPrefix(id, sId) {
-				log.Printf("Allocate: cancel %s", id)
-				cnl()
-			}
-		}
 
 		// Clean up and remove simulation (delete simulation bucket)
 		_, _ = prov.store.Drop(nil, &pb.BucketRef{Bucket: sId})

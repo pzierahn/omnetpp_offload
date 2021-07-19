@@ -27,7 +27,6 @@ func Start() {
 		cond:        sync.NewCond(&sync.Mutex{}),
 		requests:    make(map[simulationId]uint32),
 		assignments: make(map[simulationId]uint32),
-		runCtx:      make(map[simulationId]context.CancelFunc),
 		allocate:    make(map[simulationId]chan<- uint32),
 	}
 
@@ -64,7 +63,7 @@ func Start() {
 		for range time.Tick(time.Millisecond * 500) {
 
 			var util *pb.Utilization
-			util, err = sysinfo.GetUtilization()
+			util, err = sysinfo.GetUtilization(context.Background())
 			if err != nil {
 				log.Fatalln(err)
 			}
