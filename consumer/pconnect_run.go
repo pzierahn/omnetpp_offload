@@ -1,13 +1,10 @@
 package consumer
 
 import (
-	"context"
 	pb "github.com/pzierahn/project.go.omnetpp/proto"
 	"github.com/pzierahn/project.go.omnetpp/simple"
 	"github.com/pzierahn/project.go.omnetpp/storage"
-	"io/ioutil"
 	"log"
-	"path/filepath"
 	"time"
 )
 
@@ -39,13 +36,13 @@ func (pConn *providerConnection) run(task *pb.SimulationRun) (err error) {
 		pConn.name(), runName, simple.ByteSize(uint64(buf.Len())), time.Now().Sub(endExec))
 
 	// TODO: Replace this
-	dump := "/Users/patrick/Desktop/dump"
-	err = ioutil.WriteFile(filepath.Join(dump, runName+".tgz"), buf.Bytes(), 0755)
-	if err != nil {
-		return
-	}
+	//dump := "/Users/patrick/Desktop/dump"
+	//err = ioutil.WriteFile(filepath.Join(dump, runName+".tgz"), buf.Bytes(), 0755)
+	//if err != nil {
+	//	return
+	//}
 
-	_, err = pConn.store.Delete(context.Background(), resultRef)
+	_, err = pConn.store.Delete(pConn.ctx, resultRef)
 
 	return
 }

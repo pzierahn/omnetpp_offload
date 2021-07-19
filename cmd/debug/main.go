@@ -11,20 +11,20 @@ func main() {
 
 	log.SetFlags(log.LstdFlags | log.Lshortfile)
 
-	ctx1, cancel := context.WithTimeout(context.Background(), time.Second)
+	ctx1, cancel := context.WithTimeout(context.Background(), time.Second*3)
 	defer cancel()
 
-	ctx2, cancel1 := context.WithTimeout(ctx1, time.Second*5)
+	ctx2, cancel1 := context.WithTimeout(ctx1, time.Second*10)
 	defer cancel1()
 
 	var wg sync.WaitGroup
-	wg.Add(2)
+	wg.Add(1)
 
-	go func() {
-		defer wg.Done()
-		<-ctx1.Done()
-		log.Printf("ctx1 Done")
-	}()
+	//go func() {
+	//	defer wg.Done()
+	//	<-ctx1.Done()
+	//	log.Printf("ctx1 Done")
+	//}()
 	go func() {
 		defer wg.Done()
 		<-ctx2.Done()
