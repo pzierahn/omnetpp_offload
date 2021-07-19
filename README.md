@@ -11,7 +11,7 @@ docker run --rm pzierahn/omnetpp_edge opp_edge_worker -broker 31.18.129.212 -nam
 
 Build cross-platform images for amd and arm
 
-```
+```shell
 docker buildx build \
     --push \
     --platform linux/arm64,linux/amd64 \

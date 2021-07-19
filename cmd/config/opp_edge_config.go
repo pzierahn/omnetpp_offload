@@ -11,10 +11,11 @@ var save bool
 
 func init() {
 	flag.BoolVar(&save, "save", false, "persist config globally")
-	gconfig.ParseFlags()
 }
 
 func main() {
+
+	gconfig.ParseFlags()
 
 	jbyt, _ := json.MarshalIndent(gconfig.Config, "", "  ")
 	fmt.Println(string(jbyt))
