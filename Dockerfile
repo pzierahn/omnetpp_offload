@@ -5,7 +5,7 @@ WORKDIR /install
 
 COPY . /install
 RUN go build cmd/worker/opp_edge_worker.go; \
-    go build cmd/consumer/opp_edge_run.go; \
+    go build cmd/config/opp_edge_config.go; \
     go build cmd/broker/opp_edge_broker.go
 
 FROM pzierahn/omnetpp
