@@ -15,7 +15,9 @@ func GetRendezvousServer() (addr *net.UDPAddr, err error) {
 		return rendezvousAddr, nil
 	}
 
-	return net.ResolveUDPAddr("udp", gconfig.StargateAddr())
+	rendezvousAddr, err = net.ResolveUDPAddr("udp", gconfig.StargateAddr())
+
+	return rendezvousAddr, err
 }
 
 func SetRendezvousServer(addr *net.UDPAddr) {
