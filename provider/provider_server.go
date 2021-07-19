@@ -24,7 +24,7 @@ type provider struct {
 	requests    map[simulationId]uint32
 	assignments map[simulationId]uint32
 	allocate    map[simulationId]chan<- uint32
-	sessions    map[simulationId]*pb.SessionStatus
+	sessions    map[simulationId]*pb.Session
 }
 
 func Start() {
@@ -42,7 +42,7 @@ func Start() {
 		requests:    make(map[simulationId]uint32),
 		assignments: make(map[simulationId]uint32),
 		allocate:    make(map[simulationId]chan<- uint32),
-		sessions:    make(map[simulationId]*pb.SessionStatus),
+		sessions:    make(map[simulationId]*pb.Session),
 	}
 
 	prov.recoverSessions()

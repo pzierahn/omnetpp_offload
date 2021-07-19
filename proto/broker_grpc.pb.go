@@ -204,8 +204,8 @@ type ProviderClient interface {
 	Info(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*ProviderInfo, error)
 	Status(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*Utilization, error)
 	Allocate(ctx context.Context, opts ...grpc.CallOption) (Provider_AllocateClient, error)
-	GetSession(ctx context.Context, in *Simulation, opts ...grpc.CallOption) (*SessionStatus, error)
-	SetSession(ctx context.Context, in *SessionStatus, opts ...grpc.CallOption) (*SessionStatus, error)
+	GetSession(ctx context.Context, in *Simulation, opts ...grpc.CallOption) (*Session, error)
+	SetSession(ctx context.Context, in *Session, opts ...grpc.CallOption) (*Session, error)
 	Checkout(ctx context.Context, in *Bundle, opts ...grpc.CallOption) (*Empty, error)
 	Compile(ctx context.Context, in *Simulation, opts ...grpc.CallOption) (*Binary, error)
 	ListRunNums(ctx context.Context, in *Simulation, opts ...grpc.CallOption) (*SimulationRuns, error)
@@ -269,8 +269,8 @@ func (x *providerAllocateClient) Recv() (*AllocatedSlots, error) {
 	return m, nil
 }
 
-func (c *providerClient) GetSession(ctx context.Context, in *Simulation, opts ...grpc.CallOption) (*SessionStatus, error) {
-	out := new(SessionStatus)
+func (c *providerClient) GetSession(ctx context.Context, in *Simulation, opts ...grpc.CallOption) (*Session, error) {
+	out := new(Session)
 	err := c.cc.Invoke(ctx, "/service.Provider/GetSession", in, out, opts...)
 	if err != nil {
 		return nil, err
@@ -278,8 +278,8 @@ func (c *providerClient) GetSession(ctx context.Context, in *Simulation, opts ..
 	return out, nil
 }
 
-func (c *providerClient) SetSession(ctx context.Context, in *SessionStatus, opts ...grpc.CallOption) (*SessionStatus, error) {
-	out := new(SessionStatus)
+func (c *providerClient) SetSession(ctx context.Context, in *Session, opts ...grpc.CallOption) (*Session, error) {
+	out := new(Session)
 	err := c.cc.Invoke(ctx, "/service.Provider/SetSession", in, out, opts...)
 	if err != nil {
 		return nil, err
@@ -330,8 +330,8 @@ type ProviderServer interface {
 	Info(context.Context, *Empty) (*ProviderInfo, error)
 	Status(context.Context, *Empty) (*Utilization, error)
 	Allocate(Provider_AllocateServer) error
-	GetSession(context.Context, *Simulation) (*SessionStatus, error)
-	SetSession(context.Context, *SessionStatus) (*SessionStatus, error)
+	GetSession(context.Context, *Simulation) (*Session, error)
+	SetSession(context.Context, *Session) (*Session, error)
 	Checkout(context.Context, *Bundle) (*Empty, error)
 	Compile(context.Context, *Simulation) (*Binary, error)
 	ListRunNums(context.Context, *Simulation) (*SimulationRuns, error)
@@ -352,10 +352,10 @@ func (UnimplementedProviderServer) Status(context.Context, *Empty) (*Utilization
 func (UnimplementedProviderServer) Allocate(Provider_AllocateServer) error {
 	return status.Errorf(codes.Unimplemented, "method Allocate not implemented")
 }
-func (UnimplementedProviderServer) GetSession(context.Context, *Simulation) (*SessionStatus, error) {
+func (UnimplementedProviderServer) GetSession(context.Context, *Simulation) (*Session, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetSession not implemented")
 }
-func (UnimplementedProviderServer) SetSession(context.Context, *SessionStatus) (*SessionStatus, error) {
+func (UnimplementedProviderServer) SetSession(context.Context, *Session) (*Session, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SetSession not implemented")
 }
 func (UnimplementedProviderServer) Checkout(context.Context, *Bundle) (*Empty, error) {
@@ -464,7 +464,7 @@ func _Provider_GetSession_Handler(srv interface{}, ctx context.Context, dec func
 }
 
 func _Provider_SetSession_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(SessionStatus)
+	in := new(Session)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -476,7 +476,7 @@ func _Provider_SetSession_Handler(srv interface{}, ctx context.Context, dec func
 		FullMethod: "/service.Provider/SetSession",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ProviderServer).SetSession(ctx, req.(*SessionStatus))
+		return srv.(ProviderServer).SetSession(ctx, req.(*Session))
 	}
 	return interceptor(ctx, in, info, handler)
 }

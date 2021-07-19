@@ -16,7 +16,7 @@ import (
 
 type simulationId = string
 
-func (prov *provider) GetSession(ctx context.Context, sim *pb.Simulation) (stat *pb.SessionStatus, err error) {
+func (prov *provider) GetSession(ctx context.Context, sim *pb.Simulation) (sess *pb.Session, err error) {
 
 	log.Printf("GetSession: %v", sim.Id)
 
@@ -24,35 +24,35 @@ func (prov *provider) GetSession(ctx context.Context, sim *pb.Simulation) (stat 
 	defer prov.mu.Unlock()
 
 	var ok bool
-	if stat, ok = prov.sessions[sim.Id]; ok {
+	if sess, ok = prov.sessions[sim.Id]; ok {
 		return
 	}
 
-	stat = &pb.SessionStatus{
+	sess = &pb.Session{
 		SimulationId: sim.Id,
 	}
 
 	if deadline, ok := ctx.Deadline(); ok {
-		stat.Ttl = timestamppb.New(deadline)
+		sess.Ttl = timestamppb.New(deadline)
 		go prov.nukeSession(sim.Id, deadline)
 	}
 
-	prov.sessions[sim.Id] = stat
+	prov.sessions[sim.Id] = sess
 	prov.persistSessions()
 
 	return
 }
 
-func (prov *provider) SetSession(_ context.Context, stat *pb.SessionStatus) (*pb.SessionStatus, error) {
+func (prov *provider) SetSession(_ context.Context, sess *pb.Session) (*pb.Session, error) {
 
-	log.Printf("SetSession: %v", stat)
+	log.Printf("SetSession: %v", sess)
 
 	prov.mu.Lock()
-	prov.sessions[stat.SimulationId] = stat
+	prov.sessions[sess.SimulationId] = sess
 	prov.persistSessions()
 	prov.mu.Unlock()
 
-	return stat, nil
+	return sess, nil
 }
 
 func (prov *provider) Info(_ context.Context, _ *pb.Empty) (info *pb.ProviderInfo, err error) {

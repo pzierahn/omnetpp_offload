@@ -63,8 +63,8 @@ service Provider {
 
   rpc Allocate (stream AllocateRequest) returns (stream AllocatedSlots) {}
 
-  rpc GetSession  (Simulation)    returns (SessionStatus)  {}
-  rpc SetSession  (SessionStatus) returns (SessionStatus)  {}
+  rpc GetSession  (Simulation)    returns (Session)  {}
+  rpc SetSession  (Session)       returns (Session)  {}
   rpc Checkout    (Bundle)        returns (Empty)          {}
   rpc Compile     (Simulation)    returns (Binary)         {}
   rpc ListRunNums (Simulation)    returns (SimulationRuns) {}
@@ -87,8 +87,7 @@ message Simulation {
   string runNum = 4;
 }
 
-// TODO: rename to Session
-message SessionStatus {
+message Session {
   string simulationId = 1;
   google.protobuf.Timestamp ttl = 2;
   StorageRef source = 3;
