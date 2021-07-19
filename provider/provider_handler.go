@@ -41,11 +41,11 @@ func (prov *provider) Info(_ context.Context, _ *pb.Empty) (info *pb.ProviderInf
 	return
 }
 
-func (prov *provider) Status(_ context.Context, _ *pb.Empty) (util *pb.Utilization, err error) {
+func (prov *provider) Status(ctx context.Context, _ *pb.Empty) (util *pb.Utilization, err error) {
 
 	log.Printf("Status:")
 
-	util, err = sysinfo.GetUtilization()
+	util, err = sysinfo.GetUtilization(ctx)
 	return
 }
 

@@ -1,16 +1,17 @@
 package sysinfo
 
 import (
+	"context"
 	"os/exec"
 	"runtime"
 	"strconv"
 	"strings"
 )
 
-func getCPUUsageWindows() (usage float64) {
+func getCPUUsageWindows(ctx context.Context) (usage float64) {
 
 	// wmic cpu get loadpercentage
-	cmd := exec.Command("wmic", "cpu", "get", "loadpercentage")
+	cmd := exec.CommandContext(ctx, "wmic", "cpu", "get", "loadpercentage")
 	out, err := cmd.CombinedOutput()
 	if err != nil {
 		panic(err)
@@ -33,9 +34,9 @@ func getCPUUsageWindows() (usage float64) {
 	return
 }
 
-func getCPUUsageUnix() (usage float64) {
+func getCPUUsageUnix(ctx context.Context) (usage float64) {
 
-	cmd := exec.Command("ps", "-A", "-o", "%cpu")
+	cmd := exec.CommandContext(ctx, "ps", "-A", "-o", "%cpu")
 	out, err := cmd.CombinedOutput()
 	if err != nil {
 		panic(err)
@@ -58,11 +59,11 @@ func getCPUUsageUnix() (usage float64) {
 	return
 }
 
-func GetCPUUsage() (usage float64) {
+func GetCPUUsage(ctx context.Context) (usage float64) {
 	if runtime.GOOS == "windows" {
-		usage = getCPUUsageWindows()
+		usage = getCPUUsageWindows(ctx)
 	} else {
-		usage = getCPUUsageUnix()
+		usage = getCPUUsageUnix(ctx)
 	}
 
 	return
