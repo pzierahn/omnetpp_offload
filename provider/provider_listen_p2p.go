@@ -13,7 +13,8 @@ func (prov *provider) listenP2P() {
 	for {
 		log.Println("listenP2P: waiting for connect")
 
-		p2p, err := stargate.DialQUICgRPCListener(context.Background(), prov.providerId)
+		ctx := context.Background()
+		p2p, err := stargate.DialQUICgRPCListener(ctx, prov.providerId)
 		if err != nil {
 			log.Println(err)
 			continue
@@ -23,6 +24,7 @@ func (prov *provider) listenP2P() {
 
 		go func(p2p net.Listener) {
 
+			// TODO: Find a way to close the p2p connection properly
 			defer func() { _ = p2p.Close() }()
 
 			server := grpc.NewServer()
