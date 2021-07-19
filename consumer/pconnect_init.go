@@ -5,55 +5,29 @@ import (
 	"log"
 )
 
-func (pConn *providerConnection) allocationHandler(stream pb.Provider_AllocateClient, cons *consumer) {
-	log.Printf("[%s] start allocator", pConn.name())
+func (pConn *providerConnection) collectTasks(cons *consumer) (tasks []*pb.SimulationRun, err error) {
 
-	for {
-		alloc, err := stream.Recv()
+	for _, conf := range cons.config.SimulateConfigs {
+
+		var runs *pb.SimulationRuns
+		runs, err = pConn.provider.ListRunNums(pConn.ctx, &pb.Simulation{
+			Id:        cons.simulation.Id,
+			OppConfig: cons.simulation.OppConfig,
+			Config:    conf,
+		})
 		if err != nil {
-			break
+			return
 		}
 
-		log.Printf("[%s] allocated %d slots",
-			pConn.name(), alloc.Slots)
-
-		for inx := uint32(0); inx < alloc.Slots; inx++ {
-
-			task, ok := cons.allocate.pop()
-			if !ok {
-				//
-				// No tasks left
-				//
-
-				return
-			}
-
-			go func() {
-				// TODO: Find a better way to handle this
-
-				err := pConn.run(task)
-				if err != nil {
-					log.Printf("[%s] error %v", pConn.name(), err)
-					log.Printf("[%s] reschedule %s_%s", pConn.name(), task.Config, task.RunNum)
-
-					// Add item back to queue to send right allocation num
-					cons.allocate.add(task)
-				} else {
-					cons.finished.Done()
-				}
-			}()
+		for _, run := range runs.Runs {
+			tasks = append(tasks, &pb.SimulationRun{
+				SimulationId: cons.simulation.Id,
+				OppConfig:    cons.simulation.OppConfig,
+				Config:       runs.Config,
+				RunNum:       run,
+			})
 		}
 	}
-}
-
-func (pConn *providerConnection) sendAllocationRequest(stream pb.Provider_AllocateClient, cons *consumer) (err error) {
-	request := cons.allocate.len()
-	log.Printf("[%s] request %d slots", pConn.name(), request)
-
-	err = stream.Send(&pb.AllocateRequest{
-		SimulationId: cons.simulation.Id,
-		Request:      uint32(request),
-	})
 
 	return
 }
@@ -69,7 +43,7 @@ func (pConn *providerConnection) init(cons *consumer) (err error) {
 		return
 	}
 
-	log.Printf("######### deadline=%v", session.Ttl.AsTime())
+	log.Printf("init: set execution deadline %s", session.Ttl.AsTime())
 
 	source := &checkoutObject{
 		SimulationId: simulation.Id,

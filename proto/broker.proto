@@ -87,6 +87,7 @@ message Simulation {
   string runNum = 4;
 }
 
+// TODO: rename to Session
 message SessionStatus {
   string simulationId = 1;
   google.protobuf.Timestamp ttl = 2;
@@ -100,6 +101,8 @@ message SimulationRun {
   string simulationId = 1;
   string config = 2;
   string runNum = 3;
+
+  // TODO: move oppConfig to Session (SessionStatus)
   OppConfig oppConfig = 4;
 }
 

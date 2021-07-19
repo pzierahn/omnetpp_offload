@@ -17,13 +17,13 @@ func (cons *consumer) startConnector(onInit chan int32) {
 	}
 
 	var once sync.Once
-	var wg sync.WaitGroup
 	var mux sync.RWMutex
-	connections := make(map[string]*providerConnection)
+	connections := make(map[string]bool)
 
 	for {
 		providers, err := stream.Recv()
 		if err != nil {
+			// TODO: Restart connector
 			log.Fatalf("exit providers updated event listener: %v", err)
 		}
 
@@ -31,9 +31,9 @@ func (cons *consumer) startConnector(onInit chan int32) {
 
 		for _, prov := range providers.Items {
 
-			cons.connMu.RLock()
+			mux.RLock()
 			_, ok := connections[prov.ProviderId]
-			cons.connMu.RUnlock()
+			mux.RUnlock()
 
 			if ok {
 
@@ -44,9 +44,15 @@ func (cons *consumer) startConnector(onInit chan int32) {
 				continue
 			}
 
-			wg.Add(1)
+			//
+			// TODO: Try to reconnect to the provider after fail
+			//
+
+			mux.Lock()
+			connections[prov.ProviderId] = true
+			mux.Unlock()
+
 			go func(prov *pb.ProviderInfo) {
-				defer wg.Done()
 
 				var pconn *providerConnection
 				pconn, err = cons.connect(prov)
@@ -61,48 +67,21 @@ func (cons *consumer) startConnector(onInit chan int32) {
 					return
 				}
 
-				mux.Lock()
-				connections[prov.ProviderId] = pconn
-				mux.Unlock()
+				once.Do(func() {
+					log.Printf("[%s] list simulation run numbers", pconn.name())
 
-				logProviderInfo(prov.ProviderId, prov)
-			}(prov)
-		}
-
-		wg.Wait()
-
-		for _, conn := range connections {
-			once.Do(func() {
-				log.Printf("[%s] list simulation run numbers", conn.name())
-
-				allocate := make([]*pb.SimulationRun, 0)
-
-				for _, conf := range cons.config.SimulateConfigs {
-					runs, err := conn.provider.ListRunNums(context.Background(), &pb.Simulation{
-						Id:        cons.simulation.Id,
-						OppConfig: cons.simulation.OppConfig,
-						Config:    conf,
-					})
+					tasks, err := pconn.collectTasks(cons)
 					if err != nil {
 						log.Fatalln(err)
 					}
 
-					for _, run := range runs.Runs {
-						allocate = append(allocate, &pb.SimulationRun{
-							SimulationId: cons.simulation.Id,
-							OppConfig:    cons.simulation.OppConfig,
-							Config:       runs.Config,
-							RunNum:       run,
-						})
-					}
-				}
+					log.Printf("[%s] created %d jobs", pconn.name(), len(tasks))
+					cons.allocate.add(tasks...)
+					onInit <- cons.allocate.len()
+				})
 
-				log.Printf("[%s] created %d jobs", conn.name(), len(allocate))
-				cons.allocate.add(allocate...)
-				onInit <- cons.allocate.len()
-			})
-
-			break
+				logProviderInfo(prov.ProviderId, prov)
+			}(prov)
 		}
 	}
 }

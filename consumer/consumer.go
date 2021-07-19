@@ -24,10 +24,7 @@ type consumer struct {
 	bconn      *grpc.ClientConn
 
 	finished sync.WaitGroup
-	//allocCond *sync.Cond
-	//allocate  []*pb.SimulationRun
 	allocate *queue
-	//allocator chan *pb.SimulationRun
 
 	// TODO: Persist bytes to HD
 	simulationSource []byte
