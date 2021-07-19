@@ -2,6 +2,7 @@ package stargate
 
 import (
 	"context"
+	"encoding/json"
 	"github.com/pzierahn/project.go.omnetpp/gconfig"
 	"net"
 	"sync"
@@ -16,8 +17,9 @@ const (
 )
 
 type waiter struct {
-	addr    *net.UDPAddr
-	timeout *time.Timer
+	addr     *net.UDPAddr
+	timeout  *time.Timer
+	dialAddr DialAddr
 }
 
 type stargateServer struct {
@@ -25,6 +27,31 @@ type stargateServer struct {
 	mu      sync.RWMutex
 	waiting map[udpAddr]*waiter
 	peers   map[DialAddr]*net.UDPAddr
+}
+
+var server *stargateServer
+
+func DebugValues() (bytes []byte, err error) {
+
+	server.mu.RLock()
+	defer server.mu.RUnlock()
+
+	waiting := make(map[udpAddr]string)
+	for addr, wait := range server.waiting {
+		waiting[addr] = wait.dialAddr
+	}
+
+	data := struct {
+		LocalAddr net.Addr
+		Waiting   map[udpAddr]string
+		Peers     map[DialAddr]*net.UDPAddr
+	}{
+		LocalAddr: server.conn.LocalAddr(),
+		Waiting:   waiting,
+		Peers:     server.peers,
+	}
+
+	return json.MarshalIndent(data, "", "  ")
 }
 
 func (server *stargateServer) heartbeatDispatcher(ctx context.Context) {
@@ -101,7 +128,11 @@ func (server *stargateServer) receiveDial() (err error) {
 
 		defer func() {
 			delete(server.peers, dial)
-			delete(server.waiting, peerAddr.String())
+
+			if wait, ok := server.waiting[peerAddr.String()]; ok {
+				wait.timeout.Stop()
+				delete(server.waiting, peerAddr.String())
+			}
 		}()
 
 		_, err = server.conn.WriteToUDP([]byte(addr.String()), peerAddr)
@@ -122,8 +153,9 @@ func (server *stargateServer) receiveDial() (err error) {
 
 		server.peers[dial] = addr
 		server.waiting[addr.String()] = &waiter{
-			addr:    addr,
-			timeout: timeout,
+			addr:     addr,
+			timeout:  timeout,
+			dialAddr: dial,
 		}
 
 		go func() {
@@ -147,7 +179,7 @@ func Server(ctx context.Context) (err error) {
 
 	log.Printf("start stargate server on %v", conn.LocalAddr())
 
-	server := stargateServer{
+	server = &stargateServer{
 		conn:    conn,
 		waiting: make(map[string]*waiter),
 		peers:   make(map[string]*net.UDPAddr),

@@ -9,8 +9,9 @@ import (
 )
 
 type dialer struct {
-	conn *net.UDPConn
-	peer *net.UDPAddr
+	timeout time.Duration
+	conn    *net.UDPConn
+	peer    *net.UDPAddr
 }
 
 // Send hello messages to open the NAT

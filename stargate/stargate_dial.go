@@ -41,10 +41,29 @@ func DialUDP(ctx context.Context, dialAddr DialAddr) (conn *net.UDPConn, peer *n
 		return
 	}
 
+	//
+	// TODO: Start a go-routine after the peer was resolved to prevent connection jamming
+	//
+
+	log.Printf("DialUDP: dialAddr=%v peer=%v", dialAddr, peer)
+
 	var wg sync.WaitGroup
 	var once sync.Once
 
-	log.Printf("DialUDP: dialAddr=%v peer=%v", dialAddr, peer)
+	cctx, cnl := context.WithTimeout(ctx, time.Second*5)
+	defer cnl()
+
+	if deadline, ok := cctx.Deadline(); ok {
+		err = conn.SetReadDeadline(deadline)
+		if err != nil {
+			return
+		}
+
+		defer func() {
+			// Reset deadline
+			_ = conn.SetDeadline(time.Time{})
+		}()
+	}
 
 	helper := dialer{
 		conn: conn,
@@ -55,7 +74,7 @@ func DialUDP(ctx context.Context, dialAddr DialAddr) (conn *net.UDPConn, peer *n
 	go func() {
 		defer wg.Done()
 
-		sendErr := helper.sendHellos(ctx)
+		sendErr := helper.sendHellos(cctx)
 		if sendErr != nil {
 			once.Do(func() {
 				err = sendErr
