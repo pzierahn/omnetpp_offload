@@ -9,7 +9,6 @@ import (
 	"github.com/pzierahn/project.go.omnetpp/sysinfo"
 	"google.golang.org/grpc"
 	"log"
-	"runtime"
 	"sync"
 	"time"
 )
@@ -34,11 +33,10 @@ func Start() {
 
 	mu := &sync.RWMutex{}
 	prov := &provider{
-		providerId: simple.NamedId(gconfig.Config.Worker.Name, 8),
-		store:      store,
-		// TODO: replace this with gconfig values!
-		slots:       uint32(runtime.NumCPU()),
-		freeSlots:   int32(runtime.NumCPU()),
+		providerId:  simple.NamedId(gconfig.Config.Worker.Name, 8),
+		store:       store,
+		slots:       uint32(gconfig.DevoteCPUs()),
+		freeSlots:   int32(gconfig.DevoteCPUs()),
 		mu:          mu,
 		cond:        sync.NewCond(mu),
 		requests:    make(map[simulationId]uint32),

@@ -58,7 +58,7 @@ func (prov *provider) allocator() {
 			// TODO: remove 1
 			slots := simple.MathMinUint32(assignable, req, 1)
 
-			log.Printf("allocator: assign cId=%s slots=%d freeSlots=%d", cId, slots, freeSlots)
+			log.Printf("allocator: assign cId=%s slots=%d", cId, slots)
 
 			prov.assignments[cId] += slots
 			prov.allocate[cId] <- slots

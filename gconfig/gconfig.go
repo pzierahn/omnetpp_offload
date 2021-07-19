@@ -30,6 +30,10 @@ func StargateAddr() (addr string) {
 	return
 }
 
+func DevoteCPUs() (cpus int) {
+	return Config.Worker.DevoteCPUs
+}
+
 func StargatePort() (port int) {
 	return Config.Broker.StargatePort
 }
