@@ -95,15 +95,6 @@ func (prov *provider) Checkout(_ context.Context, bundle *pb.Bundle) (empty *pb.
 
 func (prov *provider) Compile(ctx context.Context, simulation *pb.Simulation) (bin *pb.Binary, err error) {
 	log.Printf("Compile: %v", simulation.Id)
-
-	sess, err := prov.GetSession(ctx, simulation)
-	if err != nil {
-		return
-	}
-
-	ctx, cnl := context.WithDeadline(ctx, sess.Ttl.AsTime())
-	defer cnl()
-
 	return prov.compile(ctx, simulation)
 }
 
@@ -117,14 +108,6 @@ func (prov *provider) ListRunNums(ctx context.Context, simulation *pb.Simulation
 	}
 
 	_, opp := newOpp(simulation)
-
-	sess, err := prov.GetSession(ctx, simulation)
-	if err != nil {
-		return
-	}
-
-	ctx, cnl := context.WithDeadline(ctx, sess.Ttl.AsTime())
-	defer cnl()
 
 	runNums, err := opp.GetRunNumbers(ctx, simulation.Config)
 	if err != nil {
@@ -178,16 +161,6 @@ func (prov *provider) Run(ctx context.Context, run *pb.SimulationRun) (ref *pb.S
 		cond.Broadcast()
 		cond.L.Unlock()
 	}()
-
-	sess, err := prov.GetSession(ctx, &pb.Simulation{
-		Id: run.SimulationId,
-	})
-	if err != nil {
-		return
-	}
-
-	ctx, cnl := context.WithDeadline(ctx, sess.Ttl.AsTime())
-	defer cnl()
 
 	return prov.run(ctx, run)
 }

@@ -26,7 +26,7 @@ docker run --rm pzierahn/omnetpp_edge opp_edge_worker -broker 31.18.129.212 -nam
 ## Run example simulations
 
 ```
-go run cmd/consumer/opp_edge_run.go -path ../TaskletSimulator -config ../TaskletSimulator/opp-edge-config.json
+go run cmd/consumer/opp_edge_run.go -path ~/github/TaskletSimulator -config ~/github/TaskletSimulator/opp-edge-config.json
 go run cmd/consumer/opp_edge_run.go -path ~/Desktop/tictoc -config ~/Desktop/tictoc/opp-edge-config.json
 ```
 
