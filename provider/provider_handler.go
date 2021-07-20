@@ -157,7 +157,11 @@ func (prov *provider) Run(ctx context.Context, run *pb.SimulationRun) (ref *pb.S
 		cond := prov.cond
 		cond.L.Lock()
 		atomic.AddInt32(&prov.freeSlots, 1)
-		prov.assignments[run.SimulationId]--
+
+		if val, ok := prov.assignments[run.SimulationId]; ok && val > 0 {
+			prov.assignments[run.SimulationId]--
+		}
+
 		cond.Broadcast()
 		cond.L.Unlock()
 	}()
@@ -210,15 +214,15 @@ func (prov *provider) Allocate(stream pb.Provider_AllocateServer) (err error) {
 			sId = req.SimulationId
 			log.Printf("Allocate: register SimulationId=%v", sId)
 
-			cond.L.Lock()
+			prov.mu.Lock()
 			prov.allocate[sId] = allocate
-			cond.L.Unlock()
+			prov.mu.Unlock()
 		}
 
 		if sId == "" {
 			err = fmt.Errorf("error: missing SimulationId")
 			log.Println(err)
-			return
+			break
 		}
 
 		log.Printf("Allocate: SimulationId=%s request=%d", sId, req.Request)
