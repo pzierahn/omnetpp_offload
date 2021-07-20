@@ -45,7 +45,7 @@ func (prov *provider) GetSession(ctx context.Context, sim *pb.Simulation) (sess 
 
 func (prov *provider) SetSession(_ context.Context, sess *pb.Session) (*pb.Session, error) {
 
-	log.Printf("SetSession: %v", sess)
+	log.Printf("SetSession: %v", sess.SimulationId)
 
 	prov.mu.Lock()
 	prov.sessions[sess.SimulationId] = sess

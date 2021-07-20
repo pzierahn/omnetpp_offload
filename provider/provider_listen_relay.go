@@ -23,12 +23,13 @@ func (prov *provider) listenRelay(bconn *grpc.ClientConn) {
 
 		log.Printf("Connect over relay server (port: %v)", port.Port)
 
-		// TODO: Replace gconfig.Config.Broker.Address
 		// TODO: Replace this with stargate.Dial...
-		raddr := &net.TCPAddr{
-			IP:   net.ParseIP(gconfig.Config.Broker.Address),
-			Port: int(port.Port),
+		raddr, err := net.ResolveTCPAddr("tcp", gconfig.BrokerDialAddr())
+		if err != nil {
+			log.Fatalln(err)
 		}
+
+		raddr.Port = int(port.Port)
 
 		conn, err := net.DialTCP("tcp", &net.TCPAddr{}, raddr)
 		if err != nil {

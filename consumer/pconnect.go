@@ -70,11 +70,12 @@ func (cons *consumer) connectRelay(prov *pb.ProviderInfo) (cc *grpc.ClientConn, 
 
 	log.Printf("Connect over relay server (port: %v)", port.Port)
 
-	// TODO: replace gconfig.Config.Broker.Address
-	raddr := &net.TCPAddr{
-		IP:   net.ParseIP(gconfig.Config.Broker.Address),
-		Port: int(port.Port),
+	raddr, err := net.ResolveTCPAddr("tcp", gconfig.BrokerDialAddr())
+	if err != nil {
+		return
 	}
+
+	raddr.Port = int(port.Port)
 
 	return grpc.Dial(
 		raddr.String(),
