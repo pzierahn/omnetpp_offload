@@ -38,15 +38,13 @@ func (pConn *providerConnection) init(cons *consumer) (err error) {
 
 	pConn.ctx = cons.ctx
 
-	//
-	// TODO: Set sessions attributes
-	//
 	session, err := pConn.provider.GetSession(cons.ctx, simulation)
 	if err != nil {
 		return
 	}
 
-	log.Printf("init: set execution deadline %s", session.Ttl.AsTime())
+	log.Printf("init: deadline=%s source=%v exec=%v",
+		session.Ttl.AsTime(), session.CheckoutSource, session.CheckoutExecutable)
 
 	source := &checkoutObject{
 		SimulationId: simulation.Id,
@@ -54,12 +52,22 @@ func (pConn *providerConnection) init(cons *consumer) (err error) {
 		Data:         cons.simulationSource,
 	}
 
-	if err = pConn.checkout(source); err != nil {
-		return
+	if !session.CheckoutSource {
+		if err = pConn.checkout(source); err != nil {
+			return
+		}
+
+		session.CheckoutSource = true
+		session, _ = pConn.provider.SetSession(cons.ctx, session)
 	}
 
-	if err = pConn.setupExecutable(simulation); err != nil {
-		return
+	if !session.CheckoutExecutable {
+		if err = pConn.setupExecutable(simulation); err != nil {
+			return
+		}
+
+		session.CheckoutExecutable = true
+		session, _ = pConn.provider.SetSession(cons.ctx, session)
 	}
 
 	stream, err := pConn.provider.Allocate(cons.ctx)
