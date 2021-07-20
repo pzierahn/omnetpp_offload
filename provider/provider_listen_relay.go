@@ -11,6 +11,11 @@ import (
 )
 
 func (prov *provider) listenRelay(bconn *grpc.ClientConn) {
+
+	//
+	// TODO: remove log.Fatalln()
+	//
+
 	relay := pb.NewStargateClient(bconn)
 
 	for {
