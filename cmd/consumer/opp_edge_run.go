@@ -19,9 +19,9 @@ var deadline time.Duration
 func init() {
 	log.SetFlags(log.LstdFlags | log.Lshortfile)
 
-	flag.StringVar(&path, "path", ".", "simulation path")
-	flag.StringVar(&configPath, "config", "opp-edge-config.json", "simulation config JSON")
-	flag.DurationVar(&deadline, "timeout", time.Hour*3, "timeout for execution")
+	flag.StringVar(&path, "path", ".", "set simulation path")
+	flag.StringVar(&configPath, "config", "opp-edge-config.json", "set simulation config json")
+	flag.DurationVar(&deadline, "timeout", time.Hour*3, "set timeout for execution")
 }
 
 func main() {
