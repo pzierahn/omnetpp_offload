@@ -19,6 +19,11 @@ func Start(config *Config) {
 		config.Tag = filepath.Base(config.Path)
 	}
 
+	id := simple.NamedId(config.Tag, 8)
+	log.Println("#################################################")
+	log.Printf("Start: simulation %s", id)
+	log.Println("#################################################")
+
 	log.Printf("Start: connecting to broker (%v)", gconfig.BrokerDialAddr())
 
 	conn, err := grpc.Dial(
@@ -49,7 +54,7 @@ func Start(config *Config) {
 		config: config,
 		bconn:  conn,
 		simulation: &pb.Simulation{
-			Id:        simple.NamedId(config.Tag, 8),
+			Id:        id,
 			OppConfig: config.OppConfig,
 		},
 		allocate: newQueue(),

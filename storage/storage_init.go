@@ -19,9 +19,6 @@ func init() {
 }
 
 func Clean() {
-	log.Printf("cleaning storage %s\n", storagePath)
-	err := os.RemoveAll(storagePath)
-	if err != nil {
-		log.Fatalln(err)
-	}
+	log.Printf("Clean: %v\n", storagePath)
+	_ = os.RemoveAll(storagePath)
 }

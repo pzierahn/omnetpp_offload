@@ -4,6 +4,7 @@ import (
 	"flag"
 	"github.com/pzierahn/project.go.omnetpp/gconfig"
 	"github.com/pzierahn/project.go.omnetpp/provider"
+	"github.com/pzierahn/project.go.omnetpp/storage"
 )
 
 var clean bool
@@ -18,17 +19,9 @@ func main() {
 
 	if clean {
 		provider.Clean()
+		storage.Clean()
 		return
 	}
-
-	//ch := make(chan os.Signal)
-	//signal.Notify(ch, os.Interrupt)
-	//
-	//go func() {
-	//	<-ch
-	//	provider.Clean()
-	//	os.Exit(0)
-	//}()
 
 	provider.Start()
 }

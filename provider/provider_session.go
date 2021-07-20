@@ -50,10 +50,7 @@ func (prov *provider) persistSessions() {
 
 	log.Printf("persistSessions: sessions=%d", len(prov.sessions))
 
-	dir := defines.CacheDir()
-	filename := filepath.Join(dir, "sessions.json")
-
-	simple.WritePretty(filename, prov.sessions)
+	simple.WritePretty(sessionsPath, prov.sessions)
 }
 
 func (prov *provider) nukeSession(id simulationId, deadline time.Time) {
