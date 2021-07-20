@@ -57,7 +57,7 @@ func (cons *consumer) connectRelay(prov *pb.ProviderInfo) (cc *grpc.ClientConn, 
 
 	log.Printf("connectRelay: %v", prov.ProviderId)
 
-	ctx, cln := context.WithTimeout(context.Background(), time.Second*2)
+	ctx, cln := context.WithTimeout(cons.ctx, time.Second*2)
 	defer cln()
 
 	gate := pb.NewStargateClient(cons.bconn)
@@ -68,14 +68,15 @@ func (cons *consumer) connectRelay(prov *pb.ProviderInfo) (cc *grpc.ClientConn, 
 		return
 	}
 
-	log.Printf("Connect over relay server (port: %v)", port.Port)
+	log.Printf("connectRelay: port=%v", port.Port)
 
 	raddr, err := net.ResolveTCPAddr("tcp", gconfig.BrokerDialAddr())
 	if err != nil {
 		return
 	}
-
 	raddr.Port = int(port.Port)
+
+	log.Printf("connectRelay: relay=%v", raddr.String())
 
 	return grpc.Dial(
 		raddr.String(),

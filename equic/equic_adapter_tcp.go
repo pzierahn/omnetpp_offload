@@ -1,7 +1,6 @@
 package equic
 
 import (
-	"log"
 	"net"
 )
 
@@ -25,8 +24,6 @@ func ListenTCP(conn *net.TCPConn) (lis net.Listener) {
 // Accept waits for and returns the next connection to the listener.
 func (l *ListenerTCP) Accept() (conn net.Conn, err error) {
 	<-l.lock
-
-	log.Printf("############# Accept")
 	return l.conn, nil
 }
 

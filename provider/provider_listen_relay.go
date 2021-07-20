@@ -23,10 +23,11 @@ func (prov *provider) listenRelay(bconn *grpc.ClientConn) {
 			DialAddr: prov.providerId,
 		})
 		if err != nil {
-			log.Fatalln(err)
+			log.Println(err)
+			continue
 		}
 
-		log.Printf("Connect over relay server (port: %v)", port.Port)
+		log.Printf("listenRelay: port=%v", port.Port)
 
 		// TODO: Replace this with stargate.Dial...
 		raddr, err := net.ResolveTCPAddr("tcp", gconfig.BrokerDialAddr())
@@ -36,6 +37,8 @@ func (prov *provider) listenRelay(bconn *grpc.ClientConn) {
 
 		raddr.Port = int(port.Port)
 
+		log.Printf("listenRelay: relay=%v", raddr.String())
+
 		conn, err := net.DialTCP("tcp", &net.TCPAddr{}, raddr)
 		if err != nil {
 			log.Println(err)
@@ -43,7 +46,7 @@ func (prov *provider) listenRelay(bconn *grpc.ClientConn) {
 		}
 
 		go func() {
-			log.Printf("########## start listening LocalAddr=%v RemoteAddr=%v",
+			log.Printf("listenRelay: listening LocalAddr=%v RemoteAddr=%v",
 				conn.LocalAddr(), conn.RemoteAddr())
 
 			server := grpc.NewServer()
