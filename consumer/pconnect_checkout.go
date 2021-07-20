@@ -65,5 +65,9 @@ func (pConn *providerConnection) checkout(meta *checkoutObject) (err error) {
 	log.Printf("[%s] checkout: %s done (%v)",
 		pConn.name(), meta.Filename, time.Now().Sub(startCheckout))
 
+	//
+	// TODO: Delete checked-out refs
+	//
+
 	return
 }
