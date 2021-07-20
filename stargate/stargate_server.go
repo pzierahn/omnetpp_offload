@@ -33,6 +33,10 @@ var server *stargateServer
 
 func DebugValues() (bytes []byte, err error) {
 
+	//
+	// TODO: Add debug values from tcp relay!
+	//
+
 	server.mu.RLock()
 	defer server.mu.RUnlock()
 
