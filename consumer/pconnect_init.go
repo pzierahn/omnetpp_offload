@@ -38,6 +38,9 @@ func (pConn *providerConnection) init(cons *consumer) (err error) {
 
 	pConn.ctx = cons.ctx
 
+	//
+	// TODO: Set sessions attributes
+	//
 	session, err := pConn.provider.GetSession(cons.ctx, simulation)
 	if err != nil {
 		return
