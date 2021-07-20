@@ -6,10 +6,6 @@ import (
 
 func RelayServerTCP() (port1, port2 int, err error) {
 
-	//
-	// TODO: remove log.Fatalln from this file
-	//
-
 	listener1, err := net.Listen("tcp", ":0")
 	if err != nil {
 		return
@@ -31,6 +27,7 @@ func RelayServerTCP() (port1, port2 int, err error) {
 		conn, err := listener1.Accept()
 		if err != nil {
 			log.Println(err)
+			incoming <- nil
 			return
 		}
 
@@ -42,6 +39,7 @@ func RelayServerTCP() (port1, port2 int, err error) {
 		conn, err := listener2.Accept()
 		if err != nil {
 			log.Println(err)
+			incoming <- nil
 			return
 		}
 
@@ -50,11 +48,11 @@ func RelayServerTCP() (port1, port2 int, err error) {
 	}()
 
 	go func() {
-		conn1, ok1 := <-incoming
-		conn2, ok2 := <-incoming
+		conn1 := <-incoming
+		conn2 := <-incoming
 		close(incoming)
 
-		if !ok1 || !ok2 {
+		if conn1 == nil || conn2 == nil {
 			return
 		}
 
@@ -64,14 +62,18 @@ func RelayServerTCP() (port1, port2 int, err error) {
 				buf := make([]byte, 65535)
 				br, err := conn1.Read(buf)
 				if err != nil {
-					log.Fatalln(err)
+					log.Println(err)
+					break
 				}
 
 				_, err = conn2.Write(buf[:br])
 				if err != nil {
-					log.Fatalln(err)
+					log.Println(err)
+					break
 				}
 			}
+
+			_ = conn1.Close()
 		}()
 
 		go func() {
@@ -80,14 +82,18 @@ func RelayServerTCP() (port1, port2 int, err error) {
 				buf := make([]byte, 65535)
 				br, err := conn2.Read(buf)
 				if err != nil {
-					log.Fatalln(err)
+					log.Println(err)
+					break
 				}
 
 				_, err = conn1.Write(buf[:br])
 				if err != nil {
-					log.Fatalln(err)
+					log.Println(err)
+					break
 				}
 			}
+
+			_ = conn2.Close()
 		}()
 	}()
 
