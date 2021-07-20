@@ -2,12 +2,10 @@ package consumer
 
 import (
 	"context"
-	"github.com/pzierahn/project.go.omnetpp/gconfig"
 	pb "github.com/pzierahn/project.go.omnetpp/proto"
 	"github.com/pzierahn/project.go.omnetpp/stargate"
 	"google.golang.org/grpc"
 	"log"
-	"net"
 	"time"
 )
 
@@ -60,26 +58,15 @@ func (cons *consumer) connectRelay(prov *pb.ProviderInfo) (cc *grpc.ClientConn, 
 	ctx, cln := context.WithTimeout(cons.ctx, time.Second*2)
 	defer cln()
 
-	gate := pb.NewStargateClient(cons.bconn)
-	port, err := gate.Relay(ctx, &pb.RelayRequest{
-		DialAddr: prov.ProviderId,
-	})
+	conn, err := stargate.RelayDialTCP(ctx, prov.ProviderId)
 	if err != nil {
 		return
 	}
 
-	log.Printf("connectRelay: port=%v", port.Port)
-
-	raddr, err := net.ResolveTCPAddr("tcp", gconfig.BrokerDialAddr())
-	if err != nil {
-		return
-	}
-	raddr.Port = int(port.Port)
-
-	log.Printf("connectRelay: relay=%v", raddr.String())
+	log.Printf("connectRelay: dial %v", conn.RemoteAddr().String())
 
 	return grpc.Dial(
-		raddr.String(),
+		conn.RemoteAddr().String(),
 		grpc.WithInsecure(),
 		grpc.WithBlock(),
 	)

@@ -42,6 +42,13 @@ func BrokerAddr() (addr string) {
 	return Config.Broker.Address
 }
 
+func StargateDialAddr() (addr string) {
+	// TODO: Change back
+	//addr = fmt.Sprintf("%s:%d", Config.Broker.Address, Config.Broker.StargatePort)
+	addr = fmt.Sprintf("localhost:%d", Config.Broker.StargatePort)
+	return
+}
+
 func BrokerDialAddr() (addr string) {
 	addr = fmt.Sprintf("%s:%d", Config.Broker.Address, Config.Broker.BrokerPort)
 	return

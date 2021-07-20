@@ -99,8 +99,8 @@ func Start() {
 	// Start provider
 	//
 
-	go prov.listenP2P()
-	go prov.listenRelay(brokerConn)
+	//go prov.listenP2P()
+	go prov.listenRelay()
 	prov.allocator()
 
 	return

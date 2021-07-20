@@ -2,8 +2,8 @@ package main
 
 import (
 	"context"
+	"github.com/pzierahn/project.go.omnetpp/stargate"
 	"log"
-	"sync"
 	"time"
 )
 
@@ -11,39 +11,44 @@ func main() {
 
 	log.SetFlags(log.LstdFlags | log.Lshortfile)
 
-	ctx1, cancel := context.WithTimeout(context.Background(), time.Second*3)
-	defer cancel()
-
-	ctx2, cancel1 := context.WithTimeout(ctx1, time.Second*10)
-	defer cancel1()
-
-	var wg sync.WaitGroup
-	wg.Add(1)
-
-	//go func() {
-	//	defer wg.Done()
-	//	<-ctx1.Done()
-	//	log.Printf("ctx1 Done")
-	//}()
 	go func() {
-		defer wg.Done()
-		<-ctx2.Done()
-		log.Printf("ctx2 Done")
+		err := stargate.ServerRelayTCP()
+		if err != nil {
+			log.Fatalln(err)
+		}
 	}()
 
-	wg.Wait()
+	time.Sleep(time.Second)
 
-	//select {
-	//case <-ctx1.Done():
-	//	log.Printf("ctx1 Done")
-	//case <-ctx2.Done():
-	//	log.Printf("ctx2 Done")
-	//}
+	go func() {
+		ctx, cnl := context.WithTimeout(context.Background(), time.Second*2)
+		defer cnl()
 
-	//addr1, addr2, err := stargate.RelayServerTCP()
-	//if err != nil {
-	//	log.Fatalln(err)
-	//}
-	//
-	//log.Printf("addr1=%v addr2=%v", addr1, addr2)
+		conn, err := stargate.RelayDialTCP(ctx, "1234567")
+		if err != nil {
+			log.Fatalln(err)
+		}
+
+		_, err = conn.Write([]byte("Hallo"))
+		if err != nil {
+			log.Fatalln(err)
+		}
+	}()
+
+	//time.Sleep(time.Second * 6)
+
+	conn, err := stargate.RelayDialTCP(context.Background(), "1234567")
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+	buf := make([]byte, 1024)
+	br, err := conn.Read(buf)
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+	log.Printf("Recieved: %v", string(buf[:br]))
+
+	time.Sleep(time.Second * 10)
 }

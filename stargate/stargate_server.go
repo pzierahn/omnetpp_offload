@@ -170,6 +170,10 @@ func (server *stargateServer) receiveDial() (err error) {
 
 func Server(ctx context.Context) (err error) {
 
+	//
+	// TODO: start ServerRelayTCP
+	//
+
 	conn, err := net.ListenUDP("udp", &net.UDPAddr{
 		Port: gconfig.StargatePort(),
 	})

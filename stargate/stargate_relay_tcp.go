@@ -1,126 +1,142 @@
 package stargate
 
 import (
+	"context"
+	"fmt"
+	"github.com/pzierahn/project.go.omnetpp/gconfig"
 	"net"
+	"sync"
+	"time"
 )
 
-func RelayServerTCP() (port1, port2 int, err error) {
+const (
+	relaySuccessful = "ok"
+)
 
-	listener1, err := net.Listen("tcp", ":0")
+var dialMu sync.Mutex
+var relay = make(map[DialAddr]*net.TCPConn)
+
+func ServerRelayTCP() (err error) {
+
+	lis, err := net.ListenTCP("tcp", &net.TCPAddr{
+		Port: gconfig.StargatePort(),
+	})
 	if err != nil {
 		return
 	}
 
-	listener2, err := net.Listen("tcp", ":0")
-	if err != nil {
-		return
+	log.Printf("ServerRelayTCP: started on %v", lis.Addr())
+
+	for {
+		conn, err := lis.AcceptTCP()
+		if err != nil {
+			log.Fatalln(err)
+		}
+
+		go rendezvousTCP(conn)
 	}
-
-	port1 = listener1.Addr().(*net.TCPAddr).Port
-	port2 = listener2.Addr().(*net.TCPAddr).Port
-
-	log.Printf("RelayServerTCP: port1=%v port2=%v", port1, port2)
-
-	incoming := make(chan net.Conn)
-
-	go func() {
-		conn, err := listener1.Accept()
-		if err != nil {
-			log.Println(err)
-			incoming <- nil
-			return
-		}
-
-		log.Printf("RelayServerTCP: LocalAddr=%v RemoteAddr=%v", conn.LocalAddr(), conn.RemoteAddr())
-		incoming <- conn
-	}()
-
-	go func() {
-		conn, err := listener2.Accept()
-		if err != nil {
-			log.Println(err)
-			incoming <- nil
-			return
-		}
-
-		log.Printf("RelayServerTCP: LocalAddr=%v RemoteAddr=%v", conn.LocalAddr(), conn.RemoteAddr())
-		incoming <- conn
-	}()
-
-	go func() {
-		conn1 := <-incoming
-		conn2 := <-incoming
-		close(incoming)
-
-		if conn1 == nil || conn2 == nil {
-			return
-		}
-
-		done := make(chan bool)
-		defer close(done)
-
-		go func() {
-			for {
-				// https://stackoverflow.com/questions/2613734/maximum-packet-size-for-a-tcp-connection
-				buf := make([]byte, 65535)
-				br, err := conn1.Read(buf)
-				if err != nil {
-					log.Println(err)
-					break
-				}
-
-				_, err = conn2.Write(buf[:br])
-				if err != nil {
-					log.Println(err)
-					break
-				}
-			}
-
-			done <- true
-		}()
-
-		go func() {
-			for {
-				// https://stackoverflow.com/questions/2613734/maximum-packet-size-for-a-tcp-connection
-				buf := make([]byte, 65535)
-				br, err := conn2.Read(buf)
-				if err != nil {
-					log.Println(err)
-					break
-				}
-
-				_, err = conn1.Write(buf[:br])
-				if err != nil {
-					log.Println(err)
-					break
-				}
-			}
-
-			done <- true
-		}()
-
-		<-done
-		<-done
-
-		log.Printf("RelayServerTCP: closing conns %v %v", conn1.LocalAddr(), conn2.LocalAddr())
-		_ = conn1.Close()
-		_ = conn2.Close()
-
-		log.Printf("RelayServerTCP: closing listeners %v %v", listener1.Addr(), listener2.Addr())
-		_ = listener1.Close()
-		_ = listener2.Close()
-	}()
-
-	return
 }
 
-func RelayDialTCP(addr net.Addr) (conn *net.TCPConn, err error) {
+func rendezvousTCP(conn *net.TCPConn) {
+	buf := make([]byte, 1024)
+	br, err := conn.Read(buf)
+	if err != nil {
+		log.Println(err)
+		return
+	}
 
-	log.Printf("RelayDialTCP: addr=%v", addr)
+	dialAddr := string(buf[:br])
+
+	log.Printf("rendezvousTCP: dialAddr='%s' LocalAddr=%v RemoteAddr=%v",
+		dialAddr, conn.LocalAddr(), conn.RemoteAddr())
+
+	dialMu.Lock()
+	defer dialMu.Unlock()
+
+	peer, ok := relay[dialAddr]
+
+	if !ok {
+		relay[dialAddr] = conn
+		return
+	}
+
+	_, err = peer.Write([]byte(relaySuccessful))
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+	_, err = conn.Write([]byte(relaySuccessful))
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+	pipeAllTCP(peer, conn)
+}
+
+func pipeTCP(from, to *net.TCPConn) {
+	for {
+		// https://stackoverflow.com/questions/2613734/maximum-packet-size-for-a-tcp-connection
+		buf := make([]byte, 65535)
+		br, err := from.Read(buf)
+		if err != nil {
+			log.Println(err)
+			break
+		}
+
+		_, err = to.Write(buf[:br])
+		if err != nil {
+			log.Println(err)
+			break
+		}
+	}
+}
+
+func pipeAllTCP(conn1, conn2 *net.TCPConn) {
+	go pipeTCP(conn1, conn2)
+	go pipeTCP(conn2, conn1)
+}
+
+func RelayDialTCP(ctx context.Context, dial DialAddr) (conn *net.TCPConn, err error) {
+
+	addr := gconfig.StargateDialAddr()
+	log.Printf("RelayDialTCP: dial=%v addr=%v", dial, addr)
 
 	laddr := &net.TCPAddr{}
-	tcpaddr, err := net.ResolveTCPAddr("tcp", addr.String())
+	tcpaddr, err := net.ResolveTCPAddr("tcp", addr)
+	if err != nil {
+		return
+	}
+
 	conn, err = net.DialTCP("tcp", laddr, tcpaddr)
+	if err != nil {
+		return
+	}
+
+	if deadline, ok := ctx.Deadline(); ok {
+		err = conn.SetDeadline(deadline)
+		if err != nil {
+			return
+		}
+
+		defer func() {
+			_ = conn.SetDeadline(time.Time{})
+		}()
+	}
+
+	_, err = conn.Write([]byte(dial))
+	if err != nil {
+		return
+	}
+
+	buf := make([]byte, 1024)
+	br, err := conn.Read(buf)
+	if err != nil {
+		return
+	}
+
+	if string(buf[:br]) != relaySuccessful {
+		err = fmt.Errorf("connection failed: wrong relaySuccessful message '%v'", string(buf[:br]))
+	}
 
 	return
 }

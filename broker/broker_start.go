@@ -20,6 +20,13 @@ func Start() (err error) {
 		}
 	}()
 
+	go func() {
+		err := stargate.ServerRelayTCP()
+		if err != nil {
+			log.Fatalln(err)
+		}
+	}()
+
 	log.Printf("start broker on :%d", gconfig.BrokerPort())
 
 	brk := broker{
@@ -40,9 +47,6 @@ func Start() (err error) {
 	server := grpc.NewServer()
 	pb.RegisterBrokerServer(server, &brk)
 	pb.RegisterStorageServer(server, &storage.Server{})
-	pb.RegisterStargateServer(server, &relayService{
-		match: make(map[string]chan *pb.Port),
-	})
 	err = server.Serve(lis)
 
 	return
