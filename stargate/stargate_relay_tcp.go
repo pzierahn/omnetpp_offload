@@ -74,6 +74,7 @@ func RelayServerTCP() (port1, port2 int, err error) {
 			}
 
 			_ = conn1.Close()
+			_ = listener1.Close()
 		}()
 
 		go func() {
@@ -94,6 +95,7 @@ func RelayServerTCP() (port1, port2 int, err error) {
 			}
 
 			_ = conn2.Close()
+			_ = listener2.Close()
 		}()
 	}()
 
