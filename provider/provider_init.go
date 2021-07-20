@@ -17,7 +17,7 @@ func init() {
 	_ = os.MkdirAll(cachePath, 0755)
 }
 
-//func Clean() {
-//	log.Printf("cleaning worker cache %s\n", cachePath)
-//	_ = os.RemoveAll(cachePath)
-//}
+func Clean() {
+	log.Printf("Clean: %s\n", cachePath)
+	_ = os.RemoveAll(cachePath)
+}

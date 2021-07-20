@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"github.com/pzierahn/project.go.omnetpp/defines"
 	"io/ioutil"
-	"log"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -44,8 +43,6 @@ func init() {
 	if _, err := os.Stat(configFile); err != nil {
 		return
 	}
-
-	log.Printf("configFile %s", configFile)
 
 	byt, err := ioutil.ReadFile(configFile)
 	if err != nil {
