@@ -26,7 +26,7 @@ func (cons *consumer) connect(prov *pb.ProviderInfo) (conn *providerConnection, 
 
 	cc, err := cons.connectP2P(prov)
 	if err != nil {
-		log.Println(err)
+		log.Println(prov.ProviderId, err)
 
 		cc, err = cons.connectRelay(prov)
 		if err != nil {
