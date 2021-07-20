@@ -14,14 +14,14 @@ import (
 
 var path string
 var configPath string
-var deadline time.Duration
+var timeout time.Duration
 
 func init() {
 	log.SetFlags(log.LstdFlags | log.Lshortfile)
 
 	flag.StringVar(&path, "path", ".", "set simulation path")
 	flag.StringVar(&configPath, "config", "opp-edge-config.json", "set simulation config json")
-	flag.DurationVar(&deadline, "timeout", time.Hour*3, "set timeout for execution")
+	flag.DurationVar(&timeout, "timeout", time.Hour*3, "set timeout for execution")
 }
 
 func main() {
@@ -46,7 +46,7 @@ func main() {
 		log.Panicln(err)
 	}
 
-	ctx, cnl := context.WithTimeout(context.Background(), deadline)
+	ctx, cnl := context.WithTimeout(context.Background(), timeout)
 	defer cnl()
 
 	consumer.Start(ctx, &runConfig)
