@@ -102,8 +102,11 @@ func RelayServerTCP() (port1, port2 int, err error) {
 		<-done
 		<-done
 
+		log.Printf("RelayServerTCP: closing conns %v %v", conn1.LocalAddr(), conn2.LocalAddr())
 		_ = conn1.Close()
 		_ = conn2.Close()
+
+		log.Printf("RelayServerTCP: closing listeners %v %v", listener1.Addr(), listener2.Addr())
 		_ = listener1.Close()
 		_ = listener2.Close()
 	}()
