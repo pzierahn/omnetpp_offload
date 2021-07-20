@@ -4,7 +4,7 @@
 
 ```
 docker pull pzierahn/omnetpp_edge
-docker run --rm pzierahn/omnetpp_edge opp_edge_worker -broker 31.18.129.212 -name `hostname -s`
+docker run --rm pzierahn/omnetpp_edge opp_edge_worker -broker 85.214.35.83 -name `hostname -s`
 ```
 
 ## Build and upload docker images
