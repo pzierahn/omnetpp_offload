@@ -6,6 +6,7 @@ import (
 	"github.com/pzierahn/project.go.omnetpp/stargate"
 	"google.golang.org/grpc"
 	"log"
+	"net"
 	"time"
 )
 
@@ -55,7 +56,7 @@ func (cons *consumer) connectRelay(prov *pb.ProviderInfo) (cc *grpc.ClientConn, 
 
 	log.Printf("connectRelay: %v", prov.ProviderId)
 
-	ctx, cln := context.WithTimeout(cons.ctx, time.Second*2)
+	ctx, cln := context.WithTimeout(cons.ctx, time.Second*5)
 	defer cln()
 
 	conn, err := stargate.RelayDialTCP(ctx, prov.ProviderId)
@@ -65,9 +66,13 @@ func (cons *consumer) connectRelay(prov *pb.ProviderInfo) (cc *grpc.ClientConn, 
 
 	log.Printf("connectRelay: dial %v", conn.RemoteAddr().String())
 
-	return grpc.Dial(
+	return grpc.DialContext(
+		ctx,
 		conn.RemoteAddr().String(),
 		grpc.WithInsecure(),
 		grpc.WithBlock(),
+		grpc.WithContextDialer(func(ctx context.Context, s string) (net.Conn, error) {
+			return conn, nil
+		}),
 	)
 }

@@ -16,6 +16,10 @@ const (
 var dialMu sync.Mutex
 var relay = make(map[DialAddr]*net.TCPConn)
 
+//
+// TODO: Close connections!
+//
+
 func ServerRelayTCP() (err error) {
 
 	lis, err := net.ListenTCP("tcp", &net.TCPAddr{
@@ -60,14 +64,18 @@ func rendezvousTCP(conn *net.TCPConn) {
 		return
 	}
 
+	delete(relay, dialAddr)
+
 	_, err = peer.Write([]byte(relaySuccessful))
 	if err != nil {
-		log.Fatalln(err)
+		log.Println(err)
+		return
 	}
 
 	_, err = conn.Write([]byte(relaySuccessful))
 	if err != nil {
-		log.Fatalln(err)
+		log.Println(err)
+		return
 	}
 
 	pipeAllTCP(peer, conn)
