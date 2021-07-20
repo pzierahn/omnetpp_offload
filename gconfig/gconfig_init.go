@@ -62,12 +62,12 @@ func ParseFlags() {
 	//
 	flag.StringVar(&Config.Broker.Address, "broker", Config.Broker.Address, "set broker address")
 	flag.IntVar(&Config.Broker.BrokerPort, "port", Config.Broker.BrokerPort, "set broker port")
-	flag.IntVar(&Config.Broker.StargatePort, "stargatePort", Config.Broker.StargatePort, "name worker client")
+	flag.IntVar(&Config.Broker.StargatePort, "stargatePort", Config.Broker.StargatePort, "set stargate port")
 
 	//
 	// Worker
 	//
-	flag.StringVar(&Config.Worker.Name, "name", Config.Worker.Name, "name worker client")
+	flag.StringVar(&Config.Worker.Name, "name", Config.Worker.Name, "set worker name")
 	flag.IntVar(&Config.Worker.DevoteCPUs, "devoteCPUs", Config.Worker.DevoteCPUs, "set how manny CPUs should be used")
 
 	flag.Parse()
