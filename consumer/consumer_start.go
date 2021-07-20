@@ -8,10 +8,9 @@ import (
 	"google.golang.org/grpc"
 	"log"
 	"path/filepath"
-	"time"
 )
 
-func Start(config *Config) {
+func Start(ctx context.Context, config *Config) {
 
 	go statisticJsonApi()
 
@@ -38,10 +37,7 @@ func Start(config *Config) {
 		_ = conn.Close()
 	}()
 
-	timeout := time.Minute * 60
-	ctx, cnl := context.WithTimeout(context.Background(), timeout)
-	defer cnl()
-	log.Printf("Start: set execution timeout to %v", timeout)
+	//log.Printf("Start: set execution timeout to %v", timeout)
 
 	go func() {
 		// TODO: Find a more elegant way of doing this

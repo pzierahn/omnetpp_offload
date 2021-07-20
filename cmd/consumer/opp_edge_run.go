@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"encoding/json"
 	"flag"
 	"github.com/pzierahn/project.go.omnetpp/consumer"
@@ -8,16 +9,19 @@ import (
 	"io/ioutil"
 	"log"
 	"path/filepath"
+	"time"
 )
 
 var path string
 var configPath string
+var deadline time.Duration
 
 func init() {
 	log.SetFlags(log.LstdFlags | log.Lshortfile)
 
 	flag.StringVar(&path, "path", ".", "simulation path")
 	flag.StringVar(&configPath, "config", "opp-edge-config.json", "simulation config JSON")
+	flag.DurationVar(&deadline, "timeout", time.Hour*3, "timeout for execution")
 }
 
 func main() {
@@ -42,5 +46,8 @@ func main() {
 		log.Panicln(err)
 	}
 
-	consumer.Start(&runConfig)
+	ctx, cnl := context.WithTimeout(context.Background(), deadline)
+	defer cnl()
+
+	consumer.Start(ctx, &runConfig)
 }
