@@ -2,7 +2,7 @@
 
 ## Install and run a worker
 
-```
+```shell
 docker pull pzierahn/omnetpp_edge
 docker run --rm pzierahn/omnetpp_edge opp_edge_worker -broker 85.214.35.83 -name `hostname -s`
 ```
@@ -25,7 +25,7 @@ docker run --rm pzierahn/omnetpp_edge opp_edge_worker -broker 31.18.129.212 -nam
 
 ## Run example simulations
 
-```
+```shell
 go run cmd/consumer/opp_edge_run.go -path ~/github/TaskletSimulator -config ~/github/TaskletSimulator/opp-edge-config.json
 go run cmd/consumer/opp_edge_run.go -path ~/Desktop/tictoc -config ~/Desktop/tictoc/opp-edge-config.json
 ```

@@ -30,7 +30,7 @@ func main() {
 
 	path, err := filepath.Abs(path)
 	if err != nil {
-		log.Panicln(err)
+		log.Fatalln(err)
 	}
 
 	var runConfig consumer.Config
@@ -38,12 +38,12 @@ func main() {
 
 	byt, err := ioutil.ReadFile(configPath)
 	if err != nil {
-		log.Panicln(err)
+		log.Fatalln(err)
 	}
 
 	err = json.Unmarshal(byt, &runConfig)
 	if err != nil {
-		log.Panicln(err)
+		log.Fatalln(err)
 	}
 
 	ctx, cnl := context.WithTimeout(context.Background(), timeout)
