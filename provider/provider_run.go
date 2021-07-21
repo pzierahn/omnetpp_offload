@@ -38,8 +38,8 @@ func (prov *provider) run(ctx context.Context, run *pb.SimulationRun) (ref *pb.S
 	}
 
 	var results map[string]bool
-	var filesBefore map[string]bool
-	var filesAfter map[string]bool
+	var filesBefore map[string]string
+	var filesAfter map[string]string
 
 	filesBefore, err = simple.ListDir(simulationPath)
 	if err != nil {

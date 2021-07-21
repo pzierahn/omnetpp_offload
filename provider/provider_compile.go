@@ -35,8 +35,8 @@ func (prov *provider) compile(ctx context.Context, simulation *pb.Simulation) (b
 	var ref *pb.StorageRef
 	var buf bytes.Buffer
 	var files map[string]bool
-	var cleanFiles map[string]bool
-	var buildFiles map[string]bool
+	var cleanFiles map[string]string
+	var buildFiles map[string]string
 
 	cleanFiles, err = simple.ListDir(base)
 	if err != nil {
