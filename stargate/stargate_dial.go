@@ -132,10 +132,7 @@ func DialQUICListener(ctx context.Context, dialAddr DialAddr) (p2p quic.Listener
 
 	tlsConf, _ := equic.GenerateTLSConfig()
 
-	return quic.Listen(conn, tlsConf, &quic.Config{
-		KeepAlive:      true,
-		MaxIdleTimeout: time.Millisecond * 2000,
-	})
+	return quic.Listen(conn, tlsConf, equic.Config)
 }
 
 func DialQUICgRPCListener(ctx context.Context, dialAddr DialAddr) (p2p net.Listener, err error) {
