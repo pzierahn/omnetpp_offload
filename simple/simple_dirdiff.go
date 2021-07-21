@@ -1,16 +1,16 @@
 package simple
 
 import (
-	"encoding/hex"
+	"bytes"
 	"golang.org/x/crypto/blake2b"
 	"io"
 	"os"
 	"path/filepath"
 )
 
-func ListDir(root string) (files map[string]string, err error) {
+func ListDir(root string) (files map[string][]byte, err error) {
 
-	files = make(map[string]string)
+	files = make(map[string][]byte)
 
 	err = filepath.WalkDir(root, func(path string, dir os.DirEntry, err error) error {
 		if err != nil {
@@ -21,7 +21,7 @@ func ListDir(root string) (files map[string]string, err error) {
 			return err
 		}
 
-		hasher, err := blake2b.New256(nil)
+		hash, err := blake2b.New256(nil)
 		if err != nil {
 			return err
 		}
@@ -35,12 +35,11 @@ func ListDir(root string) (files map[string]string, err error) {
 			_ = file.Close()
 		}()
 
-		if _, err = io.Copy(hasher, file); err != nil {
+		if _, err = io.Copy(hash, file); err != nil {
 			return err
 		}
 
-		hash := hasher.Sum(nil)
-		files[path] = hex.EncodeToString(hash[:])
+		files[path] = hash.Sum(nil)
 
 		return nil
 	})
@@ -48,11 +47,11 @@ func ListDir(root string) (files map[string]string, err error) {
 	return
 }
 
-func DirDiff(ori, cha map[string]string) (additions map[string]bool) {
-	additions = make(map[string]bool)
+func DirDiff(ori, cha map[string][]byte) (changed map[string]bool) {
+	changed = make(map[string]bool)
 
 	for file := range cha {
-		if ori[file] == cha[file] {
+		if bytes.Equal(ori[file], cha[file]) {
 			//
 			// file didn't change!
 			//
@@ -61,10 +60,10 @@ func DirDiff(ori, cha map[string]string) (additions map[string]bool) {
 		}
 
 		//
-		// file is changed!
+		// file changed!
 		//
 
-		additions[file] = true
+		changed[file] = true
 	}
 
 	return

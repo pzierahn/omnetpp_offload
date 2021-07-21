@@ -1,7 +1,6 @@
 package provider
 
 import (
-	"bytes"
 	"context"
 	"fmt"
 	"github.com/pzierahn/project.go.omnetpp/omnetpp"
@@ -37,11 +36,7 @@ func (prov *provider) run(ctx context.Context, run *pb.SimulationRun) (ref *pb.S
 		return
 	}
 
-	var results map[string]bool
-	var filesBefore map[string]string
-	var filesAfter map[string]string
-
-	filesBefore, err = simple.ListDir(simulationPath)
+	filesBefore, err := simple.ListDir(simulationPath)
 	if err != nil {
 		return
 	}
@@ -61,7 +56,7 @@ func (prov *provider) run(ctx context.Context, run *pb.SimulationRun) (ref *pb.S
 		return
 	}
 
-	filesAfter, err = simple.ListDir(simulationPath)
+	filesAfter, err := simple.ListDir(simulationPath)
 	if err != nil {
 		return
 	}
@@ -70,9 +65,8 @@ func (prov *provider) run(ctx context.Context, run *pb.SimulationRun) (ref *pb.S
 	// Collect and upload results
 	//
 
-	var buf bytes.Buffer
-	results = simple.DirDiff(filesBefore, filesAfter)
-	buf, err = simple.TarGzFiles(simulationPath, run.SimulationId, results)
+	results := simple.DirDiff(filesBefore, filesAfter)
+	buf, err := simple.TarGzFiles(simulationPath, run.SimulationId, results)
 	if err != nil {
 		return
 	}

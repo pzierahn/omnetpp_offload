@@ -1,7 +1,6 @@
 package provider
 
 import (
-	"bytes"
 	"context"
 	"fmt"
 	"github.com/pzierahn/project.go.omnetpp/omnetpp"
@@ -32,13 +31,7 @@ func (prov *provider) compile(ctx context.Context, simulation *pb.Simulation) (b
 		return
 	}
 
-	var ref *pb.StorageRef
-	var buf bytes.Buffer
-	var files map[string]bool
-	var cleanFiles map[string]string
-	var buildFiles map[string]string
-
-	cleanFiles, err = simple.ListDir(base)
+	cleanFiles, err := simple.ListDir(base)
 	if err != nil {
 		return
 	}
@@ -48,18 +41,18 @@ func (prov *provider) compile(ctx context.Context, simulation *pb.Simulation) (b
 		return
 	}
 
-	buildFiles, err = simple.ListDir(base)
+	buildFiles, err := simple.ListDir(base)
 	if err != nil {
 		return
 	}
 
-	files = simple.DirDiff(cleanFiles, buildFiles)
-	buf, err = simple.TarGzFiles(base, simulation.Id, files)
+	files := simple.DirDiff(cleanFiles, buildFiles)
+	buf, err := simple.TarGzFiles(base, simulation.Id, files)
 	if err != nil {
 		return
 	}
 
-	ref = &pb.StorageRef{
+	ref := &pb.StorageRef{
 		Bucket:   simulation.Id,
 		Filename: fmt.Sprintf("binary/%s.tgz", sysinfo.ArchSignature()),
 	}
