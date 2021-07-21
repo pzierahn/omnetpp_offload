@@ -30,7 +30,7 @@ func (broker *broker) pStatusHandle(writer http.ResponseWriter, request *http.Re
 	utils.Response(writer, overview, sendProto)
 }
 
-func stargateStatus(writer http.ResponseWriter, request *http.Request) {
+func stargateStatus(writer http.ResponseWriter, _ *http.Request) {
 	writer.Header().Set("Access-Control-Allow-Origin", "*")
 
 	if bytes, err := stargate.DebugValues(); err != nil {

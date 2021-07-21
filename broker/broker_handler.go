@@ -38,6 +38,8 @@ func (broker *broker) GetProviders(_ *pb.Empty, stream pb.Broker_GetProvidersSer
 
 	log.Printf("GetProviders:")
 
+	ctx := stream.Context()
+
 	id := fmt.Sprintf("%x", rand.Uint32())
 	listener := make(chan *pb.Providers)
 	defer close(listener)
@@ -65,21 +67,17 @@ func (broker *broker) GetProviders(_ *pb.Empty, stream pb.Broker_GetProvidersSer
 	// Create a providers changed event dispatcher
 	//
 
-	done := make(chan bool)
-	defer close(done)
-
-	go func() {
-		for update := range listener {
+	for {
+		select {
+		case update := <-listener:
 			err = stream.Send(update)
 			if err != nil {
-				break
+				return
 			}
+		case <-ctx.Done():
+			return
 		}
-
-		done <- true
-	}()
-
-	<-done
+	}
 
 	return
 }
@@ -87,7 +85,7 @@ func (broker *broker) GetProviders(_ *pb.Empty, stream pb.Broker_GetProvidersSer
 func (broker *broker) dispatchProviders() {
 	providers := broker.providerList()
 
-	log.Printf("dispatchProviders: (%d providers)", len(providers.Items))
+	log.Printf("dispatchProviders: %d providers", len(providers.Items))
 
 	broker.lmu.RLock()
 	for _, ch := range broker.listener {
