@@ -61,6 +61,8 @@ func (cons *consumer) startConnector(onInit chan int32) {
 					return
 				}
 
+				stat.SetInfo(prov.ProviderId, prov)
+
 				err = pconn.init(cons)
 				if err != nil {
 					log.Println(prov.ProviderId, err)
@@ -79,8 +81,6 @@ func (cons *consumer) startConnector(onInit chan int32) {
 					cons.allocate.add(tasks...)
 					onInit <- cons.allocate.len()
 				})
-
-				logProviderInfo(prov.ProviderId, prov)
 			}(prov)
 		}
 	}

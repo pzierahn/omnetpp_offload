@@ -3,6 +3,7 @@ package consumer
 import (
 	pb "github.com/pzierahn/project.go.omnetpp/proto"
 	"github.com/pzierahn/project.go.omnetpp/simple"
+	"github.com/pzierahn/project.go.omnetpp/statistic"
 	"github.com/pzierahn/project.go.omnetpp/storage"
 	"log"
 	"time"
@@ -24,7 +25,7 @@ func (pConn *providerConnection) run(task *pb.SimulationRun) (err error) {
 	log.Printf("[%s] %s finished (%v)",
 		pConn.name(), runName, endExec.Sub(startExec))
 
-	logExecTime(pConn.name(), endExec.Sub(startExec))
+	stat.GetExecution(pConn.name()).Add(endExec.Sub(startExec))
 
 	store := storage.FromClient(pConn.store)
 	buf, err := store.Download(pConn.ctx, resultRef)
@@ -32,8 +33,16 @@ func (pConn *providerConnection) run(task *pb.SimulationRun) (err error) {
 		return
 	}
 
+	transfer := time.Now().Sub(endExec)
+	size := uint64(buf.Len())
+
 	log.Printf("[%s] %s downloaded results %v in %v",
-		pConn.name(), runName, simple.ByteSize(uint64(buf.Len())), time.Now().Sub(endExec))
+		pConn.name(), runName, simple.ByteSize(size), transfer)
+
+	stat.GetDownload(pConn.name()).Add(statistic.Transfer{
+		Duration: transfer,
+		Size:     size,
+	})
 
 	// TODO: Replace this
 	//dump := "/Users/patrick/Desktop/dump"

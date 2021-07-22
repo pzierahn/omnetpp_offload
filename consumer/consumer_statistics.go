@@ -5,46 +5,153 @@ import (
 	"fmt"
 	pb "github.com/pzierahn/project.go.omnetpp/proto"
 	"github.com/pzierahn/project.go.omnetpp/simple"
+	"github.com/pzierahn/project.go.omnetpp/statistic"
 	"log"
 	"net/http"
 	"sort"
 	"sync"
-	"time"
 )
 
-type ProviderStatistic struct {
-	ProviderId       string
-	ProviderInfo     *pb.ProviderInfo
-	ExecutedTasks    int
-	ExecutionTimeSum string
-	ExecutionTimeAvg string
+type Statistic struct {
+	Info      *pb.ProviderInfo
+	Execution *statistic.TimeStatistic
+	Checkout  *statistic.TimeStatistic
+	Upload    *statistic.LoadStatistic
+	Download  *statistic.LoadStatistic
+	Compile   *statistic.TimeStatistic
 }
 
-var execMu sync.RWMutex
-var providerInfos = make(map[string]*pb.ProviderInfo)
-
-type durationStatistic map[string][]time.Duration
-
-var execTime = make(durationStatistic)
-
-func logProviderInfo(providerId string, info *pb.ProviderInfo) {
-	execMu.Lock()
-	defer execMu.Unlock()
-
-	providerInfos[providerId] = info
+type pstatistic struct {
+	mu        sync.RWMutex
+	Info      map[string]*pb.ProviderInfo
+	Execution map[string]*statistic.Time
+	Checkout  map[string]*statistic.Time
+	Upload    map[string]*statistic.Load
+	Download  map[string]*statistic.Load
+	Compile   map[string]*statistic.Time
 }
 
-func logExecTime(providerId string, dur time.Duration) {
-	execMu.Lock()
-	defer execMu.Unlock()
+func (stat *pstatistic) SetInfo(id string, info *pb.ProviderInfo) {
+	stat.mu.Lock()
+	defer stat.mu.Unlock()
 
-	execTime[providerId] = append(execTime[providerId], dur)
+	stat.Info[id] = info
 }
 
-func handleStatistic(writer http.ResponseWriter, request *http.Request) {
+func (stat *pstatistic) GetExecution(id string) (exec *statistic.Time) {
+	stat.mu.Lock()
+	defer stat.mu.Unlock()
+
+	var ok bool
+	if exec, ok = stat.Execution[id]; ok {
+		return
+	}
+
+	exec = &statistic.Time{}
+	stat.Execution[id] = exec
+
+	return
+}
+
+func (stat *pstatistic) GetDownload(id string) (load *statistic.Load) {
+	stat.mu.Lock()
+	defer stat.mu.Unlock()
+
+	var ok bool
+	if load, ok = stat.Download[id]; ok {
+		return
+	}
+
+	load = &statistic.Load{}
+	stat.Download[id] = load
+
+	return
+}
+
+func (stat *pstatistic) GetUpload(id string) (load *statistic.Load) {
+	stat.mu.Lock()
+	defer stat.mu.Unlock()
+
+	var ok bool
+	if load, ok = stat.Upload[id]; ok {
+		return
+	}
+
+	load = &statistic.Load{}
+	stat.Upload[id] = load
+
+	return
+}
+
+func (stat *pstatistic) GetCheckout(id string) (check *statistic.Time) {
+	stat.mu.Lock()
+	defer stat.mu.Unlock()
+
+	var ok bool
+	if check, ok = stat.Checkout[id]; ok {
+		return
+	}
+
+	check = &statistic.Time{}
+	stat.Checkout[id] = check
+
+	return
+}
+
+func (stat *pstatistic) GetCompile(id string) (check *statistic.Time) {
+	stat.mu.Lock()
+	defer stat.mu.Unlock()
+
+	var ok bool
+	if check, ok = stat.Compile[id]; ok {
+		return
+	}
+
+	check = &statistic.Time{}
+	stat.Compile[id] = check
+
+	return
+}
+
+func (stat *pstatistic) Export() (list []Statistic) {
+	stat.mu.Lock()
+	defer stat.mu.Unlock()
+
+	list = make([]Statistic, 0)
+
+	for id := range stat.Info {
+		item := Statistic{
+			Info:      stat.Info[id],
+			Execution: stat.Execution[id].Export(),
+			Checkout:  stat.Checkout[id].Export(),
+			Upload:    stat.Upload[id].Export(),
+			Download:  stat.Download[id].Export(),
+			Compile:   stat.Compile[id].Export(),
+		}
+
+		list = append(list, item)
+	}
+
+	sort.Slice(list, func(i, j int) bool {
+		return list[i].Info.ProviderId < list[j].Info.ProviderId
+	})
+
+	return
+}
+
+var stat = &pstatistic{
+	Info:      make(map[string]*pb.ProviderInfo),
+	Execution: make(map[string]*statistic.Time),
+	Checkout:  make(map[string]*statistic.Time),
+	Upload:    make(map[string]*statistic.Load),
+	Download:  make(map[string]*statistic.Load),
+	Compile:   make(map[string]*statistic.Time),
+}
+
+func handleStatistic(writer http.ResponseWriter, _ *http.Request) {
 	writer.Header().Set("Access-Control-Allow-Origin", "*")
 
-	if bytes, err := json.MarshalIndent(gatherStatistic(), "", "  "); err != nil {
+	if bytes, err := json.MarshalIndent(stat.Export(), "", "  "); err != nil {
 		writer.WriteHeader(503)
 		_, _ = fmt.Fprint(writer, err.Error())
 		log.Println(err)
@@ -64,38 +171,6 @@ func statisticJsonApi() {
 	}
 }
 
-func gatherStatistic() (stats []ProviderStatistic) {
-
-	execMu.RLock()
-	defer execMu.RUnlock()
-
-	stats = make([]ProviderStatistic, 0)
-
-	for prov, exeTimes := range execTime {
-		var set time.Duration
-
-		for _, dur := range exeTimes {
-			set += dur
-		}
-
-		stat := ProviderStatistic{
-			ProviderId:       prov,
-			ProviderInfo:     providerInfos[prov],
-			ExecutedTasks:    len(exeTimes),
-			ExecutionTimeSum: fmt.Sprintf("%v", set),
-			ExecutionTimeAvg: fmt.Sprintf("%v", time.Duration(set.Nanoseconds()/int64(len(exeTimes)))),
-		}
-
-		stats = append(stats, stat)
-	}
-
-	sort.Slice(stats, func(i, j int) bool {
-		return stats[i].ProviderId < stats[j].ProviderId
-	})
-
-	return
-}
-
 func showStatistic() {
-	log.Println("execution statistics", simple.PrettyString(gatherStatistic()))
+	log.Println("execution statistics", simple.PrettyString(stat.Export()))
 }

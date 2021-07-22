@@ -4,6 +4,7 @@ import (
 	"context"
 	pb "github.com/pzierahn/project.go.omnetpp/proto"
 	"github.com/pzierahn/project.go.omnetpp/simple"
+	"github.com/pzierahn/project.go.omnetpp/statistic"
 	"github.com/pzierahn/project.go.omnetpp/storage"
 	"log"
 	"time"
@@ -17,8 +18,9 @@ type checkoutObject struct {
 
 func (pConn *providerConnection) checkout(meta *checkoutObject) (err error) {
 
+	size := uint64(len(meta.Data))
 	log.Printf("[%s] upload: %+v (%v)",
-		pConn.name(), meta.Filename, simple.ByteSize(uint64(len(meta.Data))))
+		pConn.name(), meta.Filename, simple.ByteSize(size))
 
 	startUpload := time.Now()
 
@@ -55,6 +57,11 @@ func (pConn *providerConnection) checkout(meta *checkoutObject) (err error) {
 	log.Printf("[%s] upload: finished file=%s packages=%d time=%v",
 		pConn.name(), meta.Filename, info.Parcels, uploadTime)
 
+	stat.GetUpload(pConn.name()).Add(statistic.Transfer{
+		Duration: uploadTime,
+		Size:     size,
+	})
+
 	log.Printf("[%s] checkout: %s...", pConn.name(), meta.Filename)
 
 	_, err = pConn.provider.Checkout(context.Background(), &pb.Bundle{
@@ -62,8 +69,12 @@ func (pConn *providerConnection) checkout(meta *checkoutObject) (err error) {
 		Source:       ref,
 	})
 
+	checkoutDur := time.Now().Sub(startCheckout)
+
 	log.Printf("[%s] checkout: %s done (%v)",
-		pConn.name(), meta.Filename, time.Now().Sub(startCheckout))
+		pConn.name(), meta.Filename, checkoutDur)
+
+	stat.GetCheckout(pConn.name()).Add(checkoutDur)
 
 	//
 	// TODO: Delete checked-out refs

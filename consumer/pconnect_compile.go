@@ -2,9 +2,10 @@ package consumer
 
 import (
 	"bytes"
-	"context"
 	"fmt"
 	pb "github.com/pzierahn/project.go.omnetpp/proto"
+	"github.com/pzierahn/project.go.omnetpp/simple"
+	"github.com/pzierahn/project.go.omnetpp/statistic"
 	"github.com/pzierahn/project.go.omnetpp/storage"
 	"github.com/pzierahn/project.go.omnetpp/sysinfo"
 	"log"
@@ -23,17 +24,20 @@ func (pConn *providerConnection) compileAndDownload(simulation *pb.Simulation) (
 	arch := sysinfo.Signature(pConn.info.Arch)
 	store := storage.FromClient(pConn.store)
 
-	log.Printf("[%s] compileAndDownload: %s", pConn.name(), arch)
+	log.Printf("[%s] compile: %s", pConn.name(), arch)
 
-	// Set compilation timeout to 60m
-	ctx, cnl := context.WithTimeout(context.Background(), time.Minute*30)
-	defer cnl()
+	ccStart := time.Now()
 
 	var bin *pb.Binary
-	bin, err = pConn.provider.Compile(ctx, simulation)
+	bin, err = pConn.provider.Compile(pConn.ctx, simulation)
 	if err != nil {
 		return
 	}
+
+	duration := stat.GetCompile(pConn.name()).Until(ccStart)
+	log.Printf("[%s] compile: %s done (%v)", pConn.name(), arch, duration)
+
+	dl := time.Now()
 
 	var buf bytes.Buffer
 	buf, err = store.Download(pConn.ctx, bin.Ref)
@@ -41,11 +45,19 @@ func (pConn *providerConnection) compileAndDownload(simulation *pb.Simulation) (
 		return
 	}
 
+	dlDuration := time.Now().Sub(dl)
+	size := uint64(buf.Len())
+	stat.GetDownload(pConn.name()).Add(statistic.Transfer{
+		Duration: dlDuration,
+		Size:     size,
+	})
+
 	binaryMu.Lock()
 	binaries[arch] = buf.Bytes()
 	binaryMu.Unlock()
 
-	log.Printf("[%s] compileAndDownload: %s done", pConn.name(), arch)
+	log.Printf("[%s] compile: downloaded %s exe (%v in %v)",
+		pConn.name(), arch, simple.ByteSize(size), dlDuration)
 
 	return
 }
