@@ -23,7 +23,7 @@ var relay = make(map[DialAddr]*net.TCPConn)
 func ServerRelayTCP() (err error) {
 
 	lis, err := net.ListenTCP("tcp", &net.TCPAddr{
-		Port: gconfig.StargatePort(),
+		Port: config.Port,
 	})
 	if err != nil {
 		return

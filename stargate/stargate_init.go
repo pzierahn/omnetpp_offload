@@ -1,31 +1,40 @@
 package stargate
 
 import (
-	"github.com/pzierahn/project.go.omnetpp/gconfig"
+	"fmt"
 	lg "log"
 	"net"
 	"os"
 )
 
+const (
+	DefaultAddr = "localhost"
+	DefaultPort = 8889
+)
+
 var rendezvousAddr *net.UDPAddr
+var config Config
 
-func GetRendezvousServer() (addr *net.UDPAddr, err error) {
+func SetConfig(conf Config) {
 
-	if rendezvousAddr != nil {
-		return rendezvousAddr, nil
+	config = conf
+
+	addr := fmt.Sprintf("%s:%d", config.Addr, config.Port)
+
+	var err error
+	rendezvousAddr, err = net.ResolveUDPAddr("udp", addr)
+	if err != nil {
+		log.Fatalln(err)
 	}
-
-	rendezvousAddr, err = net.ResolveUDPAddr("udp", gconfig.StargateAddr())
-
-	return rendezvousAddr, err
-}
-
-func SetRendezvousServer(addr *net.UDPAddr) {
-	rendezvousAddr = addr
 }
 
 var log *lg.Logger
 
 func init() {
 	log = lg.New(os.Stderr, "Stargate ", lg.LstdFlags|lg.Lshortfile)
+
+	SetConfig(Config{
+		Addr: DefaultAddr,
+		Port: DefaultPort,
+	})
 }

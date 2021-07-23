@@ -5,7 +5,6 @@ import (
 	"flag"
 	"github.com/pzierahn/project.go.omnetpp/stargate"
 	"log"
-	"net"
 	"time"
 )
 
@@ -13,17 +12,27 @@ var server bool
 var timeout time.Duration
 var dialAddr string
 var write string
+var serverAddr string
+var port int
 
 func init() {
 	flag.BoolVar(&server, "server", false, "start stun server")
 	flag.StringVar(&dialAddr, "dialAddr", "", "dial address")
 	flag.StringVar(&write, "write", "", "the message that will be transferred")
 	flag.DurationVar(&timeout, "timeout", time.Minute*8, "timeout for connection")
+	flag.StringVar(&serverAddr, "addr", stargate.DefaultAddr, "set stargate server")
+	flag.IntVar(&port, "port", stargate.DefaultPort, "set stargate server")
 	flag.Parse()
 }
 
 func main() {
 	log.SetFlags(log.LstdFlags | log.Lshortfile)
+
+	// Set stun server address
+	stargate.SetConfig(stargate.Config{
+		Addr: serverAddr,
+		Port: port,
+	})
 
 	if server {
 		err := stargate.Server(context.Background())
@@ -37,12 +46,6 @@ func main() {
 	if dialAddr == "" {
 		log.Fatalln("dialAddr missing!")
 	}
-
-	// Set stun server address
-	stargate.SetRendezvousServer(&net.UDPAddr{
-		IP:   net.ParseIP("31.18.129.212"),
-		Port: 9595,
-	})
 
 	ctx, cnl := context.WithTimeout(context.Background(), timeout)
 	defer cnl()

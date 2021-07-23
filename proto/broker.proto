@@ -63,8 +63,8 @@ service Provider {
 
   rpc Allocate (stream AllocateRequest) returns (stream AllocatedSlots) {}
 
-  rpc GetSession  (Simulation)    returns (Session)  {}
-  rpc SetSession  (Session)       returns (Session)  {}
+  rpc GetSession  (Simulation)    returns (Session)        {}
+  rpc SetSession  (Session)       returns (Session)        {}
   rpc Checkout    (Bundle)        returns (Empty)          {}
   rpc Compile     (Simulation)    returns (Binary)         {}
   rpc ListRunNums (Simulation)    returns (SimulationRuns) {}

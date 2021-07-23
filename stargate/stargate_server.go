@@ -3,7 +3,6 @@ package stargate
 import (
 	"context"
 	"encoding/json"
-	"github.com/pzierahn/project.go.omnetpp/gconfig"
 	"net"
 	"sync"
 	"time"
@@ -179,7 +178,7 @@ func Server(ctx context.Context) (err error) {
 	//
 
 	conn, err := net.ListenUDP("udp", &net.UDPAddr{
-		Port: gconfig.StargatePort(),
+		Port: config.Port,
 	})
 	if err != nil {
 		return

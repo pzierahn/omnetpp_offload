@@ -6,6 +6,7 @@ import (
 	"flag"
 	"github.com/pzierahn/project.go.omnetpp/consumer"
 	"github.com/pzierahn/project.go.omnetpp/gconfig"
+	"github.com/pzierahn/project.go.omnetpp/stargate"
 	"io/ioutil"
 	"log"
 	"path/filepath"
@@ -27,6 +28,11 @@ func init() {
 func main() {
 
 	gconfig.ParseFlags()
+
+	stargate.SetConfig(stargate.Config{
+		Addr: gconfig.BrokerAddr(),
+		Port: gconfig.StargatePort(),
+	})
 
 	path, err := filepath.Abs(path)
 	if err != nil {
