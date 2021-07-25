@@ -1,9 +1,23 @@
 {
-    "iniFile": "omnetpp.ini",
-    "simulation": "simulation",
+    "buildScript": "build_release.sh",
+    "basePath": "simulations/",
+    "iniFiles": [
+        "simulations/omnetpp-test-decentralized_scheduling.ini"
+    ],
+    "nedPaths": [
+        "simulations/",
+        "src/"
+    ],
     "useLib": true,
-    "resultsPath": "results/",
+    "simulation": "src/TaskletSimulator",
+    "sourcePath": "src/",
     "run": [
-        "TicToc18"
+        "General"
+    ],
+    "exclude": [
+        "\\.git*",
+        "\\.DS_Store",
+        "^.idea/*",
+        "^out/*"
     ]
 }
