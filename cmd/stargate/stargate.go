@@ -72,5 +72,8 @@ func main() {
 		}
 
 		log.Printf("Read: '%s'", string(buf[:br]))
+		//log.Printf("Read: '%x'", buf[:br])
 	}
+
+	_ = conn.Close()
 }

@@ -50,7 +50,7 @@ func DialUDP(ctx context.Context, dialAddr DialAddr) (conn *net.UDPConn, peer *n
 	var wg sync.WaitGroup
 	var once sync.Once
 
-	cctx, cnl := context.WithTimeout(ctx, time.Second*5)
+	cctx, cnl := context.WithTimeout(ctx, time.Millisecond*600)
 	defer cnl()
 
 	if deadline, ok := cctx.Deadline(); ok {
@@ -65,22 +65,13 @@ func DialUDP(ctx context.Context, dialAddr DialAddr) (conn *net.UDPConn, peer *n
 		}()
 	}
 
-	helper := dialer{
-		conn: conn,
-		peer: peer,
+	helper := p2pConnector{
+		conn:      conn,
+		peer:      peer,
+		packages:  3,
+		sendDelay: time.Millisecond * 20,
+		//sendDelay: time.Second * 3,
 	}
-
-	wg.Add(1)
-	go func() {
-		defer wg.Done()
-
-		sendErr := helper.sendHellos(cctx)
-		if sendErr != nil {
-			once.Do(func() {
-				err = sendErr
-			})
-		}
-	}()
 
 	wg.Add(1)
 	go func() {
@@ -90,6 +81,18 @@ func DialUDP(ctx context.Context, dialAddr DialAddr) (conn *net.UDPConn, peer *n
 		if receiveErr != nil {
 			once.Do(func() {
 				err = receiveErr
+			})
+		}
+	}()
+
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+
+		sendErr := helper.sendSeeYou(cctx)
+		if sendErr != nil {
+			once.Do(func() {
+				err = sendErr
 			})
 		}
 	}()

@@ -4,39 +4,49 @@ import (
 	"context"
 	"fmt"
 	"net"
-	"strings"
+	"sync"
 	"time"
 )
 
-type dialer struct {
-	timeout time.Duration
-	conn    *net.UDPConn
-	peer    *net.UDPAddr
+type p2pConnector struct {
+	conn      *net.UDPConn
+	peer      *net.UDPAddr
+	mu        sync.RWMutex
+	received  bool
+	packages  int
+	sendDelay time.Duration
 }
 
 // Send hello messages to open the NAT
-func (dialer *dialer) sendHellos(ctx context.Context) (err error) {
+func (p2p *p2pConnector) sendSeeYou(ctx context.Context) (err error) {
 
-	// Wait for two seconds to ensure that all message get received properly
-	timer := time.NewTimer(time.Second * 3)
+	// Wait for some time to ensure that all message get received properly
+	timer := time.NewTicker(p2p.sendDelay)
 	defer timer.Stop()
 
-	for inx := 0; inx < 2; inx++ {
-		message := fmt.Sprintf("hello %d", inx)
+	for inx := 0; inx < p2p.packages; inx++ {
+		var byt []byte
 
-		log.Printf("send: message='%s' peer=%v\n", message, dialer.peer)
+		p2p.mu.RLock()
+		if !p2p.received {
+			byt = []byte{0, byte(inx)}
+		} else {
+			byt = []byte{1, byte(inx)}
+		}
+		p2p.mu.RUnlock()
 
-		_, err = dialer.conn.WriteToUDP([]byte(message), dialer.peer)
+		log.Printf("send: %v", byt)
+
+		_, err = p2p.conn.WriteToUDP(byt, p2p.peer)
 		if err != nil {
 			return
 		}
 
-		if inx == 0 {
-			select {
-			case <-timer.C:
-			case <-ctx.Done():
-				return
-			}
+		select {
+		case <-timer.C:
+			continue
+		case <-ctx.Done():
+			return
 		}
 	}
 
@@ -44,36 +54,48 @@ func (dialer *dialer) sendHellos(ctx context.Context) (err error) {
 }
 
 // Receive hello messages from peers
-func (dialer *dialer) receive() (err error) {
+func (p2p *p2pConnector) receive() (err error) {
 
 	var br int
 	var remote *net.UDPAddr
-	var buf = make([]byte, 1024)
+	var buf = make([]byte, 2)
 
-	for {
-		br, remote, err = dialer.conn.ReadFromUDP(buf)
+	var success bool
+
+	for inx := 0; inx < p2p.packages; inx++ {
+		br, remote, err = p2p.conn.ReadFromUDP(buf)
 		if err != nil {
 			return
 		}
 
-		msg := string(buf[0:br])
-
-		// Check for corrupt messages
-		if !strings.HasPrefix(msg, "hello") {
+		if br != 2 {
+			log.Printf("received: faulty message...")
 			continue
 		}
 
-		if remote.String() != dialer.peer.String() {
-			log.Printf("received: wrong remote host '%v' should be '%v' --> msg='%v'\n",
-				remote, dialer.peer, msg)
+		if remote.String() != p2p.peer.String() {
+			log.Printf("received: wrong remote host '%v' should be '%v'",
+				remote, p2p.peer)
 			continue
 		}
 
-		log.Printf("received: peer=%v message='%s'\n", dialer.peer, msg)
+		log.Printf("received: peer=%v received=%v\n", p2p.peer, buf[:br])
 
-		// Wait for second message before leaving read loop
-		if msg == "hello 1" {
-			return
+		p2p.mu.Lock()
+		p2p.received = true
+		p2p.mu.Unlock()
+
+		if int(buf[1]) == p2p.packages-1 {
+			success = buf[0] == 1
+			break
 		}
 	}
+
+	log.Printf("received: success=%v\n", success)
+
+	if !success {
+		err = fmt.Errorf("didn't recieve recieve-acknowledgement")
+	}
+
+	return
 }
