@@ -50,7 +50,7 @@ func main() {
 	ctx, cnl := context.WithTimeout(context.Background(), timeout)
 	defer cnl()
 
-	conn, peer, err := stargate.DialUDP(ctx, dialAddr)
+	conn, peer, err := stargate.DialP2PUDP(ctx, dialAddr)
 	if err != nil {
 		log.Fatalln(err)
 	}

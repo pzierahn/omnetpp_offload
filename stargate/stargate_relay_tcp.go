@@ -104,10 +104,10 @@ func pipeAllTCP(conn1, conn2 *net.TCPConn) {
 	go pipeTCP(conn2, conn1)
 }
 
-func RelayDialTCP(ctx context.Context, dial DialAddr) (conn *net.TCPConn, err error) {
+func DialRelayTCP(ctx context.Context, dial DialAddr) (conn *net.TCPConn, err error) {
 
 	addr := gconfig.StargateDialAddr()
-	log.Printf("RelayDialTCP: dial=%v addr=%v", dial, addr)
+	log.Printf("DialRelayTCP: dial=%v addr=%v", dial, addr)
 
 	laddr := &net.TCPAddr{}
 	tcpaddr, err := net.ResolveTCPAddr("tcp", addr)

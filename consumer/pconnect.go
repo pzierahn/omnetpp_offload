@@ -21,23 +21,19 @@ func (pConn *providerConnection) name() (name string) {
 	return pConn.info.ProviderId
 }
 
-func (cons *consumer) connect(prov *pb.ProviderInfo) (conn *providerConnection, err error) {
+func (cons *consumer) connect(prov *pb.ProviderInfo) (conn *grpc.ClientConn, err error) {
 
-	cc, err := cons.connectP2P(prov)
-	if err != nil {
-		log.Println(prov.ProviderId, err)
-
-		cc, err = cons.connectRelay(prov)
-		if err != nil {
-			return
-		}
+	conn, err = cons.connectLocal(prov)
+	if err == nil {
+		return
 	}
 
-	conn = &providerConnection{
-		info:     prov,
-		provider: pb.NewProviderClient(cc),
-		store:    pb.NewStorageClient(cc),
+	conn, err = cons.connectP2P(prov)
+	if err == nil {
+		return
 	}
+
+	conn, err = cons.connectRelay(prov)
 
 	return
 }
@@ -59,7 +55,7 @@ func (cons *consumer) connectRelay(prov *pb.ProviderInfo) (cc *grpc.ClientConn, 
 	ctx, cln := context.WithTimeout(cons.ctx, time.Second*5)
 	defer cln()
 
-	conn, err := stargate.RelayDialTCP(ctx, prov.ProviderId)
+	conn, err := stargate.DialRelayTCP(ctx, prov.ProviderId)
 	if err != nil {
 		return
 	}
@@ -74,5 +70,27 @@ func (cons *consumer) connectRelay(prov *pb.ProviderInfo) (cc *grpc.ClientConn, 
 		grpc.WithContextDialer(func(ctx context.Context, s string) (net.Conn, error) {
 			return conn, nil
 		}),
+	)
+}
+
+func (cons *consumer) connectLocal(prov *pb.ProviderInfo) (cc *grpc.ClientConn, err error) {
+
+	log.Printf("connectLocal: %v", prov.ProviderId)
+
+	ctx, cln := context.WithTimeout(cons.ctx, time.Millisecond*3000)
+	defer cln()
+
+	addr, err := stargate.DialLocal(ctx, prov.ProviderId)
+	if err != nil {
+		return
+	}
+
+	log.Printf("connectLocal: dial %v", addr)
+
+	return grpc.DialContext(
+		ctx,
+		addr.String(),
+		grpc.WithInsecure(),
+		grpc.WithBlock(),
 	)
 }

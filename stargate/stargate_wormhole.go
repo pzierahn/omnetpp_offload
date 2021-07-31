@@ -94,7 +94,7 @@ func (p2p *p2pConnector) receive() (err error) {
 	log.Printf("received: success=%v\n", success)
 
 	if !success {
-		err = fmt.Errorf("didn't recieve recieve-acknowledgement")
+		err = fmt.Errorf("p2p connect failed: no recieve-acknowledgement")
 	}
 
 	return

@@ -54,11 +54,16 @@ func (cons *consumer) startConnector(onInit chan int32) {
 
 			go func(prov *pb.ProviderInfo) {
 
-				var pconn *providerConnection
-				pconn, err = cons.connect(prov)
+				cc, err := cons.connect(prov)
 				if err != nil {
 					log.Println(prov.ProviderId, err)
 					return
+				}
+
+				pconn := &providerConnection{
+					info:     prov,
+					provider: pb.NewProviderClient(cc),
+					store:    pb.NewStorageClient(cc),
 				}
 
 				stat.SetInfo(prov.ProviderId, prov)

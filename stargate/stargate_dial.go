@@ -10,9 +10,9 @@ import (
 	"time"
 )
 
-func DialUDP(ctx context.Context, dialAddr DialAddr) (conn *net.UDPConn, peer *net.UDPAddr, err error) {
+func DialP2PUDP(ctx context.Context, dialAddr DialAddr) (conn *net.UDPConn, peer *net.UDPAddr, err error) {
 
-	log.Printf("DialUDP: dialAddr=%v", dialAddr)
+	log.Printf("DialP2PUDP: dialAddr=%v", dialAddr)
 
 	conn, err = net.ListenUDP("udp", &net.UDPAddr{})
 	if err != nil {
@@ -20,7 +20,7 @@ func DialUDP(ctx context.Context, dialAddr DialAddr) (conn *net.UDPConn, peer *n
 	}
 
 	if deadline, ok := ctx.Deadline(); ok {
-		log.Printf("DialUDP: deadline=%v", deadline)
+		log.Printf("DialP2PUDP: deadline=%v", deadline)
 		err = conn.SetDeadline(deadline)
 		if err != nil {
 			return
@@ -41,11 +41,7 @@ func DialUDP(ctx context.Context, dialAddr DialAddr) (conn *net.UDPConn, peer *n
 		return
 	}
 
-	//
-	// TODO: Start a go-routine after the peer was resolved to prevent connection jamming
-	//
-
-	log.Printf("DialUDP: dialAddr=%v peer=%v", dialAddr, peer)
+	log.Printf("DialP2PUDP: dialAddr=%v peer=%v", dialAddr, peer)
 
 	var wg sync.WaitGroup
 	var once sync.Once
@@ -104,13 +100,13 @@ func DialUDP(ctx context.Context, dialAddr DialAddr) (conn *net.UDPConn, peer *n
 	}
 
 	// Everything is okay
-	log.Printf("DialUDP: dialAddr=%v peer=%v connection established", dialAddr, peer)
+	log.Printf("DialP2PUDP: dialAddr=%v peer=%v connection established", dialAddr, peer)
 
 	return
 }
 
 func DialGRPCClientConn(ctx context.Context, dialAddr DialAddr) (conn *grpc.ClientConn, err error) {
-	gate, remote, err := DialUDP(ctx, dialAddr)
+	gate, remote, err := DialP2PUDP(ctx, dialAddr)
 	if err != nil {
 		// Connection failed!
 		return
@@ -128,7 +124,7 @@ func DialGRPCClientConn(ctx context.Context, dialAddr DialAddr) (conn *grpc.Clie
 
 func DialQUICListener(ctx context.Context, dialAddr DialAddr) (p2p quic.Listener, err error) {
 
-	conn, _, err := DialUDP(ctx, dialAddr)
+	conn, _, err := DialP2PUDP(ctx, dialAddr)
 	if err != nil {
 		return
 	}

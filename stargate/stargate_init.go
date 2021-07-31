@@ -12,8 +12,14 @@ const (
 	DefaultPort = 8889
 )
 
-var rendezvousAddr *net.UDPAddr
-var config Config
+var (
+	rendezvousAddr *net.UDPAddr
+	config         Config
+	broadcast      = &net.UDPAddr{
+		IP:   net.IPv4(239, 11, 22, 33),
+		Port: 10077,
+	}
+)
 
 func SetConfig(conf Config) {
 
