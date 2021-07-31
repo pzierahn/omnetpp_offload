@@ -20,5 +20,6 @@ vendor/
 
 data/
 debug
+build/
 
 .DS_Store

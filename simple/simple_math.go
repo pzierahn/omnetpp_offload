@@ -1,5 +1,7 @@
 package simple
 
+import "math"
+
 func MathMin(inx int, nums ...int) (min int) {
 	min = inx
 
@@ -34,4 +36,8 @@ func MathMax(inx int, nums ...int) (max int) {
 	}
 
 	return
+}
+
+func Round(x, unit float64) float64 {
+	return math.Round(x/unit) * unit
 }
