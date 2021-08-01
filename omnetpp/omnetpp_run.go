@@ -91,7 +91,6 @@ func (project *OmnetProject) command(args ...string) (cmd *exec.Cmd, err error) 
 
 // RunContext the simulation with configuration (-c) and run number (-r)
 func (project *OmnetProject) RunContext(ctx context.Context, config, run string) (err error) {
-	// Todo: Add timeout, because some simulations are running indefinitely
 	sim, err := project.commandContext(ctx, "-c", config, "-r", run)
 
 	if err != nil {

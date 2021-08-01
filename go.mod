@@ -28,7 +28,7 @@ require (
 	github.com/onsi/gomega v1.14.0 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/rogpeppe/go-internal v1.8.0 // indirect
-	github.com/shirou/gopsutil/v3 v3.21.6
+	github.com/shirou/gopsutil/v3 v3.21.7
 	github.com/stretchr/testify v1.7.0 // indirect
 	github.com/tklauser/go-sysconf v0.3.7 // indirect
 	github.com/tklauser/numcpus v0.2.3 // indirect

@@ -2,6 +2,16 @@
 
 ## Install and run a worker
 
+Install and run natively
+
+```shell
+go install cmd/worker/opp_edge_worker.go
+go install cmd/consumer/opp_edge_run.go
+go install cmd/config/opp_edge_config.go
+```
+
+Install and run with Docker
+
 ```shell
 docker pull pzierahn/omnetpp_edge
 docker run --rm pzierahn/omnetpp_edge opp_edge_worker -broker 85.214.35.83 -name `hostname -s`
