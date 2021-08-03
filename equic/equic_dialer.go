@@ -40,18 +40,6 @@ func GenerateTLSConfig() (tlsConf *tls.Config, err error) {
 	return
 }
 
-func GRPCDialerAuto() (udpconn *net.UDPConn, dialer Dialer) {
-
-	udpconn, err := net.ListenUDP("udp", &net.UDPAddr{})
-	if err != nil {
-		return
-	}
-
-	dialer = GRPCDialer(udpconn)
-
-	return
-}
-
 type Dialer func(ctx context.Context, target string) (conn net.Conn, err error)
 
 func GRPCDialer(pconn *net.UDPConn) (dialer Dialer) {

@@ -5,7 +5,9 @@ import (
 	"github.com/pzierahn/project.go.omnetpp/simple"
 	"github.com/pzierahn/project.go.omnetpp/statistic"
 	"github.com/pzierahn/project.go.omnetpp/storage"
+	"io/ioutil"
 	"log"
+	"path/filepath"
 	"time"
 )
 
@@ -44,12 +46,12 @@ func (pConn *providerConnection) run(task *pb.SimulationRun) (err error) {
 		Size:     size,
 	})
 
-	// TODO: Replace this
-	//dump := "/Users/patrick/Desktop/dump"
-	//err = ioutil.WriteFile(filepath.Join(dump, runName+".tgz"), buf.Bytes(), 0755)
-	//if err != nil {
-	//	return
-	//}
+	// TODO: Extract files to the right place
+	dump := "/Users/patrick/Desktop/dump"
+	err = ioutil.WriteFile(filepath.Join(dump, runName+".tgz"), buf.Bytes(), 0755)
+	if err != nil {
+		return
+	}
 
 	_, err = pConn.store.Delete(pConn.ctx, resultRef)
 

@@ -2,6 +2,7 @@ package consumer
 
 import (
 	"context"
+	"github.com/pzierahn/project.go.omnetpp/equic"
 	pb "github.com/pzierahn/project.go.omnetpp/proto"
 	"github.com/pzierahn/project.go.omnetpp/stargate"
 	"google.golang.org/grpc"
@@ -45,7 +46,7 @@ func (cons *consumer) connectP2P(prov *pb.ProviderInfo) (cc *grpc.ClientConn, er
 	ctx, cln := context.WithTimeout(context.Background(), time.Second*5)
 	defer cln()
 
-	return stargate.DialGRPC(ctx, prov.ProviderId)
+	return equic.P2PDialGRPC(ctx, prov.ProviderId)
 }
 
 func (cons *consumer) connectRelay(prov *pb.ProviderInfo) (cc *grpc.ClientConn, err error) {

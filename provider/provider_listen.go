@@ -38,7 +38,7 @@ func (prov *provider) listenRelay() {
 func (prov *provider) listenP2P() {
 	for {
 		ctx := context.Background()
-		p2p, err := stargate.ListenerNet(ctx, prov.providerId)
+		p2p, err := equic.P2PListener(ctx, prov.providerId)
 		if err != nil {
 			log.Println(err)
 			continue
