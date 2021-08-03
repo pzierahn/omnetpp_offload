@@ -26,6 +26,8 @@ type stargateServer struct {
 	mu      sync.RWMutex
 	waiting map[udpAddr]*waiter
 	peers   map[DialAddr]*net.UDPAddr
+	relayMu sync.Mutex
+	relay   map[DialAddr]*net.TCPConn
 }
 
 var server *stargateServer
@@ -171,11 +173,7 @@ func (server *stargateServer) receiveDial() (err error) {
 	return
 }
 
-func Server(ctx context.Context) (err error) {
-
-	//
-	// TODO: start ServerRelayTCP
-	//
+func Server(ctx context.Context, relay bool) (err error) {
 
 	conn, err := net.ListenUDP("udp", &net.UDPAddr{
 		Port: config.Port,
@@ -190,6 +188,16 @@ func Server(ctx context.Context) (err error) {
 		conn:    conn,
 		waiting: make(map[string]*waiter),
 		peers:   make(map[string]*net.UDPAddr),
+		relay:   make(map[string]*net.TCPConn),
+	}
+
+	if relay {
+		go func() {
+			err = server.relayTCPServer()
+			if err != nil {
+				log.Println(err)
+			}
+		}()
 	}
 
 	go server.heartbeatDispatcher(ctx)

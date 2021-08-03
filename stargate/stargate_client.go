@@ -7,12 +7,12 @@ import (
 	"time"
 )
 
-type stargateClient struct {
+type peerResolver struct {
 	conn *net.UDPConn
 	dial DialAddr
 }
 
-func (client *stargateClient) receive() (peer *net.UDPAddr, err error) {
+func (client *peerResolver) receive() (peer *net.UDPAddr, err error) {
 	buf := make([]byte, 1024)
 	var read int
 
@@ -34,7 +34,7 @@ func (client *stargateClient) receive() (peer *net.UDPAddr, err error) {
 	}
 }
 
-func (client *stargateClient) send(ctx context.Context) (err error) {
+func (client *peerResolver) send(ctx context.Context) (err error) {
 
 	// Send a heartbeat signal ever 20 seconds to the broker keep the NAT gate open
 	tick := time.NewTicker(time.Second * 20)
@@ -55,10 +55,28 @@ func (client *stargateClient) send(ctx context.Context) (err error) {
 	}
 }
 
-func (client *stargateClient) resolvePeer() (peer *net.UDPAddr, err error) {
+func (client *peerResolver) resolvePeer(ctx context.Context) (peer *net.UDPAddr, err error) {
 	log.Printf("resolvePeer: dialAddr=%s conn=%v", client.dial, client.conn.LocalAddr())
 
-	sendCtx, cnlSend := context.WithCancel(context.Background())
+	if deadline, ok := ctx.Deadline(); ok {
+
+		//
+		// Set deadline for peer resolving
+		//
+
+		log.Printf("resolvePeer: deadline=%v", deadline)
+		err = client.conn.SetDeadline(deadline)
+		if err != nil {
+			return
+		}
+
+		defer func() {
+			// Reset deadline
+			_ = client.conn.SetDeadline(time.Time{})
+		}()
+	}
+
+	sendCtx, cnlSend := context.WithCancel(ctx)
 
 	// Wait group to ensure that sending and receiving is finished before returning
 	var wg sync.WaitGroup

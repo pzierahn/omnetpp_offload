@@ -6,7 +6,6 @@ import (
 	"github.com/pzierahn/project.go.omnetpp/equic"
 	"google.golang.org/grpc"
 	"net"
-	"sync"
 	"time"
 )
 
@@ -19,82 +18,29 @@ func DialP2PUDP(ctx context.Context, dialAddr DialAddr) (conn *net.UDPConn, peer
 		return
 	}
 
-	if deadline, ok := ctx.Deadline(); ok {
-		log.Printf("DialP2PUDP: deadline=%v", deadline)
-		err = conn.SetDeadline(deadline)
-		if err != nil {
-			return
-		}
-
-		defer func() {
-			// Reset deadline
-			_ = conn.SetDeadline(time.Time{})
-		}()
-	}
-
-	client := stargateClient{
+	pr := peerResolver{
 		conn: conn,
 		dial: dialAddr,
 	}
-	peer, err = client.resolvePeer()
+	peer, err = pr.resolvePeer(ctx)
 	if err != nil {
 		return
 	}
 
 	log.Printf("DialP2PUDP: dialAddr=%v peer=%v", dialAddr, peer)
 
-	var wg sync.WaitGroup
-	var once sync.Once
-
-	cctx, cnl := context.WithTimeout(ctx, time.Millisecond*600)
-	defer cnl()
-
-	if deadline, ok := cctx.Deadline(); ok {
-		err = conn.SetReadDeadline(deadline)
-		if err != nil {
-			return
-		}
-
-		defer func() {
-			// Reset deadline
-			_ = conn.SetDeadline(time.Time{})
-		}()
-	}
-
 	helper := p2pConnector{
 		conn:      conn,
 		peer:      peer,
 		packages:  3,
 		sendDelay: time.Millisecond * 20,
+		timeout:   time.Millisecond * 600,
+		// Use a sendDelay of 3s to test if both peers are in the same NAT
 		//sendDelay: time.Second * 3,
+		//timeout:   time.Second * 12,
 	}
 
-	wg.Add(1)
-	go func() {
-		defer wg.Done()
-
-		receiveErr := helper.receive()
-		if receiveErr != nil {
-			once.Do(func() {
-				err = receiveErr
-			})
-		}
-	}()
-
-	wg.Add(1)
-	go func() {
-		defer wg.Done()
-
-		sendErr := helper.sendSeeYou(cctx)
-		if sendErr != nil {
-			once.Do(func() {
-				err = sendErr
-			})
-		}
-	}()
-
-	wg.Wait()
-
+	err = helper.connect(ctx)
 	if err != nil {
 		return
 	}
@@ -105,7 +51,7 @@ func DialP2PUDP(ctx context.Context, dialAddr DialAddr) (conn *net.UDPConn, peer
 	return
 }
 
-func DialGRPCClientConn(ctx context.Context, dialAddr DialAddr) (conn *grpc.ClientConn, err error) {
+func DialGRPC(ctx context.Context, dialAddr DialAddr) (conn *grpc.ClientConn, err error) {
 	gate, remote, err := DialP2PUDP(ctx, dialAddr)
 	if err != nil {
 		// Connection failed!
@@ -122,7 +68,7 @@ func DialGRPCClientConn(ctx context.Context, dialAddr DialAddr) (conn *grpc.Clie
 	return
 }
 
-func DialQUICListener(ctx context.Context, dialAddr DialAddr) (p2p quic.Listener, err error) {
+func ListenerQUIC(ctx context.Context, dialAddr DialAddr) (p2p quic.Listener, err error) {
 
 	conn, _, err := DialP2PUDP(ctx, dialAddr)
 	if err != nil {
@@ -134,9 +80,9 @@ func DialQUICListener(ctx context.Context, dialAddr DialAddr) (p2p quic.Listener
 	return quic.Listen(conn, tlsConf, equic.Config)
 }
 
-func DialQUICgRPCListener(ctx context.Context, dialAddr DialAddr) (p2p net.Listener, err error) {
+func ListenerNet(ctx context.Context, dialAddr DialAddr) (p2p net.Listener, err error) {
 
-	qLis, err := DialQUICListener(ctx, dialAddr)
+	qLis, err := ListenerQUIC(ctx, dialAddr)
 	if err != nil {
 		return
 	}

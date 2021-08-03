@@ -35,7 +35,7 @@ func main() {
 	})
 
 	if server {
-		err := stargate.Server(context.Background())
+		err := stargate.Server(context.Background(), true)
 		if err != nil {
 			log.Fatalln(err)
 		}
@@ -54,8 +54,9 @@ func main() {
 	if err != nil {
 		log.Fatalln(err)
 	}
+	defer func() { _ = conn.Close() }()
 
-	log.Printf("Connected: local=%v peer=%v", conn.LocalAddr(), peer)
+	log.Printf("Connected peer to peer: local=%v peer=%v", conn.LocalAddr(), peer)
 
 	if write != "" {
 		log.Printf("Write: '%s'", write)
@@ -74,6 +75,4 @@ func main() {
 		log.Printf("Read: '%s'", string(buf[:br]))
 		//log.Printf("Read: '%x'", buf[:br])
 	}
-
-	_ = conn.Close()
 }

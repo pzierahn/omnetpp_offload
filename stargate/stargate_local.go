@@ -4,11 +4,18 @@ import (
 	"context"
 	"encoding/json"
 	"net"
+	"time"
 )
 
-func PropagateTCP(ctx context.Context, dialAddr DialAddr, addr *net.TCPAddr) (err error) {
+var broadcast = &net.UDPAddr{
+	IP:   net.IPv4(239, 11, 22, 33),
+	Port: 10077,
+}
 
-	log.Printf("PropagateTCP: dialAddr=%v addr=%v", dialAddr, addr)
+// BroadcastTCP will listen for multicast broadcasts. It will respond with the addr if the dialAddr matches.
+func BroadcastTCP(ctx context.Context, dialAddr DialAddr, addr *net.TCPAddr) (err error) {
+
+	log.Printf("BroadcastTCP: dialAddr=%v addr=%v", dialAddr, addr)
 
 	conn, err := net.ListenMulticastUDP("udp", nil, broadcast)
 	if err != nil {
@@ -31,13 +38,13 @@ func PropagateTCP(ctx context.Context, dialAddr DialAddr, addr *net.TCPAddr) (er
 			}
 
 			requestAddr := string(buf[:br])
-			log.Printf("PropagateTCP: requested dialAddr %v from %v", requestAddr, raddr)
+			log.Printf("BroadcastTCP: requested dialAddr %v from %v", requestAddr, raddr)
 
 			if dialAddr != requestAddr {
 				continue
 			}
 
-			log.Printf("PropagateTCP: write %v", string(byt))
+			log.Printf("BroadcastTCP: write %v", string(byt))
 
 			_, err = conn.WriteTo(byt, raddr)
 			if err != nil {
@@ -53,11 +60,18 @@ func PropagateTCP(ctx context.Context, dialAddr DialAddr, addr *net.TCPAddr) (er
 	return
 }
 
+// DialLocal will broadcast the dialAddr to the local network. It will return a remote address of the peer.
 func DialLocal(ctx context.Context, dialAddr DialAddr) (raddr net.TCPAddr, err error) {
+
+	log.Printf("DialLocal: dialAddr=%v", dialAddr)
+
 	bc, err := net.ListenUDP("udp", &net.UDPAddr{})
 	if err != nil {
 		return
 	}
+
+	ctx, cnl := context.WithTimeout(ctx, time.Millisecond*200)
+	defer cnl()
 
 	if deadline, ok := ctx.Deadline(); ok {
 		err = bc.SetDeadline(deadline)
@@ -71,9 +85,10 @@ func DialLocal(ctx context.Context, dialAddr DialAddr) (raddr net.TCPAddr, err e
 		return
 	}
 
+	// TODO: Shrink buffer size
 	buf := make([]byte, 1024)
 
-	br, uaddr, err := bc.ReadFromUDP(buf)
+	br, origin, err := bc.ReadFromUDP(buf)
 	if err != nil {
 		return
 	}
@@ -83,8 +98,8 @@ func DialLocal(ctx context.Context, dialAddr DialAddr) (raddr net.TCPAddr, err e
 		return
 	}
 
-	raddr.IP = uaddr.IP
-	raddr.Zone = uaddr.Zone
+	raddr.IP = origin.IP
+	raddr.Zone = origin.Zone
 
 	return
 }

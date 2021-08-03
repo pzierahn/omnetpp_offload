@@ -3,24 +3,15 @@ package stargate
 import (
 	"context"
 	"fmt"
-	"github.com/pzierahn/project.go.omnetpp/gconfig"
 	"net"
-	"sync"
 	"time"
 )
 
 const (
-	relaySuccessful = "ok"
+	success = "ok"
 )
 
-var dialMu sync.Mutex
-var relay = make(map[DialAddr]*net.TCPConn)
-
-//
-// TODO: Close connections!
-//
-
-func ServerRelayTCP() (err error) {
+func (server *stargateServer) relayTCPServer() (err error) {
 
 	lis, err := net.ListenTCP("tcp", &net.TCPAddr{
 		Port: config.Port,
@@ -29,7 +20,7 @@ func ServerRelayTCP() (err error) {
 		return
 	}
 
-	log.Printf("ServerRelayTCP: started on %v", lis.Addr())
+	log.Printf("start stargate relay server on %v", lis.Addr())
 
 	for {
 		conn, err := lis.AcceptTCP()
@@ -37,11 +28,11 @@ func ServerRelayTCP() (err error) {
 			log.Fatalln(err)
 		}
 
-		go rendezvousTCP(conn)
+		go server.rendezvousTCP(conn)
 	}
 }
 
-func rendezvousTCP(conn *net.TCPConn) {
+func (server *stargateServer) rendezvousTCP(conn *net.TCPConn) {
 	buf := make([]byte, 1024)
 	br, err := conn.Read(buf)
 	if err != nil {
@@ -54,46 +45,58 @@ func rendezvousTCP(conn *net.TCPConn) {
 	log.Printf("rendezvousTCP: dialAddr='%s' LocalAddr=%v RemoteAddr=%v",
 		dialAddr, conn.LocalAddr(), conn.RemoteAddr())
 
-	dialMu.Lock()
-	defer dialMu.Unlock()
+	server.relayMu.Lock()
+	defer server.relayMu.Unlock()
 
-	peer, ok := relay[dialAddr]
+	peer, ok := server.relay[dialAddr]
 
 	if !ok {
-		relay[dialAddr] = conn
+
+		//
+		// Wait for peer...
+		//
+
+		server.relay[dialAddr] = conn
 		return
+	} else {
+
+		//
+		// Connect both peers
+		//
+
+		delete(server.relay, dialAddr)
+
+		_, err = peer.Write([]byte(success))
+		if err != nil {
+			log.Println(err)
+			return
+		}
+
+		_, err = conn.Write([]byte(success))
+		if err != nil {
+			log.Println(err)
+			return
+		}
+
+		pipeAllTCP(peer, conn)
 	}
-
-	delete(relay, dialAddr)
-
-	_, err = peer.Write([]byte(relaySuccessful))
-	if err != nil {
-		log.Println(err)
-		return
-	}
-
-	_, err = conn.Write([]byte(relaySuccessful))
-	if err != nil {
-		log.Println(err)
-		return
-	}
-
-	pipeAllTCP(peer, conn)
 }
 
 func pipeTCP(from, to *net.TCPConn) {
+	defer func() { _, _ = from.Close(), to.Close() }()
+
 	for {
 		// https://stackoverflow.com/questions/2613734/maximum-packet-size-for-a-tcp-connection
 		buf := make([]byte, 65535)
 		br, err := from.Read(buf)
 		if err != nil {
-			log.Println(err)
+			//log.Println(err)
 			break
 		}
 
 		_, err = to.Write(buf[:br])
 		if err != nil {
-			log.Println(err)
+			//log.Println(err)
 			break
 		}
 	}
@@ -106,16 +109,14 @@ func pipeAllTCP(conn1, conn2 *net.TCPConn) {
 
 func DialRelayTCP(ctx context.Context, dial DialAddr) (conn *net.TCPConn, err error) {
 
-	addr := gconfig.StargateDialAddr()
-	log.Printf("DialRelayTCP: dial=%v addr=%v", dial, addr)
-
-	laddr := &net.TCPAddr{}
-	tcpaddr, err := net.ResolveTCPAddr("tcp", addr)
+	raddr, err := config.tcpAddr()
 	if err != nil {
 		return
 	}
 
-	conn, err = net.DialTCP("tcp", laddr, tcpaddr)
+	log.Printf("DialRelayTCP: dial=%v addr=%v", dial, raddr)
+
+	conn, err = net.DialTCP("tcp", &net.TCPAddr{}, raddr)
 	if err != nil {
 		return
 	}
@@ -142,8 +143,8 @@ func DialRelayTCP(ctx context.Context, dial DialAddr) (conn *net.TCPConn, err er
 		return
 	}
 
-	if string(buf[:br]) != relaySuccessful {
-		err = fmt.Errorf("connection failed: wrong relaySuccessful message '%v'", string(buf[:br]))
+	if string(buf[:br]) != success {
+		err = fmt.Errorf("connection failed: read '%v'", string(buf[:br]))
 	}
 
 	return

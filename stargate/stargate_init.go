@@ -15,10 +15,6 @@ const (
 var (
 	rendezvousAddr *net.UDPAddr
 	config         Config
-	broadcast      = &net.UDPAddr{
-		IP:   net.IPv4(239, 11, 22, 33),
-		Port: 10077,
-	}
 )
 
 func SetConfig(conf Config) {
