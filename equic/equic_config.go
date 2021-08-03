@@ -5,7 +5,7 @@ import (
 	"time"
 )
 
-var Config = &quic.Config{
+var config = &quic.Config{
 	KeepAlive:      true,
 	MaxIdleTimeout: time.Millisecond * 2000,
 }

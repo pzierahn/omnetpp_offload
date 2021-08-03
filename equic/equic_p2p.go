@@ -19,7 +19,7 @@ func P2PDialGRPC(ctx context.Context, dialAddr stargate.DialAddr) (conn *grpc.Cl
 		remote.String(),
 		grpc.WithInsecure(),
 		grpc.WithBlock(),
-		grpc.WithContextDialer(GRPCDialer(gate)),
+		grpc.WithContextDialer(dialAdapter(gate)),
 	)
 
 	return
@@ -32,9 +32,9 @@ func P2PListenerQUIC(ctx context.Context, dialAddr stargate.DialAddr) (p2p quic.
 		return
 	}
 
-	tlsConf, _ := GenerateTLSConfig()
+	tlsConf, _ := generateTLSConfig()
 
-	return quic.Listen(conn, tlsConf, Config)
+	return quic.Listen(conn, tlsConf, config)
 }
 
 func P2PListener(ctx context.Context, dialAddr stargate.DialAddr) (p2p net.Listener, err error) {

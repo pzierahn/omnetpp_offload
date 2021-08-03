@@ -12,7 +12,7 @@ import (
 	"net"
 )
 
-func GenerateTLSConfig() (tlsConf *tls.Config, err error) {
+func generateTLSConfig() (tlsConf *tls.Config, err error) {
 	key, err := rsa.GenerateKey(rand.Reader, 1024)
 	if err != nil {
 		return
@@ -40,9 +40,9 @@ func GenerateTLSConfig() (tlsConf *tls.Config, err error) {
 	return
 }
 
-type Dialer func(ctx context.Context, target string) (conn net.Conn, err error)
+type dialer func(ctx context.Context, target string) (conn net.Conn, err error)
 
-func GRPCDialer(pconn *net.UDPConn) (dialer Dialer) {
+func dialAdapter(pconn *net.UDPConn) (dialer dialer) {
 
 	dialer = func(ctx context.Context, target string) (conn net.Conn, err error) {
 		tlsConf := &tls.Config{
@@ -60,7 +60,7 @@ func GRPCDialer(pconn *net.UDPConn) (dialer Dialer) {
 
 		//log.Printf("quic.DialAddrContext rAddr=%v", rAddr)
 
-		sess, err := quic.DialContext(ctx, pconn, rAddr, "", tlsConf, Config)
+		sess, err := quic.DialContext(ctx, pconn, rAddr, "", tlsConf, config)
 		if err != nil {
 			return
 		}
