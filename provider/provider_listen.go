@@ -38,7 +38,7 @@ func (prov *provider) listenRelay() {
 func (prov *provider) listenP2P() {
 	for {
 		ctx := context.Background()
-		p2p, err := stargate.DialQUICgRPCListener(ctx, prov.providerId)
+		p2p, err := stargate.ListenerNet(ctx, prov.providerId)
 		if err != nil {
 			log.Println(err)
 			continue
@@ -71,14 +71,14 @@ func (prov *provider) listenLocal() {
 
 	addr, ok := lis.Addr().(*net.TCPAddr)
 	if !ok {
-		log.Fatalf("listenLocal: could not cast lis.Addr().(*net.TCPAddr)")
+		log.Fatalf("listenLocal: could not cast lis.Addr().(*net.tcpAddr)")
 	}
 
 	log.Printf("listenLocal: addr=%v", addr)
 
 	go func() {
 		ctx := context.Background()
-		err = stargate.PropagateTCP(ctx, prov.providerId, addr)
+		err = stargate.BroadcastTCP(ctx, prov.providerId, addr)
 		if err != nil {
 			log.Fatalln(err)
 		}

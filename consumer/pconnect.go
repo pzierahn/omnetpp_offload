@@ -45,7 +45,7 @@ func (cons *consumer) connectP2P(prov *pb.ProviderInfo) (cc *grpc.ClientConn, er
 	ctx, cln := context.WithTimeout(context.Background(), time.Second*5)
 	defer cln()
 
-	return stargate.DialGRPCClientConn(ctx, prov.ProviderId)
+	return stargate.DialGRPC(ctx, prov.ProviderId)
 }
 
 func (cons *consumer) connectRelay(prov *pb.ProviderInfo) (cc *grpc.ClientConn, err error) {
@@ -77,7 +77,7 @@ func (cons *consumer) connectLocal(prov *pb.ProviderInfo) (cc *grpc.ClientConn, 
 
 	log.Printf("connectLocal: %v", prov.ProviderId)
 
-	ctx, cln := context.WithTimeout(cons.ctx, time.Millisecond*3000)
+	ctx, cln := context.WithTimeout(cons.ctx, time.Second)
 	defer cln()
 
 	addr, err := stargate.DialLocal(ctx, prov.ProviderId)

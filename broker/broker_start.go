@@ -14,14 +14,7 @@ import (
 func Start() (err error) {
 
 	go func() {
-		err := stargate.Server(context.Background())
-		if err != nil {
-			log.Fatalln(err)
-		}
-	}()
-
-	go func() {
-		err := stargate.ServerRelayTCP()
+		err := stargate.Server(context.Background(), true)
 		if err != nil {
 			log.Fatalln(err)
 		}
