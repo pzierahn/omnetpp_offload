@@ -2,6 +2,7 @@ package consumer
 
 import (
 	"context"
+	"github.com/pzierahn/project.go.omnetpp/eval"
 	"github.com/pzierahn/project.go.omnetpp/gconfig"
 	pb "github.com/pzierahn/project.go.omnetpp/proto"
 	"github.com/pzierahn/project.go.omnetpp/simple"
@@ -12,7 +13,7 @@ import (
 
 func Start(ctx context.Context, config *Config) {
 
-	go statisticJsonApi()
+	//go statisticJsonApi()
 
 	if config.Tag == "" {
 		config.Tag = filepath.Base(config.Path)
@@ -22,6 +23,10 @@ func Start(ctx context.Context, config *Config) {
 	log.Println("#################################################")
 	log.Printf("Start: simulation %s", id)
 	log.Println("#################################################")
+
+	eval.ScenarioId = "123"
+	eval.TrailId = "1"
+	eval.SimulationId = id
 
 	log.Printf("Start: connecting to broker (%v)", gconfig.BrokerDialAddr())
 
@@ -75,7 +80,9 @@ func Start(ctx context.Context, config *Config) {
 
 	log.Printf("Start: simulation finished!")
 
-	showStatistic()
+	eval.WriteRuns(filepath.Join(config.Path, "opp-edge-eval-runs.csv"))
+	eval.WriteTransfers(filepath.Join(config.Path, "opp-edge-eval-transfers.csv"))
+	eval.WriteSetup(filepath.Join(config.Path, "opp-edge-eval-setup.csv"))
 
 	return
 }

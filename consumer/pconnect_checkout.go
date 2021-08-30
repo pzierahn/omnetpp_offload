@@ -2,12 +2,11 @@ package consumer
 
 import (
 	"context"
+	"github.com/pzierahn/project.go.omnetpp/eval"
 	pb "github.com/pzierahn/project.go.omnetpp/proto"
 	"github.com/pzierahn/project.go.omnetpp/simple"
-	"github.com/pzierahn/project.go.omnetpp/statistic"
 	"github.com/pzierahn/project.go.omnetpp/storage"
 	"log"
-	"time"
 )
 
 type checkoutObject struct {
@@ -22,7 +21,10 @@ func (pConn *providerConnection) checkout(meta *checkoutObject) (err error) {
 	log.Printf("[%s] upload: %+v (%v)",
 		pConn.name(), meta.Filename, simple.ByteSize(size))
 
-	startUpload := time.Now()
+	uDuration := eval.LogTransfer(eval.Transfer{
+		ProviderId: pConn.name(),
+		Direction:  eval.TransferDirectionUpload,
+	})
 
 	ui := make(chan storage.UploadInfo)
 	defer close(ui)
@@ -48,18 +50,17 @@ func (pConn *providerConnection) checkout(meta *checkoutObject) (err error) {
 	}
 	ref, err := storeCli.Upload(upload, ui)
 	if err != nil {
-		return
+		return uDuration.Error(err)
 	}
 
-	uploadTime := time.Now().Sub(startUpload)
-	startCheckout := time.Now()
+	uploadTime := uDuration.Success(size)
 
 	log.Printf("[%s] upload: finished file=%s packages=%d time=%v",
 		pConn.name(), meta.Filename, info.Parcels, uploadTime)
 
-	stat.GetUpload(pConn.name()).Add(statistic.Transfer{
-		Duration: uploadTime,
-		Size:     size,
+	checkoutDuration := eval.LogRun(eval.Run{
+		Command:    eval.CommandCheckout,
+		ProviderId: pConn.name(),
 	})
 
 	log.Printf("[%s] checkout: %s...", pConn.name(), meta.Filename)
@@ -69,12 +70,10 @@ func (pConn *providerConnection) checkout(meta *checkoutObject) (err error) {
 		Source:       ref,
 	})
 
-	checkoutDur := time.Now().Sub(startCheckout)
+	checkoutDur := checkoutDuration.Success()
 
 	log.Printf("[%s] checkout: %s done (%v)",
 		pConn.name(), meta.Filename, checkoutDur)
-
-	stat.GetCheckout(pConn.name()).Add(checkoutDur)
 
 	//
 	// TODO: Delete checked-out refs

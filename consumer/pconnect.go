@@ -3,6 +3,7 @@ package consumer
 import (
 	"context"
 	"github.com/pzierahn/project.go.omnetpp/equic"
+	"github.com/pzierahn/project.go.omnetpp/eval"
 	pb "github.com/pzierahn/project.go.omnetpp/proto"
 	"github.com/pzierahn/project.go.omnetpp/stargate"
 	"google.golang.org/grpc"
@@ -26,15 +27,21 @@ func (cons *consumer) connect(prov *pb.ProviderInfo) (conn *grpc.ClientConn, err
 
 	conn, err = cons.connectLocal(prov)
 	if err == nil {
+		eval.LogSetup(eval.ConnectLocal, prov)
 		return
 	}
 
 	conn, err = cons.connectP2P(prov)
 	if err == nil {
+		eval.LogSetup(eval.ConnectP2P, prov)
 		return
 	}
 
 	conn, err = cons.connectRelay(prov)
+
+	if err == nil {
+		eval.LogSetup(eval.ConnectRelay, prov)
+	}
 
 	return
 }

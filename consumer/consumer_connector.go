@@ -66,8 +66,6 @@ func (cons *consumer) startConnector(onInit chan int32) {
 					store:    pb.NewStorageClient(cc),
 				}
 
-				stat.SetInfo(prov.ProviderId, prov)
-
 				err = pconn.init(cons)
 				if err != nil {
 					log.Println(prov.ProviderId, err)

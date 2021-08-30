@@ -3,14 +3,13 @@ package consumer
 import (
 	"bytes"
 	"fmt"
+	"github.com/pzierahn/project.go.omnetpp/eval"
 	pb "github.com/pzierahn/project.go.omnetpp/proto"
 	"github.com/pzierahn/project.go.omnetpp/simple"
-	"github.com/pzierahn/project.go.omnetpp/statistic"
 	"github.com/pzierahn/project.go.omnetpp/storage"
 	"github.com/pzierahn/project.go.omnetpp/sysinfo"
 	"log"
 	"sync"
-	"time"
 )
 
 var archMu sync.Mutex
@@ -26,18 +25,25 @@ func (pConn *providerConnection) compileAndDownload(simulation *pb.Simulation) (
 
 	log.Printf("[%s] compile: %s", pConn.name(), arch)
 
-	ccStart := time.Now()
+	ccDone := eval.LogRun(eval.Run{
+		Command:    eval.CommandCompile,
+		ProviderId: pConn.name(),
+	})
 
 	var bin *pb.Binary
 	bin, err = pConn.provider.Compile(pConn.ctx, simulation)
 	if err != nil {
-		return
+		return ccDone.Error(err)
 	}
 
-	duration := stat.GetCompile(pConn.name()).Until(ccStart)
+	duration := ccDone.Success()
 	log.Printf("[%s] compile: %s done (%v)", pConn.name(), arch, duration)
 
-	dl := time.Now()
+	//downDone := eval.RecordDuration(eval.DurationDownload, pConn.name())
+	downDone := eval.LogTransfer(eval.Transfer{
+		ProviderId: pConn.name(),
+		Direction:  eval.TransferDirectionDownload,
+	})
 
 	var buf bytes.Buffer
 	buf, err = store.Download(pConn.ctx, bin.Ref)
@@ -45,19 +51,15 @@ func (pConn *providerConnection) compileAndDownload(simulation *pb.Simulation) (
 		return
 	}
 
-	dlDuration := time.Now().Sub(dl)
 	size := uint64(buf.Len())
-	stat.GetDownload(pConn.name()).Add(statistic.Transfer{
-		Duration: dlDuration,
-		Size:     size,
-	})
+	dlDuration := downDone.Success(size)
+
+	log.Printf("[%s] compile: downloaded %s exe (%v in %v)",
+		pConn.name(), arch, simple.ByteSize(size), dlDuration)
 
 	binaryMu.Lock()
 	binaries[arch] = buf.Bytes()
 	binaryMu.Unlock()
-
-	log.Printf("[%s] compile: downloaded %s exe (%v in %v)",
-		pConn.name(), arch, simple.ByteSize(size), dlDuration)
 
 	return
 }

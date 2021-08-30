@@ -31,11 +31,8 @@ func (pConn *providerConnection) allocationHandler(stream pb.Provider_AllocateCl
 			go func() {
 				// TODO: Find a better way to handle this
 
-				err := pConn.run(task)
-				if err != nil {
-					log.Printf("[%s] error %v", pConn.name(), err)
+				if err := pConn.run(task); err != nil {
 					log.Printf("[%s] reschedule %s_%s", pConn.name(), task.Config, task.RunNum)
-
 					// Add item back to queue to send right allocation num
 					cons.allocate.add(task)
 				} else {
