@@ -1,0 +1,20 @@
+scenario_id,trail_id,simulation,devices,cores,arch,docker,connect,Notes
+0,1,tictoc,Patricks-MBP,8,amd64,FALSE,no connect,Reference without using opp_edge
+,2,tictoc,Patricks-MBP,8,amd65,FALSE,no connect,
+,3,tictoc,Patricks-MBP,8,amd66,FALSE,no connect,
+,,,,,,,,
+1,1,tictoc,Patricks-MBP,8,amd64,FALSE,local,opp_edge without docker
+,2,tictoc,Patricks-MBP,8,amd65,FALSE,local,
+,3,tictoc,Patricks-MBP,8,amd66,FALSE,local,
+,,,,,,,,
+2,1,tictoc,Patricks-MBP,8,amd64,FALSE,p2p,
+,2,tictoc,Patricks-MBP,8,amd65,FALSE,p2p,
+,3,tictoc,Patricks-MBP,8,amd66,FALSE,p2p,
+,,,,,,,,
+3,1,tictoc,Patricks-MBP,8,amd64,TRUE,p2p,Compare scenario 2 to 3 to determine docker overhead
+,2,tictoc,Patricks-MBP,8,amd65,TRUE,p2p,
+,3,tictoc,Patricks-MBP,8,amd66,TRUE,p2p,
+,,,,,,,,
+4,1,tictoc,Patricks-MBP,8,amd64,TRUE,relay,Compare scenario 3 to 4 to determine relay overhead
+,2,tictoc,Patricks-MBP,8,amd65,TRUE,relay,
+,3,tictoc,Patricks-MBP,8,amd66,TRUE,relay,

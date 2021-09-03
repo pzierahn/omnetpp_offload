@@ -1,0 +1,4 @@
+scenario_id,simulation_id,trail_id,time_stamp,connect,provider_id,num_cpus,arch,os
+123,tictoc-540cf318,1,2021-08-28T13:45:14.120854+02:00,Relay,raspberry3b-89798c31,4,arm64,linux
+123,tictoc-540cf318,1,2021-08-28T13:45:14.486061+02:00,Relay,raspberry3-9f5b711c,4,arm64,linux
+123,tictoc-540cf318,1,2021-08-28T13:45:14.493625+02:00,Relay,raspberry4-980aff71,4,arm64,linux
