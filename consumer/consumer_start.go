@@ -8,6 +8,7 @@ import (
 	"github.com/pzierahn/project.go.omnetpp/simple"
 	"google.golang.org/grpc"
 	"log"
+	"os"
 	"path/filepath"
 )
 
@@ -24,8 +25,8 @@ func Start(ctx context.Context, config *Config) {
 	log.Printf("Start: simulation %s", id)
 	log.Println("#################################################")
 
-	eval.ScenarioId = "123"
-	eval.TrailId = "1"
+	eval.ScenarioId = os.Getenv("ScenarioId")
+	eval.TrailId = os.Getenv("TrailId")
 	eval.SimulationId = id
 
 	log.Printf("Start: connecting to broker (%v)", gconfig.BrokerDialAddr())
@@ -80,9 +81,9 @@ func Start(ctx context.Context, config *Config) {
 
 	log.Printf("Start: simulation finished!")
 
-	eval.WriteRuns(filepath.Join(config.Path, "opp-edge-eval-runs.csv"))
-	eval.WriteTransfers(filepath.Join(config.Path, "opp-edge-eval-transfers.csv"))
-	eval.WriteSetup(filepath.Join(config.Path, "opp-edge-eval-setup.csv"))
+	eval.WriteRuns(filepath.Join(config.Path, "opp-edge-eval-runs-"+eval.ScenarioId+".csv"))
+	eval.WriteTransfers(filepath.Join(config.Path, "opp-edge-eval-transfers-"+eval.ScenarioId+".csv"))
+	eval.WriteSetup(filepath.Join(config.Path, "opp-edge-eval-setup-"+eval.ScenarioId+".csv"))
 
 	return
 }
