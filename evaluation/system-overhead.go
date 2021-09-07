@@ -8,9 +8,12 @@ import (
 	"log"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"runtime"
 	"time"
 )
+
+// opp_edge_run -path ~/tictoc -config ~/tictoc/opp-edge-config.json
 
 const (
 	repeat = 3
@@ -65,6 +68,8 @@ func scenario(scenario string) {
 		})
 
 		writer.Flush()
+
+		_ = os.RemoveAll(filepath.Join(simulation, "opp-edge-results"))
 	}
 }
 

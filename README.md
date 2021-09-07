@@ -37,6 +37,13 @@ go run cmd/consumer/opp_edge_run.go -path ~/github/TaskletSimulator -config ~/gi
 go run cmd/consumer/opp_edge_run.go -path ~/Desktop/tictoc -config ~/Desktop/tictoc/opp-edge-config.json
 ```
 
+## Install and run broker
+
+```shell
+go install cmd/broker/opp_edge_broker.go
+nohup opp_edge_broker > opp_edge_broker.log 2>&1 &
+```
+
 ## Developer Notes
 
 Install protobuf dependencies
