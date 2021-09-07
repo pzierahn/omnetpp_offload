@@ -42,7 +42,7 @@ func (p2p *p2pConnector) sendSeeYou(ctx context.Context) (err error) {
 		}
 		p2p.mu.RUnlock()
 
-		log.Printf("send: %v", ack)
+		log.Printf("send: %v to %v", ack, p2p.peer)
 
 		_, err = p2p.conn.WriteToUDP(ack, p2p.peer)
 		if err != nil {
