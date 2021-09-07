@@ -45,7 +45,7 @@ func base() {
 
 func scenario(scenario string) {
 	for inx := 0; inx < repeat; inx++ {
-		cmd := exec.Command("opp_edge_run")
+		cmd := exec.Command("opp_edge_run", "-broker", "85.214.35.83")
 		cmd.Dir = simulation
 		cmd.Env = os.Environ()
 		cmd.Env = append(cmd.Env, "SCENARIOID="+scenario)
@@ -117,7 +117,6 @@ func main() {
 		cnl()
 	} else {
 		log.Println("Record scenario: " + scenarioId)
-
 		scenario(scenarioId)
 	}
 
