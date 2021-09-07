@@ -77,13 +77,22 @@ func main() {
 	flag.StringVar(&scenarioId, "s", "", "scenario")
 	flag.Parse()
 
-	if runtime.GOOS == "dawin" {
+	if runtime.GOOS == "darwin" {
 		simulation = "/Users/patrick/Desktop/tictoc"
 	} else {
 		simulation = "/home/fioo/patrick/tictoc"
 	}
 
-	filename := fmt.Sprintf("system-overhead-%s.csv", scenarioId)
+	var filename string
+
+	if scenarioId == "" {
+		dir := "system-overhead-scenarios"
+		_ = os.MkdirAll(dir, 0755)
+		filename = filepath.Join(dir, "system-overhead-local.csv")
+	} else {
+		filename = fmt.Sprintf("system-overhead-%s.csv", scenarioId)
+	}
+
 	_ = os.Remove(filename)
 
 	file, err := os.Create(filename)
