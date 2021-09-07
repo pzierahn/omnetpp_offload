@@ -2,6 +2,7 @@ package consumer
 
 import (
 	"context"
+	"fmt"
 	"github.com/pzierahn/project.go.omnetpp/eval"
 	"github.com/pzierahn/project.go.omnetpp/gconfig"
 	pb "github.com/pzierahn/project.go.omnetpp/proto"
@@ -81,9 +82,10 @@ func Start(ctx context.Context, config *Config) {
 
 	log.Printf("Start: simulation finished!")
 
-	eval.WriteRuns(filepath.Join(config.Path, "opp-edge-eval-runs-"+eval.ScenarioId+".csv"))
-	eval.WriteTransfers(filepath.Join(config.Path, "opp-edge-eval-transfers-"+eval.ScenarioId+".csv"))
-	eval.WriteSetup(filepath.Join(config.Path, "opp-edge-eval-setup-"+eval.ScenarioId+".csv"))
+	scenarioName := fmt.Sprintf("s%0s-t%0s", eval.ScenarioId, eval.TrailId)
+	eval.WriteRuns(filepath.Join(config.Path, "opp-edge-eval-runs-"+scenarioName+".csv"))
+	eval.WriteTransfers(filepath.Join(config.Path, "opp-edge-eval-transfers-"+scenarioName+".csv"))
+	eval.WriteSetup(filepath.Join(config.Path, "opp-edge-eval-setup-"+scenarioName+".csv"))
 
 	return
 }
