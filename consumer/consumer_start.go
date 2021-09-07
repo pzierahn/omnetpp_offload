@@ -25,8 +25,8 @@ func Start(ctx context.Context, config *Config) {
 	log.Printf("Start: simulation %s", id)
 	log.Println("#################################################")
 
-	eval.ScenarioId = os.Getenv("ScenarioId")
-	eval.TrailId = os.Getenv("TrailId")
+	eval.ScenarioId = os.Getenv("SCENARIOID")
+	eval.TrailId = os.Getenv("TRAILID")
 	eval.SimulationId = id
 
 	log.Printf("Start: connecting to broker (%v)", gconfig.BrokerDialAddr())

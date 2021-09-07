@@ -1,10 +1,7 @@
-run,duration,scenario
-0,47.233643996s,opp_runall
-1,47.566043849s,opp_runall
-2,45.990904016s,opp_runall
-0,57.377697478s,opp_edge_run
-1,56.945937519s,opp_edge_run
-2,56.946112762s,opp_edge_run
-0,4m14.564029799s,opp_edge_run docker
-1,2m26.511455743s,opp_edge_run docker
-2,2m47.348556028s,opp_edge_run docker
+scenario,run,duration
+0,0,49.281814752s
+0,1,51.333560305s
+0,2,46.784119303s
+1,0,1m54.398371117s
+1,1,1m29.345375415s
+1,2,1m45.082743241s

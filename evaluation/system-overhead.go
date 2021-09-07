@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"encoding/csv"
+	"flag"
 	"fmt"
 	"log"
 	"os"
@@ -14,7 +15,62 @@ const (
 	repeat = 3
 )
 
+var writer *csv.Writer
+
+func base() {
+	for inx := 0; inx < repeat; inx++ {
+		cmd := exec.Command("opp_runall", "-j", "8", "./tictoc", "-c", "TicToc18")
+		cmd.Dir = "/Users/patrick/Desktop/tictoc"
+
+		log.Printf("Run 0 --> %d", inx)
+		start := time.Now()
+		if err := cmd.Run(); err != nil {
+			panic(err)
+		}
+		end := time.Now()
+
+		duration := end.Sub(start)
+		_ = writer.Write([]string{
+			"0",
+			fmt.Sprint(inx),
+			duration.String(),
+		})
+
+		writer.Flush()
+	}
+}
+
+func scenario(scenario string) {
+	for inx := 0; inx < repeat; inx++ {
+		cmd := exec.Command("opp_edge_run")
+		cmd.Dir = "/Users/patrick/Desktop/tictoc"
+		cmd.Env = os.Environ()
+		cmd.Env = append(cmd.Env, "SCENARIOID="+scenario)
+		cmd.Env = append(cmd.Env, fmt.Sprintf("TRAILID=%d", inx))
+
+		log.Printf("Run %s --> %d", scenario, inx)
+		start := time.Now()
+		if err := cmd.Run(); err != nil {
+			panic(err)
+		}
+		end := time.Now()
+
+		duration := end.Sub(start)
+		_ = writer.Write([]string{
+			scenario,
+			fmt.Sprint(inx),
+			duration.String(),
+		})
+
+		writer.Flush()
+	}
+}
+
 func main() {
+
+	var scenarioId string
+	flag.StringVar(&scenarioId, "scenario", "", "scenario")
+	flag.Parse()
 
 	filename := "system-overhead.csv"
 	_ = os.Remove(filename)
@@ -25,118 +81,56 @@ func main() {
 	}
 	defer func() { _ = file.Close() }()
 
-	writer := csv.NewWriter(file)
+	writer = csv.NewWriter(file)
 	defer writer.Flush()
 
-	_ = writer.Write([]string{"run", "duration", "scenario"})
+	_ = writer.Write([]string{"scenario", "run", "duration"})
 
-	//
-	// Local
-	//
+	if scenarioId == "" {
+		//
+		// Local
+		//
 
-	for inx := 0; inx < repeat; inx++ {
-		cmd := exec.Command("opp_runall", "-j", "8", "./tictoc", "-c", "TicToc18")
-		cmd.Dir = "/Users/patrick/Desktop/tictoc"
-		cmd.Env = []string{
-			"ScenarioId", "1",
-			"TrailId", fmt.Sprint(inx),
-		}
+		log.Println("Local")
 
-		log.Printf("Run %d", inx)
-		start := time.Now()
-		if err := cmd.Run(); err != nil {
+		base()
+
+		ctx, cnl := context.WithCancel(context.Background())
+		worker := exec.CommandContext(ctx, "opp_edge_worker")
+		if err := worker.Start(); err != nil {
 			panic(err)
 		}
-		end := time.Now()
 
-		duration := end.Sub(start)
-		_ = writer.Write([]string{
-			fmt.Sprint(inx),
-			duration.String(),
-			"opp_runall",
-		})
+		scenario("1")
+
+		cnl()
+	} else {
+		log.Println("Record scenario: " + scenarioId)
+
+		scenario(scenarioId)
 	}
 
+	////
+	//// Local with opp_edge and docker
+	////
 	//
-	// Local with opp_edge
+	//docker := exec.Command(
+	//	"docker", "run", "--rm", "-d",
+	//	"pzierahn/omnetpp_edge", "opp_edge_worker", "-broker", "85.214.35.83")
 	//
-
-	ctx, cnl := context.WithCancel(context.Background())
-	worker := exec.CommandContext(ctx, "opp_edge_worker")
-	if err := worker.Start(); err != nil {
-		panic(err)
-	}
-
-	for inx := 0; inx < repeat; inx++ {
-		cmd := exec.Command("opp_edge_run")
-		cmd.Dir = "/Users/patrick/Desktop/tictoc"
-		cmd.Env = os.Environ()
-		cmd.Env = append(cmd.Env, "SCENARIOID=2")
-		cmd.Env = append(cmd.Env, fmt.Sprintf("TRAILID=%d", inx))
-
-		log.Printf("Run %d %s", inx, cmd.Path)
-		start := time.Now()
-		if err := cmd.Run(); err != nil {
-			panic(err)
-		}
-		end := time.Now()
-
-		duration := end.Sub(start)
-		_ = writer.Write([]string{
-			fmt.Sprint(inx),
-			duration.String(),
-			"opp_edge_run",
-		})
-	}
-
-	cnl()
-
-	//
-	// Local with opp_edge and docker
-	//
-
-	docker := exec.Command(
-		"docker", "run", "--rm", "-d",
-		"pzierahn/omnetpp_edge", "opp_edge_worker", "-broker", "85.214.35.83")
-
-	id, err := docker.CombinedOutput()
-	if err != nil {
-		panic(err)
-	}
-
-	time.Sleep(time.Second * 3)
-
-	for inx := 0; inx < repeat; inx++ {
-		cmd := exec.Command("opp_edge_run")
-		cmd.Dir = "/Users/patrick/Desktop/tictoc"
-		cmd.Env = os.Environ()
-		cmd.Env = append(cmd.Env, "SCENARIOID=3")
-		cmd.Env = append(cmd.Env, fmt.Sprintf("TRAILID=%d", inx))
-
-		log.Printf("Run %d %s", inx, cmd.Path)
-		start := time.Now()
-		if err := cmd.Run(); err != nil {
-			panic(err)
-		}
-		//if err := cmd.Run(); err != nil {
-		//	panic(err)
-		//}
-		end := time.Now()
-
-		duration := end.Sub(start)
-		_ = writer.Write([]string{
-			fmt.Sprint(inx),
-			duration.String(),
-			"opp_edge_run docker",
-		})
-	}
-
-	log.Printf("############### docker kill %s", string(id))
-
-	//kill := exec.Command("docker", "kill", string(id))
-	//kill.Env = os.Environ()
-	//if byt, err := kill.CombinedOutput(); err != nil {
-	//	fmt.Println(string(byt))
+	//id, err := docker.CombinedOutput()
+	//if err != nil {
 	//	panic(err)
 	//}
+	//
+	//scenario("1")
+	//
+	//log.Printf("############### docker kill %s", string(id))
+	//
+	////kill := exec.Command("docker", "kill", string(id))
+	////kill.Env = os.Environ()
+	////if byt, err := kill.CombinedOutput(); err != nil {
+	////	fmt.Println(string(byt))
+	////	panic(err)
+	////}
 }
