@@ -1,16 +1,17 @@
 package consumer
 
 import (
+	"bytes"
 	"github.com/pzierahn/project.go.omnetpp/eval"
 	pb "github.com/pzierahn/project.go.omnetpp/proto"
 	"github.com/pzierahn/project.go.omnetpp/simple"
 	"github.com/pzierahn/project.go.omnetpp/storage"
-	"io/ioutil"
 	"log"
+	"os"
 	"path/filepath"
 )
 
-func (pConn *providerConnection) run(task *pb.SimulationRun) (err error) {
+func (pConn *providerConnection) run(task *pb.SimulationRun, config *Config) (err error) {
 	runName := task.Config + "-" + task.RunNum
 	log.Printf("[%s] %s start", pConn.name(), runName)
 
@@ -49,13 +50,28 @@ func (pConn *providerConnection) run(task *pb.SimulationRun) (err error) {
 	log.Printf("[%s] %s downloaded results %v in %v",
 		pConn.name(), runName, simple.ByteSize(dlsize), transfer)
 
-	// TODO: Extract files to the right place
-	dump := "/Users/patrick/Desktop/dump"
-	err = ioutil.WriteFile(filepath.Join(dump, runName+".tgz"), buf.Bytes(), 0755)
+	//
+	// Extract files to the right place
+	//
+
+	dump := filepath.Join(config.Path, "opp-edge-results")
+	err = os.MkdirAll(dump, 0755)
 	if err != nil {
 		log.Printf("[%s] error %v", pConn.name(), err)
 		return
 	}
+
+	err = simple.UnTarGz(dump, bytes.NewReader(buf.Bytes()))
+	if err != nil {
+		log.Printf("[%s] error %v", pConn.name(), err)
+		return
+	}
+
+	//err = ioutil.WriteFile(filepath.Join(dump, runName+".tgz"), buf.Bytes(), 0755)
+	//if err != nil {
+	//	log.Printf("[%s] error %v", pConn.name(), err)
+	//	return
+	//}
 
 	_, err = pConn.store.Delete(pConn.ctx, resultRef)
 
