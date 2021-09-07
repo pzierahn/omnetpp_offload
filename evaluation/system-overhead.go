@@ -85,7 +85,7 @@ func main() {
 		simulation = "/home/pzierahn/tictoc"
 	}
 
-	filename := "system-overhead.csv"
+	filename := fmt.Sprintf("system-overhead-%s.csv", scenarioId)
 	_ = os.Remove(filename)
 
 	file, err := os.Create(filename)
