@@ -13,8 +13,6 @@ import (
 	"time"
 )
 
-// opp_edge_run -path ~/tictoc -config ~/tictoc/opp-edge-config.json
-
 const (
 	repeat = 3
 )
@@ -82,7 +80,7 @@ func main() {
 	if runtime.GOOS == "dawin" {
 		simulation = "/Users/patrick/Desktop/tictoc"
 	} else {
-		simulation = "/home/pzierahn/tictoc"
+		simulation = "/home/fioo/patrick/tictoc"
 	}
 
 	filename := fmt.Sprintf("system-overhead-%s.csv", scenarioId)
