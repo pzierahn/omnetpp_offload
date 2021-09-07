@@ -23,3 +23,4 @@ debug
 build/
 
 .DS_Store
+/evaluation/connect.txt
