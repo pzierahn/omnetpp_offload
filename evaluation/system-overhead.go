@@ -8,6 +8,7 @@ import (
 	"log"
 	"os"
 	"os/exec"
+	"runtime"
 	"time"
 )
 
@@ -16,11 +17,12 @@ const (
 )
 
 var writer *csv.Writer
+var simulation string
 
 func base() {
 	for inx := 0; inx < repeat; inx++ {
 		cmd := exec.Command("opp_runall", "-j", "8", "./tictoc", "-c", "TicToc18")
-		cmd.Dir = "/Users/patrick/Desktop/tictoc"
+		cmd.Dir = simulation
 
 		log.Printf("Run 0 --> %d", inx)
 		start := time.Now()
@@ -43,7 +45,7 @@ func base() {
 func scenario(scenario string) {
 	for inx := 0; inx < repeat; inx++ {
 		cmd := exec.Command("opp_edge_run")
-		cmd.Dir = "/Users/patrick/Desktop/tictoc"
+		cmd.Dir = simulation
 		cmd.Env = os.Environ()
 		cmd.Env = append(cmd.Env, "SCENARIOID="+scenario)
 		cmd.Env = append(cmd.Env, fmt.Sprintf("TRAILID=%d", inx))
@@ -69,8 +71,14 @@ func scenario(scenario string) {
 func main() {
 
 	var scenarioId string
-	flag.StringVar(&scenarioId, "scenario", "", "scenario")
+	flag.StringVar(&scenarioId, "s", "", "scenario")
 	flag.Parse()
+
+	if runtime.GOOS == "dawin" {
+		simulation = "/Users/patrick/Desktop/tictoc"
+	} else {
+		simulation = "/home/pzierahn/tictoc"
+	}
 
 	filename := "system-overhead.csv"
 	_ = os.Remove(filename)
