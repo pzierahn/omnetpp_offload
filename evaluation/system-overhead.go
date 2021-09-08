@@ -68,6 +68,7 @@ func scenario(scenario string) {
 		writer.Flush()
 
 		_ = os.RemoveAll(filepath.Join(simulation, "opp-edge-results"))
+		_ = os.RemoveAll(filepath.Join(simulation, "results"))
 	}
 }
 
