@@ -9,20 +9,20 @@ import (
 
 func main() {
 
-	//out := "system-overhead.csv"
-	//dir := "system-overhead-scenarios"
+	start := ""
+	out := "system-overhead.csv"
+	dir := "system-overhead-scenarios"
 
-	start := "opp-edge-eval-setup"
-	out := "opp-edge-eval-setup.csv"
-	dir := "system-overhead-data"
+	//dir := "system-overhead-data"
+
+	//start := "opp-edge-eval-setup"
+	//out := "opp-edge-eval-setup.csv"
 
 	//start := "opp-edge-eval-transfers"
 	//out := "opp-edge-eval-transfers.csv"
-	//dir := "system-overhead-data"
 
 	//start := "opp-edge-eval-runs"
 	//out := "opp-edge-eval-runs.csv"
-	//dir := "system-overhead-data"
 
 	files, err := os.ReadDir(dir)
 	if err != nil {
