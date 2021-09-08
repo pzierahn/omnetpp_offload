@@ -9,8 +9,20 @@ import (
 
 func main() {
 
-	out := "system-overhead.csv"
-	dir := "system-overhead-scenarios"
+	//out := "system-overhead.csv"
+	//dir := "system-overhead-scenarios"
+
+	start := "opp-edge-eval-setup"
+	out := "opp-edge-eval-setup.csv"
+	dir := "system-overhead-data"
+
+	//start := "opp-edge-eval-transfers"
+	//out := "opp-edge-eval-transfers.csv"
+	//dir := "system-overhead-data"
+
+	//start := "opp-edge-eval-runs"
+	//out := "opp-edge-eval-runs.csv"
+	//dir := "system-overhead-data"
 
 	files, err := os.ReadDir(dir)
 	if err != nil {
@@ -18,8 +30,14 @@ func main() {
 	}
 
 	var entries []string
+	var inx int
 
-	for inx, file := range files {
+	for _, file := range files {
+
+		if !strings.HasPrefix(file.Name(), start) {
+			continue
+		}
+
 		byt, err := os.ReadFile(filepath.Join(dir, file.Name()))
 		if err != nil {
 			panic(err)
@@ -34,6 +52,8 @@ func main() {
 		} else {
 			entries = append(entries, lines[1:]...)
 		}
+
+		inx++
 	}
 
 	data := strings.Join(entries, "\n") + "\n"
