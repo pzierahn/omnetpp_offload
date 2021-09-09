@@ -1,2 +1,2 @@
 scenario_id,simulation_id,trail_id,time_stamp,connect,provider_id,num_cpus,arch,os
-4,tictoc-9ba3bb0e,0,2021-09-07T16:32:20.586846693+02:00,Relay,patricks-mbp-20e0271b,8,amd64,darwin
+4,tictoc-7dcefd5e,0,2021-09-08T14:54:01.793031358+02:00,Relay,patricks-mbp-bd9e1895,8,amd64,darwin
