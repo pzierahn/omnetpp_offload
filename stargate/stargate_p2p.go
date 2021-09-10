@@ -24,7 +24,7 @@ type p2pConnector struct {
 //	return ack[0] == 1
 //}
 
-// Send hello messages to open the NAT
+// Send see-you messages to open the NAT
 func (p2p *p2pConnector) sendSeeYou(ctx context.Context) (err error) {
 
 	// Wait for some time to ensure that all message get received properly
@@ -60,12 +60,15 @@ func (p2p *p2pConnector) sendSeeYou(ctx context.Context) (err error) {
 	return
 }
 
-// Receive hello messages from peers
-func (p2p *p2pConnector) receive() error {
+// Receive see-you messages from peers
+func (p2p *p2pConnector) receiveSeeYou() error {
 
 	var ack = make([]byte, 2)
 	var success bool
 
+	// Try to receive all see-you messages.
+	// Break after the last message has been received,
+	// to prevent see-you messages from interfering at a later point.
 	for inx := 0; inx < p2p.packages; inx++ {
 		br, remote, err := p2p.conn.ReadFromUDP(ack)
 		if err != nil {
@@ -80,7 +83,7 @@ func (p2p *p2pConnector) receive() error {
 			continue
 		}
 
-		log.Printf("received: peer=%v received=%v\n", p2p.peer, ack[:br])
+		log.Printf("receiveSeeYou: peer=%v received=%v\n", p2p.peer, ack[:br])
 
 		p2p.mu.Lock()
 		p2p.received = true
@@ -123,7 +126,7 @@ func (p2p *p2pConnector) connect(ctx context.Context) (err error) {
 	go func() {
 		defer wg.Done()
 
-		receiveErr := p2p.receive()
+		receiveErr := p2p.receiveSeeYou()
 		if receiveErr != nil {
 			once.Do(func() {
 				err = receiveErr

@@ -110,7 +110,7 @@ func (server *stargateServer) receiveDial() (err error) {
 	}
 
 	dial := string(buffer[0:br])
-	log.Printf("receive: dialAddr=%s remoteAddr=%v", dial, addr)
+	log.Printf("receiveDial: dialAddr=%s remoteAddr=%v", dial, addr)
 
 	server.mu.Lock()
 	defer server.mu.Unlock()
