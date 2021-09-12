@@ -15,10 +15,10 @@ import (
 )
 
 const (
-	fileActions   = "actions.csv"
-	fileRuns      = "runs.csv"
-	fileTransfers = "transfers.csv"
-	fileSetups    = "setups.csv"
+	fileActions   = "opp-edge-eval-actions.csv"
+	fileRuns      = "opp-edge-eval-runs.csv"
+	fileTransfers = "opp-edge-eval-setup.csv"
+	fileSetups    = "opp-edge-eval-transfers.csv"
 )
 
 type Server struct {
