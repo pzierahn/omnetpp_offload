@@ -16,6 +16,8 @@ import (
 
 const (
 	repeat = 5
+	broker = "85.214.35.83"
+	//broker = "localhost"
 )
 
 var writer *csv.Writer
@@ -46,7 +48,7 @@ func base() {
 
 func scenario(scenario string) {
 	for inx := 0; inx < repeat; inx++ {
-		cmd := exec.Command("opp_edge_run", "-broker", "85.214.35.83")
+		cmd := exec.Command("opp_edge_run", "-broker", broker)
 		cmd.Dir = simulation
 		cmd.Env = os.Environ()
 		cmd.Env = append(cmd.Env, "SCENARIOID="+scenario)
@@ -97,12 +99,13 @@ func main() {
 
 	var filename string
 
+	dir := "system-overhead-scenarios"
+	_ = os.MkdirAll(dir, 0755)
+
 	if scenarioId == "" {
-		dir := "system-overhead-scenarios"
-		_ = os.MkdirAll(dir, 0755)
 		filename = filepath.Join(dir, "system-overhead-local.csv")
 	} else {
-		filename = fmt.Sprintf("system-overhead-%s.csv", scenarioId)
+		filename = filepath.Join(dir, fmt.Sprintf("system-overhead-%s.csv", scenarioId))
 	}
 
 	_ = os.Remove(filename)
