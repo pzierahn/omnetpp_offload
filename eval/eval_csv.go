@@ -3,13 +3,12 @@ package eval
 import (
 	"encoding/json"
 	"fmt"
+	"google.golang.org/protobuf/reflect/protoreflect"
 	"log"
 	"reflect"
+	"strings"
 	"time"
 )
-
-type xuint32 uint32
-type xint int
 
 func MarshallCSV(obj interface{}) (headers, values []string) {
 	vals := reflect.ValueOf(obj)
@@ -17,11 +16,14 @@ func MarshallCSV(obj interface{}) (headers, values []string) {
 
 	for inx := 0; inx < vals.NumField(); inx++ {
 		field := vals.Field(inx)
-		header := typ.Field(inx).Tag.Get("csv")
+		tag := typ.Field(inx).Tag.Get("json")
+		parts := strings.Split(tag, ",")
 
-		if header == "" {
+		if len(parts) < 1 {
 			continue
 		}
+
+		header := parts[0]
 
 		headers = append(headers, header)
 
@@ -35,12 +37,10 @@ func MarshallCSV(obj interface{}) (headers, values []string) {
 			values = append(values, "")
 		case int:
 			values = append(values, fmt.Sprint(val))
+		case uint32:
+			values = append(values, fmt.Sprint(val))
 		case uint64:
 			values = append(values, fmt.Sprint(val))
-		case xuint32:
-			values = append(values, fmt.Sprintf("0x%08x", val))
-		case xint:
-			values = append(values, fmt.Sprintf("0x%08x", val))
 		case error:
 			values = append(values, val.Error())
 		default:
@@ -51,6 +51,20 @@ func MarshallCSV(obj interface{}) (headers, values []string) {
 
 			values = append(values, string(byt))
 		}
+	}
+
+	return
+}
+
+func MarshallProto(message protoreflect.Message) (headers, values []string) {
+	fields := message.Descriptor().Fields()
+
+	for inx := 0; inx < fields.Len(); inx++ {
+		field := fields.Get(inx)
+		value := message.Get(field)
+
+		headers = append(headers, string(field.Name()))
+		values = append(values, value.String())
 	}
 
 	return

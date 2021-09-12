@@ -1,8 +1,10 @@
 package eval
 
 import (
+	"context"
+	"fmt"
+	pb "github.com/pzierahn/project.go.omnetpp/proto"
 	"math/rand"
-	"sync"
 	"time"
 )
 
@@ -11,86 +13,51 @@ const (
 	TransferDirectionDownload = "Download"
 )
 
-type Transfer struct {
-	ScenarioId       string    `csv:"scenario_id"`
-	SimulationId     string    `csv:"simulation_id"`
-	TrailId          string    `csv:"trail_id"`
-	TimeStamp        time.Time `csv:"time_stamp"`
-	ProviderId       string    `csv:"provider_id"`
-	Step             int       `csv:"step"`
-	MatchId          xuint32   `csv:"match_id"`
-	Direction        string    `csv:"direction"`
-	BytesTransferred uint64    `csv:"bytes_transferred"`
-	Error            error     `csv:"error"`
-}
+func LogTransfer(provider, direction, file string) (done func(dlsize uint64, err error) error) {
 
-type TFeedback struct {
-	Success func(bytes uint64) time.Duration
-	Error   func(err error) error
-}
+	timestamp := time.Now()
+	ts, _ := timestamp.MarshalText()
 
-var tmu sync.Mutex
-var trecords []Transfer
+	id := fmt.Sprintf("0x%00000000x", rand.Uint32())
 
-func LogTransfer(base Transfer) (feedback *TFeedback) {
+	ctx := context.Background()
+	_, _ = client.Transfer(ctx, &pb.TransferEvent{
+		TimeStamp:  string(ts),
+		ProviderId: provider,
+		Step:       uint32(StepStart),
+		EventId:    id,
+		Direction:  direction,
+		File:       file,
+	})
 
-	id := xuint32(rand.Uint32())
+	done = func(size uint64, err error) error {
+		timestamp = time.Now()
+		ts, _ = timestamp.MarshalText()
 
-	start := Transfer{
-		ScenarioId:       ScenarioId,
-		SimulationId:     SimulationId,
-		TrailId:          TrailId,
-		TimeStamp:        time.Now(),
-		MatchId:          id,
-		Step:             StepStart,
-		ProviderId:       base.ProviderId,
-		Direction:        base.Direction,
-		BytesTransferred: base.BytesTransferred,
-	}
+		if err != nil {
+			_, _ = client.Transfer(ctx, &pb.TransferEvent{
+				TimeStamp:   string(ts),
+				ProviderId:  provider,
+				Step:        uint32(StepError),
+				EventId:     id,
+				Direction:   direction,
+				File:        file,
+				Transferred: 0,
+				Error:       err.Error(),
+			})
+		} else {
+			_, _ = client.Transfer(ctx, &pb.TransferEvent{
+				TimeStamp:   string(ts),
+				ProviderId:  provider,
+				Step:        uint32(StepSuccess),
+				EventId:     id,
+				Direction:   direction,
+				File:        file,
+				Transferred: size,
+			})
+		}
 
-	tmu.Lock()
-	trecords = append(trecords, start)
-	tmu.Unlock()
-
-	feedback = &TFeedback{
-		Success: func(bytes uint64) time.Duration {
-			end := Transfer{
-				ScenarioId:       ScenarioId,
-				SimulationId:     SimulationId,
-				TrailId:          TrailId,
-				TimeStamp:        time.Now(),
-				MatchId:          id,
-				Step:             StepSuccess,
-				ProviderId:       base.ProviderId,
-				Direction:        base.Direction,
-				BytesTransferred: bytes,
-			}
-
-			tmu.Lock()
-			trecords = append(trecords, end)
-			tmu.Unlock()
-
-			return end.TimeStamp.Sub(start.TimeStamp)
-		},
-		Error: func(err error) error {
-			end := Transfer{
-				ScenarioId:   ScenarioId,
-				SimulationId: SimulationId,
-				TrailId:      TrailId,
-				TimeStamp:    time.Now(),
-				MatchId:      id,
-				Step:         StepError,
-				ProviderId:   base.ProviderId,
-				Direction:    base.Direction,
-				Error:        err,
-			}
-
-			tmu.Lock()
-			trecords = append(trecords, end)
-			tmu.Unlock()
-
-			return err
-		},
+		return err
 	}
 
 	return

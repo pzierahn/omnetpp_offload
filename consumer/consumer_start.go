@@ -2,14 +2,12 @@ package consumer
 
 import (
 	"context"
-	"fmt"
 	"github.com/pzierahn/project.go.omnetpp/eval"
 	"github.com/pzierahn/project.go.omnetpp/gconfig"
 	pb "github.com/pzierahn/project.go.omnetpp/proto"
 	"github.com/pzierahn/project.go.omnetpp/simple"
 	"google.golang.org/grpc"
 	"log"
-	"os"
 	"path/filepath"
 )
 
@@ -26,10 +24,6 @@ func Start(ctx context.Context, config *Config) {
 	log.Printf("Start: simulation %s", id)
 	log.Println("#################################################")
 
-	eval.ScenarioId = os.Getenv("SCENARIOID")
-	eval.TrailId = os.Getenv("TRAILID")
-	eval.SimulationId = id
-
 	log.Printf("Start: connecting to broker (%v)", gconfig.BrokerDialAddr())
 
 	conn, err := grpc.Dial(
@@ -43,6 +37,9 @@ func Start(ctx context.Context, config *Config) {
 	defer func() {
 		_ = conn.Close()
 	}()
+
+	eval.Init(conn)
+	eval.SetScenario(id)
 
 	//log.Printf("Start: set execution timeout to %v", timeout)
 
@@ -82,10 +79,10 @@ func Start(ctx context.Context, config *Config) {
 
 	log.Printf("Start: simulation finished!")
 
-	scenarioName := fmt.Sprintf("s%0s-t%0s", eval.ScenarioId, eval.TrailId)
-	eval.WriteRuns(filepath.Join(config.Path, "opp-edge-eval-runs-"+scenarioName+".csv"))
-	eval.WriteTransfers(filepath.Join(config.Path, "opp-edge-eval-transfers-"+scenarioName+".csv"))
-	eval.WriteSetup(filepath.Join(config.Path, "opp-edge-eval-setup-"+scenarioName+".csv"))
+	//scenarioName := fmt.Sprintf("s%0s-t%0s", eval.ScenarioId, eval.TrailId)
+	//eval.WriteRuns(filepath.Join(config.Path, "opp-edge-eval-runs-"+scenarioName+".csv"))
+	//eval.WriteTransfers(filepath.Join(config.Path, "opp-edge-eval-transfers-"+scenarioName+".csv"))
+	//eval.WriteSetup(filepath.Join(config.Path, "opp-edge-eval-setup-"+scenarioName+".csv"))
 
 	return
 }

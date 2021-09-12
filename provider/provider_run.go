@@ -3,6 +3,7 @@ package provider
 import (
 	"context"
 	"fmt"
+	"github.com/pzierahn/project.go.omnetpp/eval"
 	"github.com/pzierahn/project.go.omnetpp/omnetpp"
 	pb "github.com/pzierahn/project.go.omnetpp/proto"
 	"github.com/pzierahn/project.go.omnetpp/simple"
@@ -50,23 +51,27 @@ func (prov *provider) run(ctx context.Context, run *pb.SimulationRun) (ref *pb.S
 		Path:      simulationPath,
 	}
 
+	done := eval.LogRun(prov.providerId, run.Config, run.RunNum)
+
 	opp := omnetpp.New(&oppConf)
 	err = opp.RunContext(ctx, run.Config, run.RunNum)
 	if err != nil {
-		return
+		return nil, done(err)
 	}
 
 	filesAfter, err := simple.ListDir(simulationPath)
 	if err != nil {
-		return
+		return nil, done(err)
 	}
+
+	_ = done(nil)
 
 	//
 	// Collect and upload results
 	//
 
 	results := simple.DirDiff(filesBefore, filesAfter)
-	buf, err := simple.TarGzFiles(simulationPath, run.SimulationId, results)
+	buf, err := simple.TarGzFiles(simulationPath, "", results)
 	if err != nil {
 		return
 	}

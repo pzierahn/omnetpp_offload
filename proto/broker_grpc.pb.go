@@ -206,7 +206,7 @@ type ProviderClient interface {
 	Allocate(ctx context.Context, opts ...grpc.CallOption) (Provider_AllocateClient, error)
 	GetSession(ctx context.Context, in *Simulation, opts ...grpc.CallOption) (*Session, error)
 	SetSession(ctx context.Context, in *Session, opts ...grpc.CallOption) (*Session, error)
-	Checkout(ctx context.Context, in *Bundle, opts ...grpc.CallOption) (*Empty, error)
+	Extract(ctx context.Context, in *Bundle, opts ...grpc.CallOption) (*Empty, error)
 	Compile(ctx context.Context, in *Simulation, opts ...grpc.CallOption) (*Binary, error)
 	ListRunNums(ctx context.Context, in *Simulation, opts ...grpc.CallOption) (*SimulationRuns, error)
 	Run(ctx context.Context, in *SimulationRun, opts ...grpc.CallOption) (*StorageRef, error)
@@ -287,9 +287,9 @@ func (c *providerClient) SetSession(ctx context.Context, in *Session, opts ...gr
 	return out, nil
 }
 
-func (c *providerClient) Checkout(ctx context.Context, in *Bundle, opts ...grpc.CallOption) (*Empty, error) {
+func (c *providerClient) Extract(ctx context.Context, in *Bundle, opts ...grpc.CallOption) (*Empty, error) {
 	out := new(Empty)
-	err := c.cc.Invoke(ctx, "/service.Provider/Checkout", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/service.Provider/Extract", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -332,7 +332,7 @@ type ProviderServer interface {
 	Allocate(Provider_AllocateServer) error
 	GetSession(context.Context, *Simulation) (*Session, error)
 	SetSession(context.Context, *Session) (*Session, error)
-	Checkout(context.Context, *Bundle) (*Empty, error)
+	Extract(context.Context, *Bundle) (*Empty, error)
 	Compile(context.Context, *Simulation) (*Binary, error)
 	ListRunNums(context.Context, *Simulation) (*SimulationRuns, error)
 	Run(context.Context, *SimulationRun) (*StorageRef, error)
@@ -358,8 +358,8 @@ func (UnimplementedProviderServer) GetSession(context.Context, *Simulation) (*Se
 func (UnimplementedProviderServer) SetSession(context.Context, *Session) (*Session, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SetSession not implemented")
 }
-func (UnimplementedProviderServer) Checkout(context.Context, *Bundle) (*Empty, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method Checkout not implemented")
+func (UnimplementedProviderServer) Extract(context.Context, *Bundle) (*Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Extract not implemented")
 }
 func (UnimplementedProviderServer) Compile(context.Context, *Simulation) (*Binary, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Compile not implemented")
@@ -481,20 +481,20 @@ func _Provider_SetSession_Handler(srv interface{}, ctx context.Context, dec func
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Provider_Checkout_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _Provider_Extract_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(Bundle)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(ProviderServer).Checkout(ctx, in)
+		return srv.(ProviderServer).Extract(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/service.Provider/Checkout",
+		FullMethod: "/service.Provider/Extract",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ProviderServer).Checkout(ctx, req.(*Bundle))
+		return srv.(ProviderServer).Extract(ctx, req.(*Bundle))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -577,8 +577,8 @@ var Provider_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _Provider_SetSession_Handler,
 		},
 		{
-			MethodName: "Checkout",
-			Handler:    _Provider_Checkout_Handler,
+			MethodName: "Extract",
+			Handler:    _Provider_Extract_Handler,
 		},
 		{
 			MethodName: "Compile",

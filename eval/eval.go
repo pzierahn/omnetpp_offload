@@ -1,16 +1,10 @@
 package eval
 
 import (
-	"bytes"
-	"encoding/csv"
-	"io/ioutil"
-	"log"
-)
-
-var (
-	ScenarioId   = ""
-	SimulationId = ""
-	TrailId      = ""
+	"context"
+	pb "github.com/pzierahn/project.go.omnetpp/proto"
+	"google.golang.org/grpc"
+	"os"
 )
 
 const (
@@ -20,99 +14,16 @@ const (
 	StepError
 )
 
-func WriteRuns(filename string) {
+var client pb.EvalClient
 
-	buf := new(bytes.Buffer)
-	w := csv.NewWriter(buf)
-
-	for inx, record := range rrecords {
-
-		headers, values := MarshallCSV(record)
-
-		if inx == 0 {
-			if err := w.Write(headers); err != nil {
-				log.Fatalln(err)
-			}
-		}
-
-		if err := w.Write(values); err != nil {
-			log.Fatalln(err)
-		}
-	}
-
-	w.Flush()
-
-	err := ioutil.WriteFile(filename, buf.Bytes(), 0600)
-	if err != nil {
-		log.Fatalln(err)
-	}
+func Init(conn *grpc.ClientConn) {
+	client = pb.NewEvalClient(conn)
 }
 
-func WriteTransfers(filename string) {
-
-	buf := new(bytes.Buffer)
-	w := csv.NewWriter(buf)
-
-	for inx, record := range trecords {
-
-		headers, values := MarshallCSV(record)
-
-		if inx == 0 {
-			if err := w.Write(headers); err != nil {
-				log.Fatalln(err)
-			}
-		}
-
-		if err := w.Write(values); err != nil {
-			log.Fatalln(err)
-		}
-	}
-
-	w.Flush()
-
-	err := ioutil.WriteFile(filename, buf.Bytes(), 0600)
-	if err != nil {
-		log.Fatalln(err)
-	}
+func SetScenario(simulationId string) {
+	_, _ = client.Scenario(context.Background(), &pb.EvalScenario{
+		ScenarioId:   os.Getenv("SCENARIOID"),
+		TrailId:      os.Getenv("TRAILID"),
+		SimulationId: simulationId,
+	})
 }
-
-func WriteSetup(filename string) {
-
-	buf := new(bytes.Buffer)
-	w := csv.NewWriter(buf)
-
-	for inx, record := range setup {
-
-		headers, values := MarshallCSV(record)
-
-		if inx == 0 {
-			if err := w.Write(headers); err != nil {
-				log.Fatalln(err)
-			}
-		}
-
-		if err := w.Write(values); err != nil {
-			log.Fatalln(err)
-		}
-	}
-
-	w.Flush()
-
-	err := ioutil.WriteFile(filename, buf.Bytes(), 0600)
-	if err != nil {
-		log.Fatalln(err)
-	}
-}
-
-//func WriteJSON(filename string) {
-//
-//	byt, err := json.MarshalIndent(rrecords, "", "  ")
-//	if err != nil {
-//		log.Fatalln(err)
-//	}
-//
-//	err = ioutil.WriteFile(filename, byt, 0600)
-//	if err != nil {
-//		log.Fatalln(err)
-//	}
-//}

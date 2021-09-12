@@ -1,0 +1,72 @@
+syntax = "proto3";
+package service;
+
+option go_package = "./proto";
+
+//import "google/protobuf/timestamp.proto";
+import "google/protobuf/empty.proto";
+
+service Eval {
+  rpc Scenario (EvalScenario)  returns (google.protobuf.Empty);
+  rpc Action   (ActionEvent)   returns (google.protobuf.Empty);
+  rpc Run      (RunEvent)      returns (google.protobuf.Empty);
+  rpc Transfer (TransferEvent) returns (google.protobuf.Empty);
+  rpc Setup    (SetupEvent)    returns (google.protobuf.Empty);
+}
+
+message EvalScenario {
+  string scenarioId = 1;
+  string trailId = 2;
+  string simulationId = 3;
+}
+
+message ActionEvent {
+  string scenarioId = 1;
+  string trailId = 2;
+  string simulationId = 3;
+  string timeStamp = 4;
+  string providerId = 5;
+  string action = 6;
+  string eventId = 7;
+  uint32 step = 8;
+  string error = 11;
+}
+
+message RunEvent {
+  string scenarioId = 1;
+  string trailId = 2;
+  string simulationId = 3;
+  string timeStamp = 4;
+  string providerId = 5;
+  string eventId = 6;
+  uint32 step = 7;
+  string runConfig = 8;
+  string runNumber = 9;
+  string error = 11;
+}
+
+message TransferEvent {
+  string scenarioId = 1;
+  string trailId = 2;
+  string simulationId = 3;
+  string timeStamp = 4;
+  string providerId = 5;
+  string eventId = 6;
+  uint32 step = 7;
+  string direction = 8;
+  string file = 9;
+  uint64 transferred = 10;
+  string error = 11;
+}
+
+message SetupEvent {
+  string scenarioId = 1;
+  string trailId = 2;
+  string simulationId = 3;
+  string timeStamp = 4;
+  string providerId = 5;
+  string connect = 6;
+  uint32 numCPUs = 7;
+  string arch = 8;
+  string os = 9;
+}

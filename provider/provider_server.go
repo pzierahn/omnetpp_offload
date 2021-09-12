@@ -2,6 +2,7 @@ package provider
 
 import (
 	"context"
+	"github.com/pzierahn/project.go.omnetpp/eval"
 	"github.com/pzierahn/project.go.omnetpp/gconfig"
 	pb "github.com/pzierahn/project.go.omnetpp/proto"
 	"github.com/pzierahn/project.go.omnetpp/simple"
@@ -63,6 +64,8 @@ func Start() {
 	if err != nil {
 		log.Fatalln(err)
 	}
+
+	eval.Init(brokerConn)
 
 	broker := pb.NewBrokerClient(brokerConn)
 

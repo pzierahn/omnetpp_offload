@@ -8,7 +8,13 @@ import (
 	"time"
 )
 
-func LogRun(provider, config, num string) (done func(err error) error) {
+const (
+	ActionCompile = "Compile"
+	//ActionCompress = "Compress"
+	//ActionExtract  = "Extract"
+)
+
+func LogAction(provider, action string) (done func(err error) error) {
 
 	timestamp := time.Now()
 	ts, _ := timestamp.MarshalText()
@@ -16,13 +22,12 @@ func LogRun(provider, config, num string) (done func(err error) error) {
 	id := fmt.Sprintf("0x%00000000x", rand.Uint32())
 
 	ctx := context.Background()
-	_, _ = client.Run(ctx, &pb.RunEvent{
+	_, _ = client.Action(ctx, &pb.ActionEvent{
 		TimeStamp:  string(ts),
 		ProviderId: provider,
 		Step:       uint32(StepStart),
 		EventId:    id,
-		RunConfig:  config,
-		RunNumber:  num,
+		Action:     action,
 	})
 
 	done = func(err error) error {
@@ -30,23 +35,21 @@ func LogRun(provider, config, num string) (done func(err error) error) {
 		ts, _ = timestamp.MarshalText()
 
 		if err != nil {
-			_, _ = client.Run(ctx, &pb.RunEvent{
+			_, _ = client.Action(ctx, &pb.ActionEvent{
 				TimeStamp:  string(ts),
 				ProviderId: provider,
 				Step:       uint32(StepError),
 				EventId:    id,
-				RunConfig:  config,
-				RunNumber:  num,
+				Action:     action,
 				Error:      err.Error(),
 			})
 		} else {
-			_, _ = client.Run(ctx, &pb.RunEvent{
+			_, _ = client.Action(ctx, &pb.ActionEvent{
 				TimeStamp:  string(ts),
 				ProviderId: provider,
 				Step:       uint32(StepSuccess),
 				EventId:    id,
-				RunConfig:  config,
-				RunNumber:  num,
+				Action:     action,
 			})
 		}
 

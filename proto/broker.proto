@@ -58,17 +58,17 @@ message Utilizations {
 //
 
 service Provider {
-  rpc Info   (Empty) returns (ProviderInfo) {}
-  rpc Status (Empty) returns (Utilization)  {}
+  rpc Info   (Empty) returns (ProviderInfo);
+  rpc Status (Empty) returns (Utilization);
 
-  rpc Allocate (stream AllocateRequest) returns (stream AllocatedSlots) {}
+  rpc Allocate (stream AllocateRequest) returns (stream AllocatedSlots);
 
-  rpc GetSession  (Simulation)    returns (Session)        {}
-  rpc SetSession  (Session)       returns (Session)        {}
-  rpc Checkout    (Bundle)        returns (Empty)          {}
-  rpc Compile     (Simulation)    returns (Binary)         {}
-  rpc ListRunNums (Simulation)    returns (SimulationRuns) {}
-  rpc Run         (SimulationRun) returns (StorageRef)     {}
+  rpc GetSession  (Simulation)    returns (Session);
+  rpc SetSession  (Session)       returns (Session);
+  rpc Extract     (Bundle)        returns (Empty);
+  rpc Compile     (Simulation)    returns (Binary);
+  rpc ListRunNums (Simulation)    returns (SimulationRuns);
+  rpc Run         (SimulationRun) returns (StorageRef);
 }
 
 message AllocateRequest {

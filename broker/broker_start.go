@@ -2,10 +2,10 @@ package broker
 
 import (
 	"context"
+	"github.com/pzierahn/project.go.omnetpp/eval"
 	"github.com/pzierahn/project.go.omnetpp/gconfig"
 	pb "github.com/pzierahn/project.go.omnetpp/proto"
 	"github.com/pzierahn/project.go.omnetpp/stargate"
-	"github.com/pzierahn/project.go.omnetpp/storage"
 	"google.golang.org/grpc"
 	"log"
 	"net"
@@ -39,7 +39,7 @@ func Start() (err error) {
 
 	server := grpc.NewServer()
 	pb.RegisterBrokerServer(server, &brk)
-	pb.RegisterStorageServer(server, &storage.Server{})
+	pb.RegisterEvalServer(server, eval.NewServer())
 	err = server.Serve(lis)
 
 	return

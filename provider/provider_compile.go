@@ -3,6 +3,7 @@ package provider
 import (
 	"context"
 	"fmt"
+	"github.com/pzierahn/project.go.omnetpp/eval"
 	"github.com/pzierahn/project.go.omnetpp/omnetpp"
 	pb "github.com/pzierahn/project.go.omnetpp/proto"
 	"github.com/pzierahn/project.go.omnetpp/simple"
@@ -36,10 +37,13 @@ func (prov *provider) compile(ctx context.Context, simulation *pb.Simulation) (b
 		return
 	}
 
+	done := eval.LogAction(prov.providerId, eval.ActionCompile)
 	err = opp.Setup(ctx, false)
 	if err != nil {
-		return
+		return nil, done(err)
 	}
+
+	_ = done(nil)
 
 	buildFiles, err := simple.ListDir(base)
 	if err != nil {

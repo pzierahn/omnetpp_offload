@@ -70,15 +70,15 @@ func (prov *provider) Status(ctx context.Context, _ *pb.Empty) (util *pb.Utiliza
 	return
 }
 
-func (prov *provider) Checkout(_ context.Context, bundle *pb.Bundle) (empty *pb.Empty, err error) {
+func (prov *provider) Extract(_ context.Context, bundle *pb.Bundle) (empty *pb.Empty, err error) {
 
-	log.Printf("Checkout: %v %v", bundle.SimulationId, bundle.Source.Filename)
+	log.Printf("Extract: %v %v", bundle.SimulationId, bundle.Source.Filename)
 
 	empty = &pb.Empty{}
 
 	byt, err := prov.store.Get(bundle.Source)
 	if err != nil {
-		log.Printf("Checkout: %v error %v", bundle.SimulationId, err)
+		log.Printf("Extract: %v error %v", bundle.SimulationId, err)
 		return
 	}
 
@@ -86,7 +86,7 @@ func (prov *provider) Checkout(_ context.Context, bundle *pb.Bundle) (empty *pb.
 
 	err = simple.UnTarGz(cachePath, bytes.NewReader(byt))
 	if err != nil {
-		log.Printf("Checkout: %v error %v", bundle.SimulationId, err)
+		log.Printf("Extract: %v error %v", bundle.SimulationId, err)
 		_ = os.RemoveAll(path)
 	}
 
