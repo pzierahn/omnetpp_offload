@@ -5,6 +5,7 @@ import (
 	"encoding/csv"
 	"flag"
 	"fmt"
+	"github.com/pzierahn/project.go.omnetpp/simple"
 	"log"
 	"os"
 	"os/exec"
@@ -53,9 +54,10 @@ func scenario(scenario string) {
 
 		log.Printf("Run %s --> %d", scenario, inx)
 		start := time.Now()
-		if err := cmd.Run(); err != nil {
-			panic(err)
-		}
+		simple.RunCmdStdout(cmd)
+		//if err := cmd.Run(); err != nil {
+		//	panic(err)
+		//}
 		end := time.Now()
 
 		duration := end.Sub(start)
