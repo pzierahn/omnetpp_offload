@@ -39,7 +39,7 @@ func Start() (err error) {
 
 	server := grpc.NewServer()
 	pb.RegisterBrokerServer(server, &brk)
-	pb.RegisterEvalServer(server, eval.NewServer())
+	pb.RegisterEvalServer(server, &eval.Server{})
 	err = server.Serve(lis)
 
 	return
