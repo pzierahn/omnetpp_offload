@@ -14,7 +14,7 @@ import (
 )
 
 const (
-	repeat = 3
+	repeat = 5
 )
 
 var writer *csv.Writer
@@ -82,6 +82,15 @@ func main() {
 		simulation = "/Users/patrick/Desktop/tictoc"
 	} else {
 		simulation = "/home/fioo/patrick/tictoc"
+	}
+
+	log.Println("Installing latest opp_edge version...")
+
+	cmd := exec.Command("go", "install", "../cmd/consumer/opp_edge_run.go")
+	out, err := cmd.CombinedOutput()
+	if err != nil {
+		log.Println("out: ", string(out))
+		panic(err)
 	}
 
 	var filename string
