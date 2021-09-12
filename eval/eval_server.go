@@ -85,7 +85,7 @@ func (server *Server) Setup(_ context.Context, event *pb.SetupEvent) (*emptypb.E
 }
 
 func NewServer() (server *Server) {
-	dir := filepath.Join(defines.CacheDir(), "eval")
+	dir := filepath.Join(defines.CacheDir(), "evaluation")
 	if err := os.MkdirAll(dir, 0755); err != nil {
 		panic(err)
 	}
