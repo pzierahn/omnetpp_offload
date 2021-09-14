@@ -20,20 +20,20 @@ func (prov *provider) run(ctx context.Context, run *pb.SimulationRun) (ref *pb.S
 	// Simulation directory with simulation source code
 	simulationBase := filepath.Join(cachePath, run.SimulationId)
 
-	// This will be the working directory, that contains the results for the job
-	// A symbolic copy is created to use all configs, ned files and ini files
+	// This will be the working directory, that contains the results for the job.
+	// A fake copy is created to use all configs, ned files and ini files.
 	simulationPath := filepath.Join(
 		cachePath,
-		"mirrors",
+		"fake-copies",
 		simple.NamedId(run.SimulationId, 8),
 	)
 
 	defer func() {
+		// Delete fake-copy after completion
 		_ = os.RemoveAll(simulationPath)
 	}()
 
-	err = simple.FakeCopy(simulationBase, simulationPath)
-	if err != nil {
+	if err = simple.FakeCopy(simulationBase, simulationPath); err != nil {
 		return
 	}
 
