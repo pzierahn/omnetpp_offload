@@ -73,14 +73,14 @@ func (cons *consumer) startConnector(onInit chan int32) {
 				}
 
 				once.Do(func() {
-					log.Printf("[%s] list simulation run numbers", pconn.name())
+					log.Printf("[%s] list simulation run numbers", pconn.id())
 
 					tasks, err := pconn.collectTasks(cons)
 					if err != nil {
 						log.Fatalln(err)
 					}
 
-					log.Printf("[%s] created %d jobs", pconn.name(), len(tasks))
+					log.Printf("[%s] created %d jobs", pconn.id(), len(tasks))
 					cons.allocate.add(tasks...)
 					onInit <- cons.allocate.len()
 				})

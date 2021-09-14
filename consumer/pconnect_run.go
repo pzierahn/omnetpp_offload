@@ -12,24 +12,24 @@ import (
 
 func (pConn *providerConnection) run(task *pb.SimulationRun, config *Config) (err error) {
 	runName := task.Config + "-" + task.RunNum
-	log.Printf("[%s] %s start", pConn.name(), runName)
+	log.Printf("[%s] %s start", pConn.id(), runName)
 
 	start := time.Now()
 	resultRef, err := pConn.provider.Run(pConn.ctx, task)
 	if err != nil {
-		log.Printf("[%s] error %v", pConn.name(), err)
+		log.Printf("[%s] error %v", pConn.id(), err)
 		return err
 	}
 
-	log.Printf("[%s] %s finished (%v)", pConn.name(), runName, time.Now().Sub(start))
+	log.Printf("[%s] %s finished (%v)", pConn.id(), runName, time.Now().Sub(start))
 
-	done := eval.LogTransfer(pConn.name(), eval.TransferDirectionDownload, resultRef.Filename)
+	done := eval.LogTransfer(pConn.id(), eval.TransferDirectionDownload, resultRef.Filename)
 	store := storage.FromClient(pConn.store)
 
 	start = time.Now()
 	buf, err := store.Download(pConn.ctx, resultRef)
 	if err != nil {
-		log.Printf("[%s] error %v", pConn.name(), err)
+		log.Printf("[%s] error %v", pConn.id(), err)
 		return done(0, err)
 	}
 
@@ -37,15 +37,15 @@ func (pConn *providerConnection) run(task *pb.SimulationRun, config *Config) (er
 	_ = done(dlsize, nil)
 
 	log.Printf("[%s] %s downloaded results %v in %v",
-		pConn.name(), runName, simple.ByteSize(dlsize), time.Now().Sub(start))
+		pConn.id(), runName, simple.ByteSize(dlsize), time.Now().Sub(start))
 
 	//
 	// Extract files to the right place
 	//
 
-	err = simple.UnTarGz(config.Path, bytes.NewReader(buf.Bytes()))
+	err = simple.ExtractTarGz(config.Path, bytes.NewReader(buf.Bytes()))
 	if err != nil {
-		log.Printf("[%s] error %v", pConn.name(), err)
+		log.Printf("[%s] error %v", pConn.id(), err)
 		return
 	}
 

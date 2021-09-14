@@ -53,7 +53,7 @@ func (pConn *providerConnection) init(cons *consumer) (err error) {
 	}
 
 	if !session.CheckoutSource {
-		if err = pConn.checkout(source); err != nil {
+		if err = pConn.extract(source); err != nil {
 			return
 		}
 

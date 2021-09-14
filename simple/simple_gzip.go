@@ -25,7 +25,6 @@ func TarGzFiles(path, dirname string, files map[string]bool) (buffer bytes.Buffe
 	for walkPath := range files {
 
 		info, err := os.Stat(walkPath)
-
 		if err != nil || info.IsDir() {
 			continue
 		}
@@ -61,8 +60,6 @@ func TarGzFiles(path, dirname string, files map[string]bool) (buffer bytes.Buffe
 			err = fmt.Errorf("error creating header for %s: %v", walkPath, err)
 			break
 		}
-
-		//logger.Println("############", info.Name(), header.Linkname)
 
 		relPath, err := filepath.Rel(path, walkPath)
 		if err != nil {
@@ -127,7 +124,7 @@ func TarGz(path, dirname string, exclude ...string) (buffer bytes.Buffer, err er
 	return
 }
 
-func UnTarGz(dst string, buffer io.Reader) (err error) {
+func ExtractTarGz(dst string, buffer io.Reader) (err error) {
 
 	zip, err := gzip.NewReader(buffer)
 	if err != nil {

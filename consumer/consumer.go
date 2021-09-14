@@ -28,7 +28,6 @@ type consumer struct {
 
 	// TODO: Persist bytes to HD
 	simulationSource []byte
-	binaries         map[string][]byte
 }
 
 func init() {

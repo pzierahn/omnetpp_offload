@@ -24,12 +24,7 @@ func (pConn *providerConnection) compileAndDownload(simulation *pb.Simulation) (
 	arch := sysinfo.Signature(pConn.info.Arch)
 	store := storage.FromClient(pConn.store)
 
-	log.Printf("[%s] compile: %s", pConn.name(), arch)
-
-	//ccDone := eval.LogRun(eval.Run{
-	//	Command:    eval.ActionCompile,
-	//	ProviderId: pConn.name(),
-	//})
+	log.Printf("[%s] compile: %s", pConn.id(), arch)
 
 	var bin *pb.Binary
 	bin, err = pConn.provider.Compile(pConn.ctx, simulation)
@@ -40,10 +35,10 @@ func (pConn *providerConnection) compileAndDownload(simulation *pb.Simulation) (
 
 	//duration := ccDone.Success()
 	duration := "MISSING"
-	log.Printf("[%s] compile: %s done (%v)", pConn.name(), arch, duration)
+	log.Printf("[%s] compile: %s done (%v)", pConn.id(), arch, duration)
 
 	start := time.Now()
-	done := eval.LogTransfer(pConn.name(), eval.TransferDirectionDownload, bin.Ref.Filename)
+	done := eval.LogTransfer(pConn.id(), eval.TransferDirectionDownload, bin.Ref.Filename)
 
 	var buf bytes.Buffer
 	buf, err = store.Download(pConn.ctx, bin.Ref)
@@ -55,7 +50,7 @@ func (pConn *providerConnection) compileAndDownload(simulation *pb.Simulation) (
 	_ = done(size, err)
 
 	log.Printf("[%s] compile: downloaded %s exe (%v in %v)",
-		pConn.name(), arch, simple.ByteSize(size), time.Now().Sub(start))
+		pConn.id(), arch, simple.ByteSize(size), time.Now().Sub(start))
 
 	binaryMu.Lock()
 	binaries[arch] = buf.Bytes()
@@ -97,7 +92,7 @@ func (pConn *providerConnection) setupExecutable(simulation *pb.Simulation) (err
 		Data:         buf,
 	}
 
-	err = pConn.checkout(binary)
+	err = pConn.extract(binary)
 
 	return
 }

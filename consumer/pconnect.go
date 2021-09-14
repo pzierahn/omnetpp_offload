@@ -19,7 +19,7 @@ type providerConnection struct {
 	store    pb.StorageClient
 }
 
-func (pConn *providerConnection) name() (name string) {
+func (pConn *providerConnection) id() (name string) {
 	return pConn.info.ProviderId
 }
 
@@ -38,7 +38,6 @@ func (cons *consumer) connect(prov *pb.ProviderInfo) (conn *grpc.ClientConn, err
 	}
 
 	conn, err = cons.connectRelay(prov)
-
 	if err == nil {
 		eval.LogSetup(eval.ConnectRelay, prov)
 	}

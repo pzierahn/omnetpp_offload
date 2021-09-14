@@ -84,7 +84,7 @@ func (prov *provider) Extract(_ context.Context, bundle *pb.Bundle) (empty *pb.E
 
 	path := filepath.Join(cachePath, bundle.SimulationId)
 
-	err = simple.UnTarGz(cachePath, bytes.NewReader(byt))
+	err = simple.ExtractTarGz(cachePath, bytes.NewReader(byt))
 	if err != nil {
 		log.Printf("Extract: %v error %v", bundle.SimulationId, err)
 		_ = os.RemoveAll(path)

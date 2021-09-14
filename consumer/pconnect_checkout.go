@@ -1,7 +1,6 @@
 package consumer
 
 import (
-	"context"
 	"github.com/pzierahn/project.go.omnetpp/eval"
 	pb "github.com/pzierahn/project.go.omnetpp/proto"
 	"github.com/pzierahn/project.go.omnetpp/simple"
@@ -16,21 +15,19 @@ type checkoutObject struct {
 	Data         []byte
 }
 
-func (pConn *providerConnection) checkout(meta *checkoutObject) (err error) {
+func (pConn *providerConnection) extract(meta *checkoutObject) (err error) {
 
 	size := uint64(len(meta.Data))
 	log.Printf("[%s] upload: %+v (%v)",
-		pConn.name(), meta.Filename, simple.ByteSize(size))
+		pConn.id(), meta.Filename, simple.ByteSize(size))
 
 	ui := make(chan storage.UploadInfo)
 	defer close(ui)
 
-	var info storage.UploadInfo
-
 	go func() {
-		for info = range ui {
+		for info := range ui {
 			log.Printf("[%s] upload: file=%s uploaded=%v percent=%0.2f%%",
-				pConn.name(),
+				pConn.id(),
 				meta.Filename,
 				simple.ByteSize(info.Uploaded),
 				100*float32(info.Uploaded)/float32(len(meta.Data)))
@@ -40,7 +37,7 @@ func (pConn *providerConnection) checkout(meta *checkoutObject) (err error) {
 	storeCli := storage.FromClient(pConn.store)
 
 	start := time.Now()
-	done := eval.LogTransfer(pConn.name(), eval.TransferDirectionUpload, meta.Filename)
+	done := eval.LogTransfer(pConn.id(), eval.TransferDirectionUpload, meta.Filename)
 
 	upload := &storage.FileMeta{
 		Bucket:   meta.SimulationId,
@@ -54,26 +51,19 @@ func (pConn *providerConnection) checkout(meta *checkoutObject) (err error) {
 
 	_ = done(size, nil)
 
-	log.Printf("[%s] upload: finished file=%s packages=%d size=%s time=%v",
-		pConn.name(), meta.Filename, info.Parcels, simple.ByteSize(size), time.Now().Sub(start))
+	log.Printf("[%s] upload: finished file=%s size=%s time=%v",
+		pConn.id(), meta.Filename, simple.ByteSize(size), time.Now().Sub(start))
 
-	//checkoutDuration := eval.LogRun(eval.Run{
-	//	Command:    eval.ActionCheckout,
-	//	ProviderId: pConn.name(),
-	//})
+	log.Printf("[%s] extract: %s...", pConn.id(), meta.Filename)
 
-	log.Printf("[%s] checkout: %s...", pConn.name(), meta.Filename)
-
-	_, err = pConn.provider.Extract(context.Background(), &pb.Bundle{
+	_, err = pConn.provider.Extract(pConn.ctx, &pb.Bundle{
 		SimulationId: meta.SimulationId,
 		Source:       ref,
 	})
 
-	//checkoutDur := checkoutDuration.Success()
 	checkoutDur := "MISSING"
-
-	log.Printf("[%s] checkout: %s done (%v)",
-		pConn.name(), meta.Filename, checkoutDur)
+	log.Printf("[%s] extract: %s done (%v)",
+		pConn.id(), meta.Filename, checkoutDur)
 
 	//
 	// TODO: Delete checked-out refs

@@ -6,7 +6,7 @@ import (
 )
 
 func (pConn *providerConnection) allocationHandler(stream pb.Provider_AllocateClient, cons *consumer) {
-	log.Printf("[%s] start allocator", pConn.name())
+	log.Printf("[%s] start allocator", pConn.id())
 
 	for {
 		alloc, err := stream.Recv()
@@ -15,7 +15,7 @@ func (pConn *providerConnection) allocationHandler(stream pb.Provider_AllocateCl
 		}
 
 		log.Printf("[%s] allocated %d slots",
-			pConn.name(), alloc.Slots)
+			pConn.id(), alloc.Slots)
 
 		for inx := uint32(0); inx < alloc.Slots; inx++ {
 
@@ -32,7 +32,7 @@ func (pConn *providerConnection) allocationHandler(stream pb.Provider_AllocateCl
 				// TODO: Find a better way to handle this
 
 				if err := pConn.run(task, cons.config); err != nil {
-					log.Printf("[%s] reschedule %s_%s", pConn.name(), task.Config, task.RunNum)
+					log.Printf("[%s] reschedule %s_%s", pConn.id(), task.Config, task.RunNum)
 					// Add item back to queue to send right allocation num
 					cons.allocate.add(task)
 				} else {
@@ -45,7 +45,7 @@ func (pConn *providerConnection) allocationHandler(stream pb.Provider_AllocateCl
 
 func (pConn *providerConnection) sendAllocationRequest(stream pb.Provider_AllocateClient, cons *consumer) (err error) {
 	request := cons.allocate.len()
-	log.Printf("[%s] request %d slots", pConn.name(), request)
+	log.Printf("[%s] request %d slots", pConn.id(), request)
 
 	err = stream.Send(&pb.AllocateRequest{
 		SimulationId: cons.simulation.Id,
