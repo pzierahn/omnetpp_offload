@@ -87,7 +87,7 @@ func Persist() {
 	}
 
 	configFile := filepath.Join(configPath, "configuration.json")
-	fmt.Println("write Config to", configFile)
+	fmt.Println("write config to", configFile)
 
 	err = ioutil.WriteFile(configFile, byt, 0644)
 	if err != nil {
