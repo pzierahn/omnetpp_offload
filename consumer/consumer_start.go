@@ -43,6 +43,7 @@ func Start(ctx context.Context, config *Config) {
 
 	//log.Printf("Start: set execution timeout to %v", timeout)
 
+	// TODO: Fix timeout
 	//go func() {
 	//	// TODO: Find a more elegant way of doing this
 	//	<-ctx.Done()

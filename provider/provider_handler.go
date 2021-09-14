@@ -34,7 +34,7 @@ func (prov *provider) GetSession(ctx context.Context, sim *pb.Simulation) (sess 
 
 	if deadline, ok := ctx.Deadline(); ok {
 		sess.Ttl = timestamppb.New(deadline)
-		go prov.nukeSession(sim.Id, deadline)
+		go prov.expireSession(sim.Id, deadline)
 	}
 
 	prov.sessions[sim.Id] = sess

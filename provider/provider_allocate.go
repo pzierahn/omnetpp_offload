@@ -9,9 +9,9 @@ import (
 	"sync/atomic"
 )
 
-func (prov *provider) drop(id simulationId) {
+func (prov *provider) dropSession(id simulationId) {
 
-	log.Printf("drop: simulationId=%v", id)
+	log.Printf("dropSession: simulationId=%v", id)
 
 	delete(prov.allocate, id)
 	delete(prov.requests, id)

@@ -15,7 +15,7 @@ func (prov *provider) recoverSessions() {
 	prov.mu.Lock()
 	defer prov.mu.Unlock()
 
-	log.Printf("recoverSessions:")
+	log.Printf("checking old sessions")
 
 	dir := defines.CacheDir()
 	filename := filepath.Join(dir, "sessions.json")
@@ -33,10 +33,10 @@ func (prov *provider) recoverSessions() {
 		deadline := stat.Ttl.AsTime()
 
 		if deadline.Before(time.Now()) {
-			log.Printf("recoverSessions: remove old session %v", id)
-			prov.drop(id)
+			log.Printf("session expired %v", id)
+			prov.dropSession(id)
 		} else {
-			go prov.nukeSession(id, deadline)
+			go prov.expireSession(id, deadline)
 		}
 	}
 
@@ -44,28 +44,23 @@ func (prov *provider) recoverSessions() {
 }
 
 func (prov *provider) persistSessions() {
-
-	//prov.mu.Lock()
-	//defer prov.mu.Unlock()
-
 	log.Printf("persistSessions: sessions=%d", len(prov.sessions))
-
 	simple.WritePretty(sessionsPath, prov.sessions)
 }
 
-func (prov *provider) nukeSession(id simulationId, deadline time.Time) {
+func (prov *provider) expireSession(id simulationId, deadline time.Time) {
 
 	ctx, cnl := context.WithDeadline(context.Background(), deadline)
 	defer cnl()
 
-	log.Printf("nukeSession: simulationId=%v deadline=%v", id, deadline)
+	log.Printf("expireSession: simulationId=%v deadline=%v", id, deadline)
 
 	select {
 	case <-ctx.Done():
-		log.Printf("nukeSession: simulationId=%v nuke", id)
+		log.Printf("expireSession: simulationId=%v nuke", id)
 
 		prov.cond.L.Lock()
-		prov.drop(id)
+		prov.dropSession(id)
 		prov.persistSessions()
 		prov.cond.Broadcast()
 		prov.cond.L.Unlock()
