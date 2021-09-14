@@ -5,19 +5,12 @@ import (
 	"path/filepath"
 )
 
-// SymbolicCopy
+// FakeCopy
 //
 // This function creates a new directory (target). Afterwards it
 // will create symlinks that point to all files in source.
 // Think of this as a copy function that creates a symlink instead of a copy.
-// TODO: rename to fakeCopy
-func SymbolicCopy(source, target string, ignores ...string) (err error) {
-
-	ignoreDirs := make(map[string]bool)
-
-	for _, ignore := range ignores {
-		ignoreDirs[ignore] = true
-	}
+func FakeCopy(source, target string) (err error) {
 
 	_ = os.RemoveAll(target)
 	err = os.MkdirAll(target, 0755)
@@ -33,10 +26,6 @@ func SymbolicCopy(source, target string, ignores ...string) (err error) {
 
 		rel, err := filepath.Rel(source, path)
 		if err != nil {
-			return err
-		}
-
-		if dir, _ := filepath.Split(rel); ignoreDirs[dir] {
 			return err
 		}
 
