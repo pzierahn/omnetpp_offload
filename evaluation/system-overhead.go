@@ -1,7 +1,6 @@
 package main
 
 import (
-	"context"
 	"encoding/csv"
 	"flag"
 	"fmt"
@@ -21,9 +20,12 @@ const (
 )
 
 var writer *csv.Writer
-var simulation string
+var (
+	simulation string
+	connection string
+)
 
-func base() {
+func local() {
 	for inx := 0; inx < repeat; inx++ {
 		cmd := exec.Command("opp_runall", "-j", "8", "./tictoc", "-c", "TicToc18")
 		cmd.Dir = simulation
@@ -48,9 +50,13 @@ func base() {
 
 func scenario(scenario string) {
 	for inx := 0; inx < repeat; inx++ {
+		_ = os.RemoveAll(filepath.Join(simulation, "opp-edge-results"))
+		_ = os.RemoveAll(filepath.Join(simulation, "results"))
+
 		cmd := exec.Command("opp_edge_run", "-broker", broker)
 		cmd.Dir = simulation
 		cmd.Env = os.Environ()
+		cmd.Env = append(cmd.Env, "CONNECT="+connection)
 		cmd.Env = append(cmd.Env, "SCENARIOID="+scenario)
 		cmd.Env = append(cmd.Env, fmt.Sprintf("TRAILID=%d", inx))
 
@@ -70,16 +76,15 @@ func scenario(scenario string) {
 		})
 
 		writer.Flush()
-
-		_ = os.RemoveAll(filepath.Join(simulation, "opp-edge-results"))
-		_ = os.RemoveAll(filepath.Join(simulation, "results"))
 	}
 }
 
 func main() {
 
 	var scenarioId string
+
 	flag.StringVar(&scenarioId, "s", "", "scenario")
+	flag.StringVar(&connection, "c", "", "connection: local|p2p|relay")
 	flag.Parse()
 
 	if runtime.GOOS == "darwin" {
@@ -127,18 +132,7 @@ func main() {
 		//
 
 		log.Println("Local")
-
-		base()
-
-		ctx, cnl := context.WithCancel(context.Background())
-		worker := exec.CommandContext(ctx, "opp_edge_worker")
-		if err := worker.Start(); err != nil {
-			panic(err)
-		}
-
-		scenario("1")
-
-		cnl()
+		local()
 	} else {
 		log.Println("Record scenario: " + scenarioId)
 		scenario(scenarioId)
