@@ -3,7 +3,7 @@ package storage
 import (
 	"fmt"
 	pb "github.com/pzierahn/project.go.omnetpp/proto"
-	"github.com/pzierahn/project.go.omnetpp/utils"
+	"github.com/pzierahn/project.go.omnetpp/simple"
 	"google.golang.org/grpc/metadata"
 	"io"
 	"os"
@@ -23,13 +23,13 @@ func (server *Server) Push(stream pb.Storage_PushServer) (err error) {
 		return
 	}
 
-	filename, err = utils.MetaString(md, "filename")
+	filename, err = simple.MetaString(md, "filename")
 	if err != nil {
 		log.Println(err)
 		return
 	}
 
-	bucket, err = utils.MetaString(md, "bucket")
+	bucket, err = simple.MetaString(md, "bucket")
 	if err != nil {
 		log.Println(err)
 		return

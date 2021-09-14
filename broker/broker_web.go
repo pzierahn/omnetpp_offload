@@ -3,8 +3,8 @@ package broker
 import (
 	"fmt"
 	pb "github.com/pzierahn/project.go.omnetpp/proto"
+	"github.com/pzierahn/project.go.omnetpp/simple"
 	"github.com/pzierahn/project.go.omnetpp/stargate"
-	"github.com/pzierahn/project.go.omnetpp/utils"
 	"log"
 	"net/http"
 )
@@ -16,7 +16,7 @@ func (broker *broker) pStatusHandle(writer http.ResponseWriter, request *http.Re
 	writer.Header().Set("Access-Control-Allow-Origin", "*")
 
 	query := request.URL.Query()
-	sendProto := utils.QueryBool(query, "proto", false)
+	sendProto := simple.QueryBool(query, "proto", false)
 
 	loads := make(map[string]*pb.Utilization)
 
@@ -27,7 +27,7 @@ func (broker *broker) pStatusHandle(writer http.ResponseWriter, request *http.Re
 	broker.umu.RUnlock()
 
 	overview := &pb.Utilizations{Providers: loads}
-	utils.Response(writer, overview, sendProto)
+	simple.Response(writer, overview, sendProto)
 }
 
 func stargateStatus(writer http.ResponseWriter, _ *http.Request) {

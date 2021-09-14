@@ -1,4 +1,4 @@
-package utils
+package simple
 
 import (
 	"encoding/json"
@@ -8,16 +8,8 @@ import (
 	"net/http"
 )
 
-func Marshal(message proto.Message) (bytes []byte, err error) {
-	//marshal := protojson.MarshalOptions{
-	//	Indent:          "  ",
-	//	EmitUnpopulated: true,
-	//}
-	//
-	//bytes, err = marshal.Marshal(message)
-
+func MarshalProto(message proto.Message) (bytes []byte, err error) {
 	bytes, err = json.MarshalIndent(message, "", "  ")
-
 	return
 }
 
@@ -32,7 +24,7 @@ func Response(writer http.ResponseWriter, message proto.Message, proto bool) {
 }
 
 func ResponseJson(writer http.ResponseWriter, message proto.Message) {
-	if bytes, err := Marshal(message); err != nil {
+	if bytes, err := MarshalProto(message); err != nil {
 		writer.WriteHeader(503)
 		_, _ = fmt.Fprint(writer, err.Error())
 		log.Println(err)
