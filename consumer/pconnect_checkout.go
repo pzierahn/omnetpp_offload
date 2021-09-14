@@ -61,9 +61,8 @@ func (pConn *providerConnection) extract(meta *checkoutObject) (err error) {
 		Source:       ref,
 	})
 
-	checkoutDur := "MISSING"
-	log.Printf("[%s] extract: %s done (%v)",
-		pConn.id(), meta.Filename, checkoutDur)
+	log.Printf("[%s] extract: %s done",
+		pConn.id(), meta.Filename)
 
 	//
 	// TODO: Delete checked-out refs

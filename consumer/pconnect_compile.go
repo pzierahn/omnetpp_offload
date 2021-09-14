@@ -33,9 +33,7 @@ func (pConn *providerConnection) compileAndDownload(simulation *pb.Simulation) (
 		return err
 	}
 
-	//duration := ccDone.Success()
-	duration := "MISSING"
-	log.Printf("[%s] compile: %s done (%v)", pConn.id(), arch, duration)
+	log.Printf("[%s] compile: %s done", pConn.id(), arch)
 
 	start := time.Now()
 	done := eval.LogTransfer(pConn.id(), eval.TransferDirectionDownload, bin.Ref.Filename)
