@@ -8,6 +8,27 @@ import (
 	"path/filepath"
 )
 
+type ChangedFiles struct {
+	Root string
+	snap map[string][]byte
+}
+
+func (cfiles *ChangedFiles) Snapshot() (err error) {
+	cfiles.snap, err = ListDir(cfiles.Root)
+	return
+}
+
+func (cfiles *ChangedFiles) ZipChanges(dirname string) (buffer bytes.Buffer, err error) {
+	files, err := ListDir(cfiles.Root)
+	if err != nil {
+		return
+	}
+
+	diff := DirDiff(cfiles.snap, files)
+
+	return TarGzFiles(cfiles.Root, dirname, diff)
+}
+
 func ListDir(root string) (files map[string][]byte, err error) {
 
 	files = make(map[string][]byte)

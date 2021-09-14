@@ -37,14 +37,14 @@ func (prov *provider) run(ctx context.Context, run *pb.SimulationRun) (ref *pb.S
 		return
 	}
 
-	filesBefore, err := simple.ListDir(simulationPath)
-	if err != nil {
+	//
+	// Execute simulation run
+	//
+
+	files := simple.ChangedFiles{Root: simulationPath}
+	if err = files.Snapshot(); err != nil {
 		return
 	}
-
-	//
-	// Run simulation run
-	//
 
 	oppConf := omnetpp.Config{
 		OppConfig: run.OppConfig,
@@ -59,19 +59,13 @@ func (prov *provider) run(ctx context.Context, run *pb.SimulationRun) (ref *pb.S
 		return nil, done(err)
 	}
 
-	filesAfter, err := simple.ListDir(simulationPath)
-	if err != nil {
-		return nil, done(err)
-	}
-
 	_ = done(nil)
 
 	//
 	// Collect and upload results
 	//
 
-	results := simple.DirDiff(filesBefore, filesAfter)
-	buf, err := simple.TarGzFiles(simulationPath, "", results)
+	buf, err := files.ZipChanges("")
 	if err != nil {
 		return
 	}

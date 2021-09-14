@@ -32,8 +32,8 @@ func (prov *provider) compile(ctx context.Context, simulation *pb.Simulation) (b
 		return
 	}
 
-	cleanFiles, err := simple.ListDir(base)
-	if err != nil {
+	cfiles := simple.ChangedFiles{Root: base}
+	if err = cfiles.Snapshot(); err != nil {
 		return
 	}
 
@@ -45,13 +45,7 @@ func (prov *provider) compile(ctx context.Context, simulation *pb.Simulation) (b
 
 	_ = done(nil)
 
-	buildFiles, err := simple.ListDir(base)
-	if err != nil {
-		return
-	}
-
-	files := simple.DirDiff(cleanFiles, buildFiles)
-	buf, err := simple.TarGzFiles(base, simulation.Id, files)
+	buf, err := cfiles.ZipChanges(simulation.Id)
 	if err != nil {
 		return
 	}
