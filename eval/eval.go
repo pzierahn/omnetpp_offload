@@ -14,6 +14,8 @@ const (
 	StepError
 )
 
+var DeviceId string
+
 var client pb.EvalClient
 
 func Init(conn *grpc.ClientConn) {

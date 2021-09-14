@@ -9,12 +9,12 @@ import (
 )
 
 const (
-	ActionCompile = "Compile"
-	//ActionCompress = "Compress"
-	//ActionExtract  = "Extract"
+	ActionCompile  = "Compile"
+	ActionCompress = "Compress"
+	ActionExtract  = "Extract"
 )
 
-func LogAction(provider, action string) (done func(err error) error) {
+func LogAction(action, meta string) (done func(err error) error) {
 
 	timestamp := time.Now()
 	ts, _ := timestamp.MarshalText()
@@ -23,11 +23,12 @@ func LogAction(provider, action string) (done func(err error) error) {
 
 	ctx := context.Background()
 	_, _ = client.Action(ctx, &pb.ActionEvent{
-		TimeStamp:  string(ts),
-		ProviderId: provider,
-		Step:       uint32(StepStart),
-		EventId:    id,
-		Action:     action,
+		TimeStamp: string(ts),
+		DeviceId:  DeviceId,
+		Step:      uint32(StepStart),
+		EventId:   id,
+		Action:    action,
+		Meta:      meta,
 	})
 
 	done = func(err error) error {
@@ -36,20 +37,22 @@ func LogAction(provider, action string) (done func(err error) error) {
 
 		if err != nil {
 			_, _ = client.Action(ctx, &pb.ActionEvent{
-				TimeStamp:  string(ts),
-				ProviderId: provider,
-				Step:       uint32(StepError),
-				EventId:    id,
-				Action:     action,
-				Error:      err.Error(),
+				TimeStamp: string(ts),
+				DeviceId:  DeviceId,
+				Step:      uint32(StepError),
+				EventId:   id,
+				Action:    action,
+				Meta:      meta,
+				Error:     err.Error(),
 			})
 		} else {
 			_, _ = client.Action(ctx, &pb.ActionEvent{
-				TimeStamp:  string(ts),
-				ProviderId: provider,
-				Step:       uint32(StepSuccess),
-				EventId:    id,
-				Action:     action,
+				TimeStamp: string(ts),
+				DeviceId:  DeviceId,
+				Step:      uint32(StepSuccess),
+				EventId:   id,
+				Action:    action,
+				Meta:      meta,
 			})
 		}
 

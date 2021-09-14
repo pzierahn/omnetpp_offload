@@ -46,9 +46,14 @@ func Start() {
 		sessions:    make(map[simulationId]*pb.Session),
 	}
 
-	prov.recoverSessions()
-
 	log.Printf("start provider (%v)", prov.providerId)
+
+	//
+	// Init stuff
+	//
+
+	eval.DeviceId = prov.providerId
+	prov.recoverSessions()
 
 	//
 	// Register provider

@@ -14,7 +14,7 @@ import (
 func (prov *provider) run(ctx context.Context, run *pb.SimulationRun) (ref *pb.StorageRef, err error) {
 
 	//
-	// Setup mirror simulation
+	// Fake copy simulation
 	//
 
 	// Simulation directory with simulation source code
@@ -65,14 +65,17 @@ func (prov *provider) run(ctx context.Context, run *pb.SimulationRun) (ref *pb.S
 	// Collect and upload results
 	//
 
+	filename := fmt.Sprintf("results/%s_%s.tgz", run.Config, run.RunNum)
+	done = eval.LogAction(eval.ActionCompress, filename)
 	buf, err := files.ZipChanges("")
+	_ = done(err)
 	if err != nil {
 		return
 	}
 
 	ref = &pb.StorageRef{
 		Bucket:   run.SimulationId,
-		Filename: fmt.Sprintf("results/%s_%s.tgz", run.Config, run.RunNum),
+		Filename: filename,
 	}
 
 	err = prov.store.Put(&buf, ref)

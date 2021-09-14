@@ -17,8 +17,7 @@ type Configfile struct {
 	} `json:"broker"`
 	Worker struct {
 		Name string `json:"name"`
-		// TODO: Rename to jobs
-		Jobs int `json:"jobs"`
+		Jobs int    `json:"jobs"`
 	} `json:"provider"`
 }
 
@@ -26,12 +25,7 @@ func BrokerPort() (port int) {
 	return Config.Broker.BrokerPort
 }
 
-func StargateAddr() (addr string) {
-	addr = fmt.Sprintf("%s:%d", Config.Broker.Address, Config.Broker.StargatePort)
-	return
-}
-
-func Jobs() (cpus int) {
+func Jobs() (jobs int) {
 	return Config.Worker.Jobs
 }
 

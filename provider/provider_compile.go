@@ -37,22 +37,24 @@ func (prov *provider) compile(ctx context.Context, simulation *pb.Simulation) (b
 		return
 	}
 
-	done := eval.LogAction(prov.providerId, eval.ActionCompile)
+	done := eval.LogAction(eval.ActionCompile, sysinfo.ArchSignature())
 	err = opp.Setup(ctx, false)
+	_ = done(nil)
 	if err != nil {
-		return nil, done(err)
+		return
 	}
 
-	_ = done(nil)
-
+	filename := fmt.Sprintf("binary/%s.tgz", sysinfo.ArchSignature())
+	done = eval.LogAction(eval.ActionCompress, filename)
 	buf, err := cfiles.ZipChanges(simulation.Id)
+	_ = done(err)
 	if err != nil {
 		return
 	}
 
 	ref := &pb.StorageRef{
 		Bucket:   simulation.Id,
-		Filename: fmt.Sprintf("binary/%s.tgz", sysinfo.ArchSignature()),
+		Filename: fmt.Sprintf("binary/%s.tgz", filename),
 	}
 
 	err = prov.store.Put(&buf, ref)

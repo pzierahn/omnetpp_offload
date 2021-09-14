@@ -43,7 +43,9 @@ func (pConn *providerConnection) run(task *pb.SimulationRun, config *Config) (er
 	// Extract files to the right place
 	//
 
+	eDone := eval.LogAction(eval.ActionExtract, resultRef.Filename)
 	err = simple.ExtractTarGz(config.Path, bytes.NewReader(buf.Bytes()))
+	_ = eDone(err)
 	if err != nil {
 		log.Printf("[%s] error %v", pConn.id(), err)
 		return

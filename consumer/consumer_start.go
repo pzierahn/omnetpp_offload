@@ -40,6 +40,7 @@ func Start(ctx context.Context, config *Config) {
 
 	eval.Init(conn)
 	eval.SetScenario(id)
+	eval.DeviceId = "consumer"
 
 	//log.Printf("Start: set execution timeout to %v", timeout)
 
@@ -63,7 +64,9 @@ func Start(ctx context.Context, config *Config) {
 
 	log.Printf("Start: zipping %s", cons.config.Path)
 
+	done := eval.LogAction(eval.ActionCompress, "source")
 	buf, err := simple.TarGz(cons.config.Path, cons.simulation.Id, cons.config.Ignore...)
+	_ = done(err)
 	if err != nil {
 		log.Fatalln(err)
 	}
