@@ -16,8 +16,9 @@ type Configfile struct {
 		StargatePort int    `json:"stargatePort"`
 	} `json:"broker"`
 	Worker struct {
-		Name       string `json:"name"`
-		DevoteCPUs int    `json:"devoteCPUs"`
+		Name string `json:"name"`
+		// TODO: Rename to jobs
+		DevoteCPUs int `json:"devoteCPUs"`
 	} `json:"provider"`
 }
 

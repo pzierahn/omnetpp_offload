@@ -19,11 +19,11 @@ message OppConfig {
   // Run opp_run -l ... instead of running the simulation directly
   bool useLib = 5;
 
-  // TODO: Rename to binary path
+  // TODO: Rename to executablePath
   // Simulation exe or lib
   string simulation = 6;
 
-  // TODO: Rename to MakefilePath
+  // TODO: Rename to makefilePath
   // Directory that (should) contain the Makefile
   string sourcePath = 7;
 }

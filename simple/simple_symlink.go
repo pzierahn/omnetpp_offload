@@ -10,6 +10,7 @@ import (
 // This function creates a new directory (target). Afterwards it
 // will create symlinks that point to all files in source.
 // Think of this as a copy function that creates a symlink instead of a copy.
+// TODO: rename to fakeCopy
 func SymbolicCopy(source, target string, ignores ...string) (err error) {
 
 	ignoreDirs := make(map[string]bool)
