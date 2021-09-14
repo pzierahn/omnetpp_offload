@@ -36,8 +36,8 @@ func Start() {
 	prov := &provider{
 		providerId:  simple.NamedId(gconfig.Config.Worker.Name, 8),
 		store:       store,
-		slots:       uint32(gconfig.DevoteCPUs()),
-		freeSlots:   int32(gconfig.DevoteCPUs()),
+		slots:       uint32(gconfig.Jobs()),
+		freeSlots:   int32(gconfig.Jobs()),
 		mu:          mu,
 		cond:        sync.NewCond(mu),
 		requests:    make(map[simulationId]uint32),

@@ -32,8 +32,8 @@ func init() {
 			Config.Worker.Name = runtime.GOOS + "-" + runtime.GOARCH
 		}
 
-		if Config.Worker.DevoteCPUs == 0 {
-			Config.Worker.DevoteCPUs = runtime.NumCPU()
+		if Config.Worker.Jobs == 0 {
+			Config.Worker.Jobs = runtime.NumCPU()
 		}
 	}()
 
@@ -68,7 +68,7 @@ func ParseFlags() {
 	// Worker
 	//
 	flag.StringVar(&Config.Worker.Name, "name", Config.Worker.Name, "set worker name")
-	flag.IntVar(&Config.Worker.DevoteCPUs, "devoteCPUs", Config.Worker.DevoteCPUs, "set how manny CPUs should be used")
+	flag.IntVar(&Config.Worker.Jobs, "devoteCPUs", Config.Worker.Jobs, "set how manny CPUs should be used")
 
 	flag.Parse()
 }

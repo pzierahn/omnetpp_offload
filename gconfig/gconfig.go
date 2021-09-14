@@ -18,7 +18,7 @@ type Configfile struct {
 	Worker struct {
 		Name string `json:"name"`
 		// TODO: Rename to jobs
-		DevoteCPUs int `json:"devoteCPUs"`
+		Jobs int `json:"jobs"`
 	} `json:"provider"`
 }
 
@@ -31,8 +31,8 @@ func StargateAddr() (addr string) {
 	return
 }
 
-func DevoteCPUs() (cpus int) {
-	return Config.Worker.DevoteCPUs
+func Jobs() (cpus int) {
+	return Config.Worker.Jobs
 }
 
 func StargatePort() (port int) {
