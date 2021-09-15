@@ -1,0 +1,2 @@
+scenarioId,trailId,simulationId,timeStamp,providerId,connect,numCPUs,arch,os
+3,1,tictoc-27ca17a9,2021-09-15T12:22:42.782732146+02:00,patricks-mbp-9414c9f6,P2P,8,amd64,linux
