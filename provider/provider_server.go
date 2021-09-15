@@ -110,7 +110,7 @@ func Start() {
 	go prov.listenLocal()
 	go prov.listenP2P()
 	go prov.listenRelay()
-	prov.allocator()
+	prov.startAllocator()
 
 	return
 }

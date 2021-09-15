@@ -62,10 +62,5 @@ func (client *Client) Upload(meta *FileMeta, ch chan<- UploadInfo) (ref *pb.Stor
 		atomic.AddUint64(&uploaded, uint64(chunk.size))
 	}
 
-	ref, err = stream.CloseAndRecv()
-	if err != nil {
-		return
-	}
-
-	return
+	return stream.CloseAndRecv()
 }

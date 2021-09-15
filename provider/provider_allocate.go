@@ -25,7 +25,7 @@ func (prov *provider) dropSession(id simulationId) {
 	_ = os.RemoveAll(dir)
 }
 
-func (prov *provider) allocator() {
+func (prov *provider) startAllocator() {
 
 	cond := prov.cond
 
@@ -55,8 +55,7 @@ func (prov *provider) allocator() {
 				break
 			}
 
-			// TODO: remove 1
-			slots := simple.MathMinUint32(assignable, req, 1)
+			slots := simple.MathMinUint32(assignable, req)
 
 			log.Printf("allocator: assign cId=%s slots=%d", cId, slots)
 

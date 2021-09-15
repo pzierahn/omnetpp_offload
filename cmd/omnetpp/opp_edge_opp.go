@@ -121,16 +121,4 @@ func main() {
 			panic(err)
 		}
 	}
-
-	if tgz != "" {
-		byt, err := opp.ZipResults()
-		if err != nil {
-			panic(err)
-		}
-
-		err = ioutil.WriteFile(tgz, byt.Bytes(), 0644)
-		if err != nil {
-			panic(err)
-		}
-	}
 }

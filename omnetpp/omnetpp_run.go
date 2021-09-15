@@ -12,9 +12,7 @@ import (
 	"strings"
 )
 
-// command
-//
-// Get simulation executable. This can ether be a simulationExe
+// commandContext returns simulation cmd with a context. This can ether be a simulationExe
 // or simulationLib in conjunction with opp_run
 func (project *OmnetProject) commandContext(ctx context.Context, args ...string) (cmd *exec.Cmd, err error) {
 
@@ -81,9 +79,7 @@ func (project *OmnetProject) commandContext(ctx context.Context, args ...string)
 	return
 }
 
-// command
-//
-// Get simulation executable. This can ether be a simulationExe
+// command returns simulation executable. This can ether be a simulationExe
 // or simulationLib in conjunction with opp_run
 func (project *OmnetProject) command(args ...string) (cmd *exec.Cmd, err error) {
 	return project.commandContext(context.Background(), args...)

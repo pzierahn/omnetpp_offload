@@ -68,7 +68,7 @@ func ParseFlags() {
 	// Worker
 	//
 	flag.StringVar(&Config.Worker.Name, "name", Config.Worker.Name, "set worker name")
-	flag.IntVar(&Config.Worker.Jobs, "devoteCPUs", Config.Worker.Jobs, "set how manny CPUs should be used")
+	flag.IntVar(&Config.Worker.Jobs, "jobs", Config.Worker.Jobs, "set how manny CPUs should be used")
 
 	flag.Parse()
 }

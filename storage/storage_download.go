@@ -39,7 +39,7 @@ func (client *Client) Download(ctx context.Context, file *pb.StorageRef) (buf by
 		packages++
 	}
 
-	log.Printf("received %d packages in %v", packages, time.Now().Sub(start))
+	log.Printf("Download: %s packages=%d time=%v", file.Filename, packages, time.Now().Sub(start))
 
 	return
 }
