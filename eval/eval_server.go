@@ -75,13 +75,13 @@ func (server *Server) Scenario(_ context.Context, scenario *pb.EvalScenario) (*e
 
 		switch val {
 		case fileActions:
-			name = "opp-edge-eval-actions-" + id + ".csv"
+			name = "actions-" + id + ".csv"
 		case fileRuns:
-			name = "opp-edge-eval-runs-" + id + ".csv"
+			name = "runs-" + id + ".csv"
 		case fileTransfers:
-			name = "opp-edge-eval-transfers-" + id + ".csv"
+			name = "transfers-" + id + ".csv"
 		case fileSetups:
-			name = "opp-edge-eval-setup-" + id + ".csv"
+			name = "setup-" + id + ".csv"
 		}
 
 		filename := filepath.Join(dir, name)
