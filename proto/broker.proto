@@ -65,6 +65,8 @@ service Provider {
 
   rpc GetSession  (Simulation)    returns (Session);
   rpc SetSession  (Session)       returns (Session);
+  // Todo: close session properly
+  // rpc CloseSession (Session)      returns (google.protobuf.Empty);
   rpc Extract     (Bundle)        returns (Empty);
   rpc Compile     (Simulation)    returns (Binary);
   rpc ListRunNums (Simulation)    returns (SimulationRuns);
