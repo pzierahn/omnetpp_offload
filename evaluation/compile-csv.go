@@ -15,7 +15,7 @@ type combine struct {
 
 func main() {
 
-	outdir := "eval-data"
+	outdir := "data"
 	_ = os.RemoveAll(outdir)
 	_ = os.MkdirAll(outdir, 0755)
 
