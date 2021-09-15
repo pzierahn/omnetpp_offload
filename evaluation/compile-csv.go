@@ -21,28 +21,29 @@ func main() {
 
 	csvs := []combine{
 		{
-			file: "system-overhead.csv",
-			src:  "system-overhead-scenarios",
+			file:   "overhead.csv",
+			prefix: "overhead",
+			src:    "meta",
 		},
 		{
-			file:   "opp-edge-eval-setup.csv",
-			prefix: "opp-edge-eval-setup",
-			src:    "system-overhead-data",
+			file:   "setup.csv",
+			prefix: "setup",
+			src:    "meta",
 		},
 		{
-			file:   "opp-edge-eval-actions.csv",
-			prefix: "opp-edge-eval-actions",
-			src:    "system-overhead-data",
+			file:   "actions.csv",
+			prefix: "actions",
+			src:    "meta",
 		},
 		{
-			file:   "opp-edge-eval-transfers.csv",
-			prefix: "opp-edge-eval-transfers",
-			src:    "system-overhead-data",
+			file:   "transfers.csv",
+			prefix: "transfers",
+			src:    "meta",
 		},
 		{
-			file:   "opp-edge-eval-runs.csv",
-			prefix: "opp-edge-eval-runs",
-			src:    "system-overhead-data",
+			file:   "runs.csv",
+			prefix: "runs",
+			src:    "meta",
 		},
 	}
 

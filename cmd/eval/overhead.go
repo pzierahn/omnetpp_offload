@@ -19,11 +19,12 @@ const (
 	//broker = "localhost"
 )
 
-var writer *csv.Writer
 var (
 	simulation string
 	connection string
 )
+
+var writer *csv.Writer
 
 func local() {
 	for inx := 0; inx < repeat; inx++ {
@@ -60,7 +61,7 @@ func scenario(scenario string) {
 		cmd.Env = append(cmd.Env, "SCENARIOID="+scenario)
 		cmd.Env = append(cmd.Env, fmt.Sprintf("TRAILID=%d", inx))
 
-		log.Printf("Run %s --> %d", scenario, inx)
+		log.Printf("Run scenario: %s trail: %d", scenario, inx)
 		start := time.Now()
 		simple.RunCmdStdout(cmd)
 		//if err := cmd.Run(); err != nil {
@@ -95,7 +96,7 @@ func main() {
 
 	log.Println("Installing latest opp_edge version...")
 
-	cmd := exec.Command("go", "install", "../cmd/consumer/opp_edge_run.go")
+	cmd := exec.Command("go", "install", "cmd/consumer/opp_edge_run.go")
 	out, err := cmd.CombinedOutput()
 	if err != nil {
 		log.Println("out: ", string(out))
@@ -104,13 +105,13 @@ func main() {
 
 	var filename string
 
-	dir := "system-overhead-scenarios"
+	dir := "evaluation/meta"
 	_ = os.MkdirAll(dir, 0755)
 
 	if scenarioId == "" {
-		filename = filepath.Join(dir, "system-overhead-local.csv")
+		filename = filepath.Join(dir, "overhead-local.csv")
 	} else {
-		filename = filepath.Join(dir, fmt.Sprintf("system-overhead-%s.csv", scenarioId))
+		filename = filepath.Join(dir, fmt.Sprintf("overhead-%s.csv", scenarioId))
 	}
 
 	_ = os.Remove(filename)
@@ -137,28 +138,4 @@ func main() {
 		log.Println("Record scenario: " + scenarioId)
 		scenario(scenarioId)
 	}
-
-	////
-	//// Local with opp_edge and docker
-	////
-	//
-	//docker := exec.Command(
-	//	"docker", "run", "--rm", "-d",
-	//	"pzierahn/omnetpp_edge", "opp_edge_worker", "-broker", "85.214.35.83")
-	//
-	//id, err := docker.CombinedOutput()
-	//if err != nil {
-	//	panic(err)
-	//}
-	//
-	//scenario("1")
-	//
-	//log.Printf("############### docker kill %s", string(id))
-	//
-	////kill := exec.Command("docker", "kill", string(id))
-	////kill.Env = os.Environ()
-	////if byt, err := kill.CombinedOutput(); err != nil {
-	////	fmt.Println(string(byt))
-	////	panic(err)
-	////}
 }
