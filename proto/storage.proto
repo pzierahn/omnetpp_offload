@@ -6,10 +6,10 @@ option go_package = "./proto";
 import "google/protobuf/empty.proto";
 
 service Storage {
-  rpc Pull   (StorageRef)           returns (stream StorageParcel)  {}
-  rpc Push   (stream StorageParcel) returns (StorageRef)            {}
-  rpc Delete (StorageRef)           returns (google.protobuf.Empty) {}
-  rpc Drop   (BucketRef)            returns (google.protobuf.Empty) {}
+  rpc Pull   (StorageRef)           returns (stream StorageParcel);
+  rpc Push   (stream StorageParcel) returns (StorageRef);
+  rpc Delete (StorageRef)           returns (google.protobuf.Empty);
+  rpc Drop   (BucketRef)            returns (google.protobuf.Empty);
 }
 
 message BucketRef {

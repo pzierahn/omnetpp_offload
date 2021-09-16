@@ -8,8 +8,8 @@ import "google/protobuf/empty.proto";
 import "provider.proto";
 
 service Broker {
-  rpc GetProviders (google.protobuf.Empty) returns (stream Providers) {}
-  rpc Register (stream Ping) returns (google.protobuf.Empty)     {}
+  rpc GetProviders (google.protobuf.Empty) returns (stream Providers);
+  rpc Register (stream Ping) returns (google.protobuf.Empty);
 }
 
 message Ping {
