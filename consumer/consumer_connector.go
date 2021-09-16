@@ -1,7 +1,6 @@
 package consumer
 
 import (
-	"context"
 	pb "github.com/pzierahn/project.go.omnetpp/proto"
 	"github.com/pzierahn/project.go.omnetpp/simple"
 	"google.golang.org/protobuf/types/known/emptypb"
@@ -12,7 +11,7 @@ import (
 func (cons *consumer) startConnector(onInit chan int32) {
 
 	broker := pb.NewBrokerClient(cons.bconn)
-	stream, err := broker.GetProviders(context.Background(), &emptypb.Empty{})
+	stream, err := broker.Providers(cons.ctx, &emptypb.Empty{})
 	if err != nil {
 		log.Fatalln(err)
 	}

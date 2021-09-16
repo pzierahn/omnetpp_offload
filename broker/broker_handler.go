@@ -18,31 +18,31 @@ type broker struct {
 	umu         sync.RWMutex
 	utilization map[providerId]*pb.Utilization
 	lmu         sync.RWMutex
-	listener    map[string]chan<- *pb.Providers
+	listener    map[string]chan<- *pb.ProviderList
 }
 
-func (broker *broker) providerList() (providers *pb.Providers) {
+func (broker *broker) providerList() (list *pb.ProviderList) {
 
-	providers = &pb.Providers{}
+	list = &pb.ProviderList{}
 
 	broker.pmu.RLock()
 	for _, prov := range broker.providers {
-		providers.Items = append(providers.Items, prov)
+		list.Items = append(list.Items, prov)
 	}
 	broker.pmu.RUnlock()
 
 	return
 }
 
-// GetProviders sends a provider list to the consumer. With every list update an event will be dispatched.
-func (broker *broker) GetProviders(_ *emptypb.Empty, stream pb.Broker_GetProvidersServer) (err error) {
+// Providers sends a provider list to the consumer. With every list update an event will be dispatched.
+func (broker *broker) Providers(_ *emptypb.Empty, stream pb.Broker_ProvidersServer) (err error) {
 
 	log.Printf("GetProviders:")
 
 	ctx := stream.Context()
 
 	id := fmt.Sprintf("%x", rand.Uint32())
-	listener := make(chan *pb.Providers)
+	listener := make(chan *pb.ProviderList)
 	defer close(listener)
 
 	broker.lmu.Lock()
