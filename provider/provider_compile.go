@@ -27,6 +27,11 @@ func newOpp(simulation *pb.Simulation) (base string, opp omnetpp.OmnetProject) {
 func (prov *provider) compile(ctx context.Context, simulation *pb.Simulation) (bin *pb.Binary, err error) {
 
 	base, opp := newOpp(simulation)
+	err = opp.MakeMake(ctx)
+	if err != nil {
+		return
+	}
+
 	err = opp.Clean(ctx)
 	if err != nil {
 		return
