@@ -5,8 +5,7 @@ import (
 )
 
 const (
-	defaultBrokerPort   = 8888
-	defaultStargatePort = 8889
+	defaultBrokerPort = 8888
 )
 
 type Configfile struct {

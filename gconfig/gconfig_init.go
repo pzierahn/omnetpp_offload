@@ -5,6 +5,7 @@ import (
 	"flag"
 	"fmt"
 	"github.com/pzierahn/project.go.omnetpp/defines"
+	"github.com/pzierahn/project.go.omnetpp/stargate"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -25,7 +26,7 @@ func init() {
 		}
 
 		if Config.Broker.StargatePort == 0 {
-			Config.Broker.StargatePort = defaultStargatePort
+			Config.Broker.StargatePort = stargate.DefaultPort
 		}
 
 		if Config.Worker.Name == "" {
