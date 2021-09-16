@@ -1,0 +1,91 @@
+syntax = "proto3";
+package service;
+
+option go_package = "./proto";
+
+import "google/protobuf/empty.proto";
+import "google/protobuf/timestamp.proto";
+
+import "storage.proto";
+import "opp_config.proto";
+
+service Provider {
+  rpc Info   (google.protobuf.Empty) returns (ProviderInfo);
+  rpc Status (google.protobuf.Empty) returns (Utilization);
+
+  rpc Allocate (stream AllocateRequest) returns (stream AllocatedSlots);
+
+  rpc GetSession  (Simulation)    returns (Session);
+  rpc SetSession  (Session)       returns (Session);
+  // Todo: close session properly
+  // rpc CloseSession (Session)      returns (google.protobuf.Empty);
+  rpc Extract     (Bundle)        returns (google.protobuf.Empty);
+  rpc Compile     (Simulation)    returns (Binary);
+  rpc ListRunNums (Simulation)    returns (SimulationRuns);
+  rpc Run         (SimulationRun) returns (StorageRef);
+}
+
+message ProviderInfo {
+  string providerId = 1;
+  Arch arch = 2;
+  uint32 numCPUs = 3;
+}
+
+message Arch {
+  string os = 1;
+  string arch = 2;
+}
+
+message Utilization {
+  float cpuUsage = 1;
+  uint64 memoryTotal = 2;
+  uint64 memoryUsed = 3;
+  google.protobuf.Timestamp updated = 4;
+}
+
+message AllocateRequest {
+  string simulationId = 1;
+  uint32 request = 2;
+}
+
+message AllocatedSlots {
+  uint32 slots = 1;
+}
+
+message Simulation {
+  string id = 1;
+  OppConfig oppConfig = 2;
+  string config = 3;
+  string runNum = 4;
+}
+
+message Session {
+  string simulationId = 1;
+  OppConfig oppConfig = 2;
+  google.protobuf.Timestamp ttl = 3;
+  bool sourceExtracted = 4;
+  bool executableExtracted = 5;
+}
+
+message SimulationRun {
+  string simulationId = 1;
+  string config = 2;
+  string runNum = 3;
+}
+
+message SimulationRuns {
+  string simulationId = 1;
+  string config = 2;
+  repeated string runs = 3;
+}
+
+message Bundle {
+  string simulationId = 1;
+  StorageRef source = 3;
+}
+
+message Binary {
+  string simulationId = 1;
+  Arch arch = 2;
+  StorageRef ref = 3;
+}

@@ -35,10 +35,10 @@ type OppConfig struct {
 	NedPaths []string `protobuf:"bytes,4,rep,name=nedPaths,proto3" json:"nedPaths,omitempty"`
 	// Run opp_run -l ... instead of running the simulation directly
 	UseLib bool `protobuf:"varint,5,opt,name=useLib,proto3" json:"useLib,omitempty"`
-	// TODO: Rename to binary path
+	// TODO: Rename to executablePath
 	// Simulation exe or lib
 	Simulation string `protobuf:"bytes,6,opt,name=simulation,proto3" json:"simulation,omitempty"`
-	// TODO: Rename to MakefilePath
+	// TODO: Rename to makefilePath
 	// Directory that (should) contain the Makefile
 	SourcePath string `protobuf:"bytes,7,opt,name=sourcePath,proto3" json:"sourcePath,omitempty"`
 }

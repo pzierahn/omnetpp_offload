@@ -3,6 +3,7 @@ package broker
 import (
 	"fmt"
 	pb "github.com/pzierahn/project.go.omnetpp/proto"
+	"google.golang.org/protobuf/types/known/emptypb"
 	"log"
 	"math/rand"
 	"sync"
@@ -34,7 +35,7 @@ func (broker *broker) providerList() (providers *pb.Providers) {
 }
 
 // GetProviders sends a provider list to the consumer. With every list update an event will be dispatched.
-func (broker *broker) GetProviders(_ *pb.Empty, stream pb.Broker_GetProvidersServer) (err error) {
+func (broker *broker) GetProviders(_ *emptypb.Empty, stream pb.Broker_GetProvidersServer) (err error) {
 
 	log.Printf("GetProviders:")
 

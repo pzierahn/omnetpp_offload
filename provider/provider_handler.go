@@ -7,6 +7,7 @@ import (
 	pb "github.com/pzierahn/project.go.omnetpp/proto"
 	"github.com/pzierahn/project.go.omnetpp/simple"
 	"github.com/pzierahn/project.go.omnetpp/sysinfo"
+	"google.golang.org/protobuf/types/known/emptypb"
 	"google.golang.org/protobuf/types/known/timestamppb"
 	"log"
 	"os"
@@ -58,7 +59,7 @@ func (prov *provider) SetSession(_ context.Context, sess *pb.Session) (*pb.Sessi
 	return sess, nil
 }
 
-func (prov *provider) Info(_ context.Context, _ *pb.Empty) (info *pb.ProviderInfo, err error) {
+func (prov *provider) Info(_ context.Context, _ *emptypb.Empty) (info *pb.ProviderInfo, err error) {
 
 	log.Printf("Info:")
 	info = prov.info()
@@ -66,18 +67,18 @@ func (prov *provider) Info(_ context.Context, _ *pb.Empty) (info *pb.ProviderInf
 	return
 }
 
-func (prov *provider) Status(ctx context.Context, _ *pb.Empty) (util *pb.Utilization, err error) {
+func (prov *provider) Status(ctx context.Context, _ *emptypb.Empty) (util *pb.Utilization, err error) {
 
 	log.Printf("Status:")
 	util, err = sysinfo.GetUtilization(ctx)
 	return
 }
 
-func (prov *provider) Extract(_ context.Context, bundle *pb.Bundle) (empty *pb.Empty, err error) {
+func (prov *provider) Extract(_ context.Context, bundle *pb.Bundle) (empty *emptypb.Empty, err error) {
 
 	log.Printf("Extract: %v %v", bundle.SimulationId, bundle.Source.Filename)
 
-	empty = &pb.Empty{}
+	empty = &emptypb.Empty{}
 
 	byt, err := prov.store.Get(bundle.Source)
 	if err != nil {
