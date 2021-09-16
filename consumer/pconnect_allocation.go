@@ -1,6 +1,7 @@
 package consumer
 
 import (
+	"github.com/pzierahn/project.go.omnetpp/eval"
 	pb "github.com/pzierahn/project.go.omnetpp/proto"
 	"log"
 )
@@ -29,15 +30,29 @@ func (pConn *providerConnection) allocationHandler(stream pb.Provider_AllocateCl
 			}
 
 			go func() {
-				// TODO: Find a better way to handle this
-
-				if err := pConn.run(task, cons.config); err != nil {
-					log.Printf("[%s] reschedule %s_%s", pConn.id(), task.Config, task.RunNum)
+				ref, err := pConn.run(task)
+				if err != nil {
+					log.Printf("[%s] run failed: reschedule %+v", pConn.id(), task)
 					// Add item back to queue to send right allocation num
 					cons.allocate.add(task)
-				} else {
-					cons.finished.Done()
+					return
 				}
+
+				buf, err := pConn.download(ref)
+				if err != nil {
+					log.Printf("[%s] download failed: reschedule %+v", pConn.id(), task)
+					// Add item back to queue to send right allocation num
+					cons.allocate.add(task)
+					return
+				}
+
+				done := eval.LogAction(eval.ActionExtract, ref.Filename)
+				cons.extractResults(buf)
+				_ = done(nil)
+
+				_, _ = pConn.store.Delete(pConn.ctx, ref)
+
+				cons.finished.Done()
 			}()
 		}
 	}

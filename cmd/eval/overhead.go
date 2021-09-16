@@ -28,7 +28,7 @@ var writer *csv.Writer
 
 func local() {
 	for inx := 0; inx < repeat; inx++ {
-		cmd := exec.Command("opp_runall", "-j", "8", "./tictoc", "-c", "TicToc18")
+		cmd := exec.Command("opp_runall", "-j", "4", "./tictoc", "-c", "TicToc18")
 		cmd.Dir = simulation
 
 		log.Printf("Run 0 --> %d", inx)
@@ -128,10 +128,6 @@ func main() {
 	_ = writer.Write([]string{"scenario", "run", "duration"})
 
 	if scenarioId == "" {
-		//
-		// Local
-		//
-
 		log.Println("Local")
 		local()
 	} else {

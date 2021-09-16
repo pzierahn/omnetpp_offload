@@ -59,7 +59,7 @@ func (prov *provider) compile(ctx context.Context, simulation *pb.Simulation) (b
 
 	ref := &pb.StorageRef{
 		Bucket:   simulation.Id,
-		Filename: fmt.Sprintf("binary/%s.tgz", filename),
+		Filename: filename,
 	}
 
 	err = prov.store.Put(&buf, ref)

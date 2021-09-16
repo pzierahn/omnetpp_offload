@@ -1,7 +1,6 @@
 package consumer
 
 import (
-	"bytes"
 	"fmt"
 	"github.com/pzierahn/project.go.omnetpp/eval"
 	pb "github.com/pzierahn/project.go.omnetpp/proto"
@@ -38,20 +37,20 @@ func (pConn *providerConnection) compileAndDownload(simulation *pb.Simulation) (
 	start := time.Now()
 	done := eval.LogTransfer(pConn.id(), eval.TransferDirectionDownload, bin.Ref.Filename)
 
-	var buf bytes.Buffer
-	buf, err = store.Download(pConn.ctx, bin.Ref)
+	var byt []byte
+	byt, err = store.Download(pConn.ctx, bin.Ref)
 	if err != nil {
 		return done(0, err)
 	}
 
-	size := uint64(buf.Len())
+	size := uint64(len(byt))
 	_ = done(size, err)
 
 	log.Printf("[%s] compile: downloaded %s exe (%v in %v)",
 		pConn.id(), arch, simple.ByteSize(size), time.Now().Sub(start))
 
 	binaryMu.Lock()
-	binaries[arch] = buf.Bytes()
+	binaries[arch] = byt
 	binaryMu.Unlock()
 
 	return

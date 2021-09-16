@@ -22,7 +22,11 @@ func TarGzFiles(path, dirname string, files map[string]bool) (buffer bytes.Buffe
 		_ = tw.Close()
 	}()
 
-	for walkPath := range files {
+	for walkPath, include := range files {
+
+		if !include {
+			continue
+		}
 
 		info, err := os.Stat(walkPath)
 		if err != nil || info.IsDir() {
@@ -124,8 +128,9 @@ func TarGz(path, dirname string, exclude ...string) (buffer bytes.Buffer, err er
 	return
 }
 
-func ExtractTarGz(dst string, buffer io.Reader) (err error) {
+func ExtractTarGz(dst string, byt []byte) (err error) {
 
+	buffer := bytes.NewReader(byt)
 	zip, err := gzip.NewReader(buffer)
 	if err != nil {
 		return
