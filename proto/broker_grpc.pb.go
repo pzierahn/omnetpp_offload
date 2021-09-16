@@ -206,6 +206,8 @@ type ProviderClient interface {
 	Allocate(ctx context.Context, opts ...grpc.CallOption) (Provider_AllocateClient, error)
 	GetSession(ctx context.Context, in *Simulation, opts ...grpc.CallOption) (*Session, error)
 	SetSession(ctx context.Context, in *Session, opts ...grpc.CallOption) (*Session, error)
+	// Todo: close session properly
+	// rpc CloseSession (Session)      returns (google.protobuf.Empty);
 	Extract(ctx context.Context, in *Bundle, opts ...grpc.CallOption) (*Empty, error)
 	Compile(ctx context.Context, in *Simulation, opts ...grpc.CallOption) (*Binary, error)
 	ListRunNums(ctx context.Context, in *Simulation, opts ...grpc.CallOption) (*SimulationRuns, error)
@@ -332,6 +334,8 @@ type ProviderServer interface {
 	Allocate(Provider_AllocateServer) error
 	GetSession(context.Context, *Simulation) (*Session, error)
 	SetSession(context.Context, *Session) (*Session, error)
+	// Todo: close session properly
+	// rpc CloseSession (Session)      returns (google.protobuf.Empty);
 	Extract(context.Context, *Bundle) (*Empty, error)
 	Compile(context.Context, *Simulation) (*Binary, error)
 	ListRunNums(context.Context, *Simulation) (*SimulationRuns, error)

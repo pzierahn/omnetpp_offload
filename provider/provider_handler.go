@@ -24,21 +24,24 @@ func (prov *provider) GetSession(ctx context.Context, sim *pb.Simulation) (sess 
 	defer prov.mu.Unlock()
 
 	var ok bool
-	if sess, ok = prov.sessions[sim.Id]; ok {
-		return
-	}
+	if sess, ok = prov.sessions[sim.Id]; !ok {
+		//
+		// Create new session
+		//
 
-	sess = &pb.Session{
-		SimulationId: sim.Id,
-	}
+		sess = &pb.Session{
+			SimulationId: sim.Id,
+			OppConfig:    sim.OppConfig,
+		}
 
-	if deadline, ok := ctx.Deadline(); ok {
-		sess.Ttl = timestamppb.New(deadline)
-		go prov.expireSession(sim.Id, deadline)
-	}
+		if deadline, ok := ctx.Deadline(); ok {
+			sess.Ttl = timestamppb.New(deadline)
+			go prov.expireSession(sim.Id, deadline)
+		}
 
-	prov.sessions[sim.Id] = sess
-	prov.persistSessions()
+		prov.sessions[sim.Id] = sess
+		prov.persistSessions()
+	}
 
 	return
 }

@@ -91,20 +91,16 @@ message Simulation {
 
 message Session {
   string simulationId = 1;
-  google.protobuf.Timestamp ttl = 2;
-  StorageRef source = 3;
-  bool checkoutSource = 4;
-  StorageRef executable = 5;
-  bool checkoutExecutable = 6;
+  OppConfig oppConfig = 2;
+  google.protobuf.Timestamp ttl = 3;
+  bool sourceExtracted = 4;
+  bool executableExtracted = 5;
 }
 
 message SimulationRun {
   string simulationId = 1;
   string config = 2;
   string runNum = 3;
-
-  // TODO: move oppConfig to Session (SessionStatus)
-  OppConfig oppConfig = 4;
 }
 
 message SimulationRuns {

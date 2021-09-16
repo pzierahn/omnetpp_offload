@@ -22,7 +22,6 @@ func (pConn *providerConnection) collectTasks(cons *consumer) (tasks []*pb.Simul
 		for _, run := range runs.Runs {
 			tasks = append(tasks, &pb.SimulationRun{
 				SimulationId: cons.simulation.Id,
-				OppConfig:    cons.simulation.OppConfig,
 				Config:       runs.Config,
 				RunNum:       run,
 			})
@@ -44,7 +43,7 @@ func (pConn *providerConnection) init(cons *consumer) (err error) {
 	}
 
 	log.Printf("init: deadline=%s source=%v exec=%v",
-		session.Ttl.AsTime(), session.CheckoutSource, session.CheckoutExecutable)
+		session.Ttl.AsTime(), session.SourceExtracted, session.ExecutableExtracted)
 
 	source := &checkoutObject{
 		SimulationId: simulation.Id,
@@ -52,21 +51,21 @@ func (pConn *providerConnection) init(cons *consumer) (err error) {
 		Data:         cons.simulationSource,
 	}
 
-	if !session.CheckoutSource {
+	if !session.SourceExtracted {
 		if err = pConn.extract(source); err != nil {
 			return
 		}
 
-		session.CheckoutSource = true
+		session.SourceExtracted = true
 		session, _ = pConn.provider.SetSession(cons.ctx, session)
 	}
 
-	if !session.CheckoutExecutable {
+	if !session.ExecutableExtracted {
 		if err = pConn.setupExecutable(simulation); err != nil {
 			return
 		}
 
-		session.CheckoutExecutable = true
+		session.ExecutableExtracted = true
 		session, _ = pConn.provider.SetSession(cons.ctx, session)
 	}
 
