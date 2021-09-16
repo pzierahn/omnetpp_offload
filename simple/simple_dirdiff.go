@@ -72,19 +72,7 @@ func DirDiff(ori, cha map[string][]byte) (changed map[string]bool) {
 	changed = make(map[string]bool)
 
 	for file := range cha {
-		if bytes.Equal(ori[file], cha[file]) {
-			//
-			// file didn't change!
-			//
-
-			continue
-		}
-
-		//
-		// file changed!
-		//
-
-		changed[file] = true
+		changed[file] = !bytes.Equal(ori[file], cha[file])
 	}
 
 	return
