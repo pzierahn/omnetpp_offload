@@ -8,7 +8,7 @@ import (
 
 func main() {
 
-	gconfig.ParseFlags()
+	gconfig.ParseFlags(gconfig.ParseBroker)
 
 	stargate.SetConfig(stargate.Config{
 		Addr: gconfig.BrokerAddr(),

@@ -12,6 +12,12 @@ import (
 	"runtime"
 )
 
+const (
+	ParseBroker = 1 << iota
+	ParseWorker
+	ParseAll = ParseBroker | ParseWorker
+)
+
 var Config Configfile
 
 func init() {
@@ -56,20 +62,24 @@ func init() {
 	}
 }
 
-func ParseFlags() {
+func ParseFlags(parse int) {
 
-	//
-	// Broker
-	//
-	flag.StringVar(&Config.Broker.Address, "broker", Config.Broker.Address, "set broker address")
-	flag.IntVar(&Config.Broker.BrokerPort, "port", Config.Broker.BrokerPort, "set broker port")
-	flag.IntVar(&Config.Broker.StargatePort, "stargatePort", Config.Broker.StargatePort, "set stargate port")
+	if ParseBroker&parse != 0 {
+		//
+		// Broker command line arguments
+		//
+		flag.StringVar(&Config.Broker.Address, "broker", Config.Broker.Address, "set broker address")
+		flag.IntVar(&Config.Broker.BrokerPort, "port", Config.Broker.BrokerPort, "set broker port")
+		flag.IntVar(&Config.Broker.StargatePort, "stargate", Config.Broker.StargatePort, "set stargate port")
+	}
 
-	//
-	// Worker
-	//
-	flag.StringVar(&Config.Worker.Name, "name", Config.Worker.Name, "set worker name")
-	flag.IntVar(&Config.Worker.Jobs, "jobs", Config.Worker.Jobs, "set how manny CPUs should be used")
+	if ParseWorker&parse != 0 {
+		//
+		// Worker command line arguments
+		//
+		flag.StringVar(&Config.Worker.Name, "name", Config.Worker.Name, "set worker name")
+		flag.IntVar(&Config.Worker.Jobs, "jobs", Config.Worker.Jobs, "set how manny jobs should be started")
+	}
 
 	flag.Parse()
 }

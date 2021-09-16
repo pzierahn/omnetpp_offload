@@ -18,7 +18,7 @@ func init() {
 
 func main() {
 
-	gconfig.ParseFlags()
+	gconfig.ParseFlags(gconfig.ParseAll)
 
 	if showPaths {
 		fmt.Println("CacheDir:  ", defines.CacheDir())

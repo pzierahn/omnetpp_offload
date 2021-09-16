@@ -27,7 +27,7 @@ func init() {
 
 func main() {
 
-	gconfig.ParseFlags()
+	gconfig.ParseFlags(gconfig.ParseBroker)
 
 	stargate.SetConfig(stargate.Config{
 		Addr: gconfig.BrokerAddr(),
@@ -54,6 +54,13 @@ func main() {
 
 	ctx, cnl := context.WithTimeout(context.Background(), timeout)
 	defer cnl()
+
+	//go func() {
+	//	select {
+	//	case <-ctx.Done():
+	//		log.Fatalf("simulation timeout (%v)", timeout)
+	//	}
+	//}()
 
 	consumer.Start(ctx, &runConfig)
 }

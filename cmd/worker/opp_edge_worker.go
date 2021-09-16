@@ -11,12 +11,12 @@ import (
 var clean bool
 
 func init() {
-	flag.BoolVar(&clean, "clean", false, "clean cache")
+	flag.BoolVar(&clean, "clean", false, "clean all cache files")
 }
 
 func main() {
 
-	gconfig.ParseFlags()
+	gconfig.ParseFlags(gconfig.ParseAll)
 
 	if clean {
 		provider.Clean()
