@@ -7,7 +7,7 @@ import (
 
 // FakeCopy creates a new directory (target). Afterwards it
 // will create symlinks that point to all files in source.
-// Think of this as a copy function that creates a symlink instead of am actually copy.
+// Think of this as a copy function that creates a symlink instead of an actually copy.
 func FakeCopy(source, target string) (err error) {
 
 	_ = os.RemoveAll(target)

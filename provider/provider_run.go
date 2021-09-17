@@ -41,7 +41,7 @@ func (prov *provider) run(ctx context.Context, run *pb.SimulationRun) (ref *pb.S
 	// Execute simulation run
 	//
 
-	files := simple.ChangedFiles{Root: simulationPath}
+	files := simple.ChangeDetector{Root: simulationPath}
 	if err = files.Snapshot(); err != nil {
 		return
 	}

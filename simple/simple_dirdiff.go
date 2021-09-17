@@ -8,17 +8,20 @@ import (
 	"path/filepath"
 )
 
-type ChangedFiles struct {
+// ChangeDetector detects and bundles which files were modified.
+type ChangeDetector struct {
 	Root string
 	snap map[string][]byte
 }
 
-func (cfiles *ChangedFiles) Snapshot() (err error) {
+// Snapshot creates and stores a list of files and their checksums.
+func (cfiles *ChangeDetector) Snapshot() (err error) {
 	cfiles.snap, err = ListDir(cfiles.Root)
 	return
 }
 
-func (cfiles *ChangedFiles) ZipChanges(dirname string) (buffer bytes.Buffer, err error) {
+// ZipChanges compresses the changed files since the last snapshot.
+func (cfiles *ChangeDetector) ZipChanges(dirname string) (buffer bytes.Buffer, err error) {
 	files, err := ListDir(cfiles.Root)
 	if err != nil {
 		return
@@ -29,6 +32,7 @@ func (cfiles *ChangedFiles) ZipChanges(dirname string) (buffer bytes.Buffer, err
 	return TarGzFiles(cfiles.Root, dirname, diff)
 }
 
+// ListDir lists all files in the given directory with its blake2b checksum.
 func ListDir(root string) (files map[string][]byte, err error) {
 
 	files = make(map[string][]byte)
@@ -68,6 +72,7 @@ func ListDir(root string) (files map[string][]byte, err error) {
 	return
 }
 
+// DirDiff returns which files changed.
 func DirDiff(ori, cha map[string][]byte) (changed map[string]bool) {
 	changed = make(map[string]bool)
 

@@ -11,9 +11,9 @@ import (
 	"regexp"
 )
 
+// TarGzFiles tars and compresses files.
 func TarGzFiles(path, dirname string, files map[string]bool) (buffer bytes.Buffer, err error) {
-	zr := gzip.NewWriter(&buffer)
-	//zr := gzip.NewWriterLevel(&buffer, gzip.BestCompression)
+	zr, _ := gzip.NewWriterLevel(&buffer, gzip.BestCompression)
 	defer func() {
 		_ = zr.Close()
 	}()
@@ -99,11 +99,17 @@ func TarGzFiles(path, dirname string, files map[string]bool) (buffer bytes.Buffe
 	return
 }
 
+// TarGz tars and compresses all files in a directory.
+// To exclude files you can define regex.
 func TarGz(path, dirname string, exclude ...string) (buffer bytes.Buffer, err error) {
 
 	files := make(map[string]bool)
 
-	walker := func(walkPath string, info os.FileInfo, inErr error) (err error) {
+	walker := func(walkPath string, _ os.DirEntry, inErr error) (err error) {
+
+		if inErr != nil {
+			return inErr
+		}
 
 		relPath, err := filepath.Rel(path, walkPath)
 		if err != nil {
@@ -112,7 +118,7 @@ func TarGz(path, dirname string, exclude ...string) (buffer bytes.Buffer, err er
 
 		for _, ignore := range exclude {
 			if regexp.MustCompile(ignore).MatchString(relPath) {
-				logger.Println("exclude", relPath)
+				logger.Printf("exclude pattern='%s' file=%s", ignore, relPath)
 				return
 			}
 		}
@@ -122,13 +128,15 @@ func TarGz(path, dirname string, exclude ...string) (buffer bytes.Buffer, err er
 		return
 	}
 
-	err = filepath.Walk(path, walker)
+	err = filepath.WalkDir(path, walker)
 
 	buffer, err = TarGzFiles(path, dirname, files)
 
 	return
 }
 
+// ExtractTarGz extracts a tar gzip archive to the desired destination.
+// Source: https://gist.github.com/mislav/ca62231f776526729b5d4ddd74ad6657
 func ExtractTarGz(dst string, byt []byte) (err error) {
 
 	buffer := bytes.NewReader(byt)
@@ -150,27 +158,21 @@ LOOP:
 
 		switch {
 
-		// if no more files are found return
 		case err == io.EOF:
 			err = nil
 			break LOOP
 
-		// return any other error
 		case err != nil:
 			break LOOP
 
-		// if the header is nil, just skip it (not sure how this happens)
 		case header == nil:
 			continue LOOP
 		}
 
-		// the target location where the dir/file should be created
 		target := filepath.Join(dst, header.Name)
 
-		// check the file type
 		switch header.Typeflag {
 
-		// if its a dir and it doesn't exist create it
 		case tar.TypeDir:
 			if _, err = os.Stat(target); err != nil {
 				if err = os.MkdirAll(target, 0755); err != nil {
@@ -178,10 +180,9 @@ LOOP:
 				}
 			}
 
-		// if it's a file create it
 		case tar.TypeReg:
 
-			dir, _ := filepath.Split(target)
+			dir := filepath.Dir(target)
 			err = os.MkdirAll(dir, 0755)
 
 			var file *os.File
@@ -190,13 +191,10 @@ LOOP:
 				break LOOP
 			}
 
-			// copy over contents
 			if _, err = io.Copy(file, tarReader); err != nil {
 				break LOOP
 			}
 
-			// manually close here after each file operation; defering would cause each file close
-			// to wait until all operations have completed.
 			if err = file.Close(); err != nil {
 				break LOOP
 			}
