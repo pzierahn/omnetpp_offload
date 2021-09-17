@@ -1,21 +1,11 @@
 package storage
 
 import (
+	"github.com/pzierahn/project.go.omnetpp/simple"
 	"io"
 )
 
-const (
-	// 1 megabyte buffer
-	//bufferSize = 1024 * 1024
-	// 1 megabyte buffer
-	bufferSize = 1024 * 1024 * 2
-	// 3 megabyte buffer
-	//bufferSize = 1024 * 1024 * 3
-	// 64 kilo byte buffer
-	//bufferSize = 1024 * 64
-	// 4 kilo byte buffer
-	//bufferSize = 1024 * 4
-)
+const bufferSize = simple.MEGABYTE * 2
 
 type fileChunk struct {
 	size    int
