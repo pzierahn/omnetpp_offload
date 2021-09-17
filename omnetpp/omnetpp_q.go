@@ -10,6 +10,8 @@ import (
 // It requires that the simulation is compiled and ready to run.
 func (project *OmnetProject) QConfigs(ctx context.Context) (configs []string, err error) {
 
+	// -s for output without version, etc.
+	// -a to print all config names
 	sim, err := project.command(ctx, "-s", "-a")
 	if err != nil {
 		return
