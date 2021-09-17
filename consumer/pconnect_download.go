@@ -30,6 +30,26 @@ func (pConn *providerConnection) download(ref *pb.StorageRef) (byt []byte, err e
 	return
 }
 
-func (pConn *providerConnection) downloader() {
-	// TODO:
+func (pConn *providerConnection) downloader(agents int, cons *consumer) {
+	for agent := 0; agent < agents; agent++ {
+		go func() {
+			for obj := range pConn.downloadPipe {
+				buf, err := pConn.download(obj.ref)
+				if err != nil {
+					log.Printf("[%s] download failed: reschedule %+v", pConn.id(), obj.task)
+					// Add item back to queue to send right allocation num
+					cons.allocate.add(obj.task)
+					return
+				}
+
+				done := eval.LogAction(eval.ActionExtract, obj.ref.Filename)
+				cons.extractResults(buf)
+				_ = done(nil)
+
+				_, _ = pConn.store.Delete(pConn.ctx, obj.ref)
+
+				cons.finished.Done()
+			}
+		}()
+	}
 }

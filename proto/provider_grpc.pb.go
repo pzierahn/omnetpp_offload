@@ -28,7 +28,7 @@ type ProviderClient interface {
 	// rpc CloseSession (Session)      returns (google.protobuf.Empty);
 	Extract(ctx context.Context, in *Bundle, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	Compile(ctx context.Context, in *Simulation, opts ...grpc.CallOption) (*Binary, error)
-	ListRunNums(ctx context.Context, in *Simulation, opts ...grpc.CallOption) (*SimulationRuns, error)
+	ListRunNums(ctx context.Context, in *Simulation, opts ...grpc.CallOption) (*SimulationRunList, error)
 	Run(ctx context.Context, in *SimulationRun, opts ...grpc.CallOption) (*StorageRef, error)
 }
 
@@ -125,8 +125,8 @@ func (c *providerClient) Compile(ctx context.Context, in *Simulation, opts ...gr
 	return out, nil
 }
 
-func (c *providerClient) ListRunNums(ctx context.Context, in *Simulation, opts ...grpc.CallOption) (*SimulationRuns, error) {
-	out := new(SimulationRuns)
+func (c *providerClient) ListRunNums(ctx context.Context, in *Simulation, opts ...grpc.CallOption) (*SimulationRunList, error) {
+	out := new(SimulationRunList)
 	err := c.cc.Invoke(ctx, "/service.Provider/ListRunNums", in, out, opts...)
 	if err != nil {
 		return nil, err
@@ -156,7 +156,7 @@ type ProviderServer interface {
 	// rpc CloseSession (Session)      returns (google.protobuf.Empty);
 	Extract(context.Context, *Bundle) (*emptypb.Empty, error)
 	Compile(context.Context, *Simulation) (*Binary, error)
-	ListRunNums(context.Context, *Simulation) (*SimulationRuns, error)
+	ListRunNums(context.Context, *Simulation) (*SimulationRunList, error)
 	Run(context.Context, *SimulationRun) (*StorageRef, error)
 	mustEmbedUnimplementedProviderServer()
 }
@@ -186,7 +186,7 @@ func (UnimplementedProviderServer) Extract(context.Context, *Bundle) (*emptypb.E
 func (UnimplementedProviderServer) Compile(context.Context, *Simulation) (*Binary, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Compile not implemented")
 }
-func (UnimplementedProviderServer) ListRunNums(context.Context, *Simulation) (*SimulationRuns, error) {
+func (UnimplementedProviderServer) ListRunNums(context.Context, *Simulation) (*SimulationRunList, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListRunNums not implemented")
 }
 func (UnimplementedProviderServer) Run(context.Context, *SimulationRun) (*StorageRef, error) {

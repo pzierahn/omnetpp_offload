@@ -9,7 +9,7 @@ func (pConn *providerConnection) collectTasks(cons *consumer) (tasks []*pb.Simul
 
 	for _, conf := range cons.config.SimulateConfigs {
 
-		var runs *pb.SimulationRuns
+		var runs *pb.SimulationRunList
 		runs, err = pConn.provider.ListRunNums(pConn.ctx, &pb.Simulation{
 			Id:        cons.simulation.Id,
 			OppConfig: cons.simulation.OppConfig,
@@ -19,13 +19,7 @@ func (pConn *providerConnection) collectTasks(cons *consumer) (tasks []*pb.Simul
 			return
 		}
 
-		for _, run := range runs.Runs {
-			tasks = append(tasks, &pb.SimulationRun{
-				SimulationId: cons.simulation.Id,
-				Config:       runs.Config,
-				RunNum:       run,
-			})
-		}
+		tasks = append(tasks, runs.Items...)
 	}
 
 	return
@@ -69,17 +63,14 @@ func (pConn *providerConnection) init(cons *consumer) (err error) {
 		session, _ = pConn.provider.SetSession(cons.ctx, session)
 	}
 
+	go pConn.downloader(1, cons)
+
 	stream, err := pConn.provider.Allocate(cons.ctx)
 	if err != nil {
 		return
 	}
 
 	go pConn.allocationHandler(stream, cons)
-
-	err = pConn.sendAllocationRequest(stream, cons)
-	if err != nil {
-		return
-	}
 
 	go cons.allocate.onUpdate(func() (cancel bool) {
 		err = pConn.sendAllocationRequest(stream, cons)

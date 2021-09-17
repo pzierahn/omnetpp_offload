@@ -17,22 +17,27 @@ const (
 	connectLocal = 1 << iota
 	connectP2P
 	connectRelay
+	connectAll = connectLocal | connectP2P | connectRelay
 )
 
-const connectAll = connectLocal | connectP2P | connectRelay
-
 type providerConnection struct {
-	ctx      context.Context
-	info     *pb.ProviderInfo
-	provider pb.ProviderClient
-	store    pb.StorageClient
+	ctx          context.Context
+	info         *pb.ProviderInfo
+	provider     pb.ProviderClient
+	store        pb.StorageClient
+	downloadPipe chan *download
+}
+
+type download struct {
+	task *pb.SimulationRun
+	ref  *pb.StorageRef
 }
 
 func (pConn *providerConnection) id() (name string) {
 	return pConn.info.ProviderId
 }
 
-func (cons *consumer) connect(prov *pb.ProviderInfo) (conn *grpc.ClientConn, err error) {
+func pconnect(ctx context.Context, prov *pb.ProviderInfo) (conn *grpc.ClientConn, err error) {
 
 	connect := connectAll
 
@@ -52,7 +57,7 @@ func (cons *consumer) connect(prov *pb.ProviderInfo) (conn *grpc.ClientConn, err
 	}
 
 	if connect&connectLocal != 0 {
-		conn, err = cons.connectLocal(prov)
+		conn, err = pconnectLocal(ctx, prov.ProviderId)
 		if err == nil {
 			eval.LogSetup(eval.ConnectLocal, prov)
 			return
@@ -60,7 +65,7 @@ func (cons *consumer) connect(prov *pb.ProviderInfo) (conn *grpc.ClientConn, err
 	}
 
 	if connect&connectP2P != 0 {
-		conn, err = cons.connectP2P(prov)
+		conn, err = pconnectP2P(ctx, prov.ProviderId)
 		if err == nil {
 			eval.LogSetup(eval.ConnectP2P, prov)
 			return
@@ -68,7 +73,7 @@ func (cons *consumer) connect(prov *pb.ProviderInfo) (conn *grpc.ClientConn, err
 	}
 
 	if connect&connectRelay != 0 {
-		conn, err = cons.connectRelay(prov)
+		conn, err = pconnectRelay(ctx, prov.ProviderId)
 		if err == nil {
 			eval.LogSetup(eval.ConnectRelay, prov)
 		}
@@ -77,24 +82,24 @@ func (cons *consumer) connect(prov *pb.ProviderInfo) (conn *grpc.ClientConn, err
 	return
 }
 
-func (cons *consumer) connectP2P(prov *pb.ProviderInfo) (cc *grpc.ClientConn, err error) {
+func pconnectP2P(ctx context.Context, providerId string) (cc *grpc.ClientConn, err error) {
 
-	log.Printf("connectP2P: %v", prov.ProviderId)
+	log.Printf("connectP2P: %v", providerId)
 
-	ctx, cln := context.WithTimeout(context.Background(), time.Second*5)
+	ctx, cln := context.WithTimeout(ctx, time.Second*5)
 	defer cln()
 
-	return equic.P2PDialGRPC(ctx, prov.ProviderId)
+	return equic.P2PDialGRPC(ctx, providerId)
 }
 
-func (cons *consumer) connectRelay(prov *pb.ProviderInfo) (cc *grpc.ClientConn, err error) {
+func pconnectRelay(ctx context.Context, providerId string) (cc *grpc.ClientConn, err error) {
 
-	log.Printf("connectRelay: %v", prov.ProviderId)
+	log.Printf("connectRelay: %v", providerId)
 
-	ctx, cln := context.WithTimeout(cons.ctx, time.Second*5)
+	ctx, cln := context.WithTimeout(ctx, time.Second*5)
 	defer cln()
 
-	conn, err := stargate.DialRelayTCP(ctx, prov.ProviderId)
+	conn, err := stargate.DialRelayTCP(ctx, providerId)
 	if err != nil {
 		return
 	}
@@ -112,19 +117,19 @@ func (cons *consumer) connectRelay(prov *pb.ProviderInfo) (cc *grpc.ClientConn, 
 	)
 }
 
-func (cons *consumer) connectLocal(prov *pb.ProviderInfo) (cc *grpc.ClientConn, err error) {
+func pconnectLocal(ctx context.Context, providerId string) (cc *grpc.ClientConn, err error) {
 
-	log.Printf("connectLocal: %v", prov.ProviderId)
+	log.Printf("connectLocal: %v", providerId)
 
-	ctx, cln := context.WithTimeout(cons.ctx, time.Second)
+	ctx, cln := context.WithTimeout(ctx, time.Second)
 	defer cln()
 
-	addr, err := stargate.DialLocal(ctx, prov.ProviderId)
+	addr, err := stargate.DialLocal(ctx, providerId)
 	if err != nil {
 		return
 	}
 
-	log.Printf("connectLocal: dial %v", addr)
+	log.Printf("pconnectLocal: dial %v", addr)
 
 	return grpc.DialContext(
 		ctx,

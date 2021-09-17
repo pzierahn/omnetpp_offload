@@ -22,13 +22,6 @@ const (
 	fileSetups
 )
 
-//const (
-//	fileActions   = "opp-edge-eval-actions.csv"
-//	fileRuns      = "opp-edge-eval-runs.csv"
-//	fileTransfers = "opp-edge-eval-setup.csv"
-//	fileSetups    = "opp-edge-eval-transfers.csv"
-//)
-
 type Server struct {
 	pb.UnimplementedEvalServer
 	scenario *pb.EvalScenario

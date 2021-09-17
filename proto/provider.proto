@@ -21,7 +21,7 @@ service Provider {
   // rpc CloseSession (Session)      returns (google.protobuf.Empty);
   rpc Extract     (Bundle)        returns (google.protobuf.Empty);
   rpc Compile     (Simulation)    returns (Binary);
-  rpc ListRunNums (Simulation)    returns (SimulationRuns);
+  rpc ListRunNums (Simulation)    returns (SimulationRunList);
   rpc Run         (SimulationRun) returns (StorageRef);
 }
 
@@ -73,10 +73,8 @@ message SimulationRun {
   string runNum = 3;
 }
 
-message SimulationRuns {
-  string simulationId = 1;
-  string config = 2;
-  repeated string runs = 3;
+message SimulationRunList {
+  repeated SimulationRun items = 1;
 }
 
 message Bundle {

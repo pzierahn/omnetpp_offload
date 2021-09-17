@@ -101,7 +101,7 @@ func (prov *provider) Compile(ctx context.Context, simulation *pb.Simulation) (b
 	return prov.compile(ctx, simulation)
 }
 
-func (prov *provider) ListRunNums(ctx context.Context, simulation *pb.Simulation) (runs *pb.SimulationRuns, err error) {
+func (prov *provider) ListRunNums(ctx context.Context, simulation *pb.Simulation) (runs *pb.SimulationRunList, err error) {
 
 	log.Printf("ListRunNums: id=%v config='%s'", simulation.Id, simulation.Config)
 
@@ -117,10 +117,14 @@ func (prov *provider) ListRunNums(ctx context.Context, simulation *pb.Simulation
 		return
 	}
 
-	runs = &pb.SimulationRuns{
-		SimulationId: simulation.Id,
-		Config:       simulation.Config,
-		Runs:         runNums,
+	runs = &pb.SimulationRunList{}
+
+	for _, runNum := range runNums {
+		runs.Items = append(runs.Items, &pb.SimulationRun{
+			SimulationId: simulation.Id,
+			Config:       simulation.Config,
+			RunNum:       runNum,
+		})
 	}
 
 	return

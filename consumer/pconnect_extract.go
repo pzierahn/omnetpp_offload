@@ -64,9 +64,5 @@ func (pConn *providerConnection) extract(meta *checkoutObject) (err error) {
 	log.Printf("[%s] extract: %s done",
 		pConn.id(), meta.Filename)
 
-	//
-	// TODO: Delete checked-out refs
-	//
-
 	return
 }

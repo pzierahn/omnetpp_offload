@@ -50,7 +50,7 @@ func (que *queue) len() (size int32) {
 
 func (que *queue) onUpdate(callback func() (cancel bool)) {
 
-	var cancel bool
+	cancel := callback()
 
 	for !cancel {
 		que.cond.L.Lock()
