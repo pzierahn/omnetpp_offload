@@ -46,10 +46,9 @@ func (prov *provider) run(ctx context.Context, run *pb.SimulationRun) (ref *pb.S
 		return
 	}
 
-	prov.mu.Lock()
-	defer prov.mu.Unlock()
-
+	prov.mu.RLock()
 	sess, ok := prov.sessions[run.SimulationId]
+	prov.mu.RUnlock()
 	if !ok {
 		return nil, fmt.Errorf("no session for simulation %s", run.SimulationId)
 	}
