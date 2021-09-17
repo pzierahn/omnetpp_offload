@@ -37,6 +37,11 @@ type Server struct {
 }
 
 func (server *Server) log(file int, msg proto.Message) {
+
+	if server.scenario.ScenarioId == "" || server.scenario.TrailId == "" {
+		return
+	}
+
 	server.sync[file].Lock()
 	defer server.sync[file].Unlock()
 
@@ -49,9 +54,14 @@ func (server *Server) log(file int, msg proto.Message) {
 }
 
 func (server *Server) Scenario(_ context.Context, scenario *pb.EvalScenario) (*emptypb.Empty, error) {
-	server.scenario = scenario
 
 	log.Printf("scenario: %s", simple.PrettyString(scenario))
+
+	server.scenario = scenario
+
+	if scenario.ScenarioId == "" {
+		return &emptypb.Empty{}, nil
+	}
 
 	dir := filepath.Join(defines.CacheDir(), "evaluation")
 	if err := os.MkdirAll(dir, 0755); err != nil {

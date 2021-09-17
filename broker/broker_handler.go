@@ -37,7 +37,7 @@ func (broker *broker) providerList() (list *pb.ProviderList) {
 // Providers sends a provider list to the consumer. With every list update an event will be dispatched.
 func (broker *broker) Providers(_ *emptypb.Empty, stream pb.Broker_ProvidersServer) (err error) {
 
-	log.Printf("GetProviders:")
+	log.Printf("Providers:")
 
 	ctx := stream.Context()
 
