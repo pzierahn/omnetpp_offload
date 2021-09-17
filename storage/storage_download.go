@@ -7,6 +7,7 @@ import (
 	"io"
 )
 
+// Download downloads a file from the storage server and returns it bytes.
 func (client *Client) Download(ctx context.Context, file *pb.StorageRef) (byt []byte, err error) {
 
 	stream, err := client.storage.Pull(ctx, file)

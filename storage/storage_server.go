@@ -12,6 +12,7 @@ type Server struct {
 	pb.UnimplementedStorageServer
 }
 
+// Delete is the gRPC server implementation for deleting files.
 func (server *Server) Delete(_ context.Context, ref *pb.StorageRef) (res *emptypb.Empty, err error) {
 
 	res = &emptypb.Empty{}
@@ -24,6 +25,7 @@ func (server *Server) Delete(_ context.Context, ref *pb.StorageRef) (res *emptyp
 	return
 }
 
+// Drop is the gRPC server implementation for deleting buckets.
 func (server *Server) Drop(_ context.Context, ref *pb.BucketRef) (res *emptypb.Empty, err error) {
 
 	res = &emptypb.Empty{}

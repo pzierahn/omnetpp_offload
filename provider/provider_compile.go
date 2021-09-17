@@ -62,7 +62,7 @@ func (prov *provider) compile(ctx context.Context, simulation *pb.Simulation) (b
 		Filename: filename,
 	}
 
-	err = prov.store.Put(&buf, ref)
+	err = prov.store.PushFile(&buf, ref)
 	if err != nil {
 		return
 	}

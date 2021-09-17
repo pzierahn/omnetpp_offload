@@ -10,6 +10,10 @@ import (
 	"path/filepath"
 )
 
+// Push is the gRPC server implementation for storing files.
+// The stream metadata contains the file and bucket name.
+// The file will be received in chunks and written in the defined location.
+// When the transfer is completed a storage reference will be returned to the client.
 func (server *Server) Push(stream pb.Storage_PushServer) (err error) {
 
 	var filename string
@@ -36,7 +40,7 @@ func (server *Server) Push(stream pb.Storage_PushServer) (err error) {
 	}
 
 	dataFile := filepath.Join(storagePath, bucket, filename)
-	dir, _ := filepath.Split(dataFile)
+	dir := filepath.Dir(dataFile)
 	_ = os.MkdirAll(dir, 0755)
 
 	log.Println("push", dataFile)

@@ -21,7 +21,7 @@ func (pConn *providerConnection) extract(meta *checkoutObject) (err error) {
 	log.Printf("[%s] upload: %+v (%v)",
 		pConn.id(), meta.Filename, simple.ByteSize(size))
 
-	ui := make(chan storage.UploadInfo)
+	ui := make(chan storage.UploadProgress)
 	defer close(ui)
 
 	go func() {
@@ -30,7 +30,7 @@ func (pConn *providerConnection) extract(meta *checkoutObject) (err error) {
 				pConn.id(),
 				meta.Filename,
 				simple.ByteSize(info.Uploaded),
-				100*float32(info.Uploaded)/float32(len(meta.Data)))
+				info.Percent)
 		}
 	}()
 

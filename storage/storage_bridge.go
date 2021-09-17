@@ -8,9 +8,12 @@ import (
 	"path/filepath"
 )
 
-func (server *Server) Put(rea io.Reader, ref *pb.StorageRef) (err error) {
+// PushFile stores files in the storage.
+// It bypasses the gRPC push process for
+// efficiency reasons and can only be used locally on the server.
+func (server *Server) PushFile(rea io.Reader, ref *pb.StorageRef) (err error) {
 
-	log.Printf("put: %v", ref)
+	log.Printf("PushFile: %v", ref)
 
 	dest := filepath.Join(storagePath, ref.Bucket, ref.Filename)
 
@@ -30,9 +33,12 @@ func (server *Server) Put(rea io.Reader, ref *pb.StorageRef) (err error) {
 	return
 }
 
-func (server *Server) Get(ref *pb.StorageRef) (byt []byte, err error) {
+// PullFile returns files from the storage.
+// It bypasses the gRPC pull process for
+// efficiency reasons and can only be used locally on the server.
+func (server *Server) PullFile(ref *pb.StorageRef) (byt []byte, err error) {
 
-	log.Printf("get: %v", ref)
+	log.Printf("PullFile: %v", ref)
 
 	src := filepath.Join(storagePath, ref.Bucket, ref.Filename)
 	byt, err = ioutil.ReadFile(src)

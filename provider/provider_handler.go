@@ -79,7 +79,7 @@ func (prov *provider) Extract(_ context.Context, bundle *pb.Bundle) (empty *empt
 
 	empty = &emptypb.Empty{}
 
-	byt, err := prov.store.Get(bundle.Source)
+	byt, err := prov.store.PullFile(bundle.Source)
 	if err != nil {
 		log.Printf("Extract: %v error %v", bundle.SimulationId, err)
 		return

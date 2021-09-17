@@ -7,6 +7,8 @@ import (
 	"time"
 )
 
+// Pull is the gRPC server implementation for retrieving files.
+// It receives a storage reference and then streams the file in chunks to the client.
 func (server *Server) Pull(req *pb.StorageRef, stream pb.Storage_PullServer) (err error) {
 
 	filename := filepath.Join(storagePath, req.Bucket, req.Filename)
@@ -43,11 +45,11 @@ func (server *Server) Pull(req *pb.StorageRef, stream pb.Storage_PullServer) (er
 
 		packages++
 
-		log.Printf("package %s->%s send %0.2f%%",
+		log.Printf("package %s %s send %0.2f%%",
 			req.Bucket, req.Filename, 100.0*(float64(chunk.offset+chunk.size)/float64(stat.Size())))
 	}
 
-	log.Printf("%s->%s packges %d in %v", req.Bucket, req.Filename, packages, time.Now().Sub(start))
+	log.Printf("%s %s packges %d in %v", req.Bucket, req.Filename, packages, time.Now().Sub(start))
 
 	return
 }

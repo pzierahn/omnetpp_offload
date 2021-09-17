@@ -36,7 +36,6 @@ func streamReader(reader io.Reader) (stream chan *fileChunk) {
 			// TODO: Check for memory leaks
 			buffer := make([]byte, bufferSize)
 
-			var size int
 			size, err := reader.Read(buffer)
 			if err == io.EOF {
 				break

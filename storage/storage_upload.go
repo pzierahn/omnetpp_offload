@@ -9,12 +9,14 @@ import (
 	"time"
 )
 
-type UploadInfo struct {
+type UploadProgress struct {
 	Parcels  uint32
 	Uploaded uint64
+	Percent  float32
 }
 
-func (client *Client) Upload(meta *FileMeta, ch chan<- UploadInfo) (ref *pb.StorageRef, err error) {
+// Upload uploads a file to the storage server and returns a storage reference.
+func (client *Client) Upload(meta *FileMeta, fb chan<- UploadProgress) (ref *pb.StorageRef, err error) {
 
 	md := metadata.New(map[string]string{
 		"bucket":   meta.Bucket,
@@ -32,15 +34,23 @@ func (client *Client) Upload(meta *FileMeta, ch chan<- UploadInfo) (ref *pb.Stor
 	var parcels uint32
 	var uploaded uint64
 
-	if ch != nil {
+	if fb != nil {
+
+		//
+		// feedback upload progress
+		//
+
 		tick := time.NewTicker(time.Second)
 		defer tick.Stop()
 
 		go func() {
 			for range tick.C {
-				ch <- UploadInfo{
+				upl := atomic.LoadUint64(&uploaded)
+
+				fb <- UploadProgress{
 					Parcels:  atomic.LoadUint32(&parcels),
-					Uploaded: atomic.LoadUint64(&uploaded),
+					Uploaded: upl,
+					Percent:  100 * (float32(upl) / float32(len(meta.Data))),
 				}
 			}
 		}()
