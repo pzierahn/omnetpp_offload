@@ -13,6 +13,7 @@ import (
 
 func TarGzFiles(path, dirname string, files map[string]bool) (buffer bytes.Buffer, err error) {
 	zr := gzip.NewWriter(&buffer)
+	//zr := gzip.NewWriterLevel(&buffer, gzip.BestCompression)
 	defer func() {
 		_ = zr.Close()
 	}()

@@ -21,9 +21,7 @@ var printConfigs bool
 
 var configname string
 var printRunNumbers bool
-var runfilter string
-
-var tgz string
+var run string
 
 func init() {
 
@@ -45,8 +43,7 @@ func init() {
 
 	flag.StringVar(&configname, "configname", "General", "Select a configuration for execution")
 	flag.BoolVar(&printRunNumbers, "printRunNumbers", false, "print run numbers for simulation configuration")
-	flag.StringVar(&runfilter, "runfilter", "", "run configuration")
-	flag.StringVar(&tgz, "tgz", "", "tgz results filename")
+	flag.StringVar(&run, "run", "", "run configuration")
 }
 
 func main() {
@@ -115,8 +112,8 @@ func main() {
 		fmt.Println(numbers)
 	}
 
-	if runfilter != "" {
-		err = opp.Run(configname, runfilter)
+	if run != "" {
+		err = opp.Run(configname, run)
 		if err != nil {
 			panic(err)
 		}
