@@ -52,7 +52,7 @@ func (server *Server) Scenario(_ context.Context, scenario *pb.EvalScenario) (*e
 
 	server.scenario = scenario
 
-	if scenario.ScenarioId == "" {
+	if scenario.ScenarioId == "" || server.scenario.TrailId == "" {
 		return &emptypb.Empty{}, nil
 	}
 
