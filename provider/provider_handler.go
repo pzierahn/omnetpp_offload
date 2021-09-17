@@ -112,7 +112,7 @@ func (prov *provider) ListRunNums(ctx context.Context, simulation *pb.Simulation
 
 	_, opp := newOpp(simulation)
 
-	runNums, err := opp.GetRunNumbers(ctx, simulation.Config)
+	runNums, err := opp.QRunNumbers(ctx, simulation.Config)
 	if err != nil {
 		return
 	}

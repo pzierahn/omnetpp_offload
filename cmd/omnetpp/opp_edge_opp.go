@@ -95,7 +95,7 @@ func main() {
 	}
 
 	if printConfigs {
-		configs, err := opp.GetConfigs(ctx)
+		configs, err := opp.QConfigs(ctx)
 		if err != nil {
 			panic(err)
 		}
@@ -104,7 +104,7 @@ func main() {
 	}
 
 	if printRunNumbers {
-		numbers, err := opp.GetRunNumbers(ctx, configname)
+		numbers, err := opp.QRunNumbers(ctx, configname)
 		if err != nil {
 			panic(err)
 		}

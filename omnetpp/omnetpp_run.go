@@ -11,7 +11,7 @@ import (
 
 // RunContext the simulation with configuration (-c) and run number (-r)
 func (project *OmnetProject) RunContext(ctx context.Context, config, run string) (err error) {
-	sim, err := project.commandContext(ctx, "-c", config, "-r", run)
+	sim, err := project.command(ctx, "-c", config, "-r", run)
 
 	if err != nil {
 		return

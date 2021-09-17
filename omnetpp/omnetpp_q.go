@@ -6,13 +6,10 @@ import (
 	"strings"
 )
 
-func (project *OmnetProject) GetConfigs(ctx context.Context) (configs []string, err error) {
+// QConfigs returns the all configs from the OMNeT++ project.
+func (project *OmnetProject) QConfigs(ctx context.Context) (configs []string, err error) {
 
-	//
-	// Get configs
-	//
-
-	sim, err := project.commandContext(ctx, "-s", "-a")
+	sim, err := project.command(ctx, "-s", "-a")
 	if err != nil {
 		return
 	}
@@ -35,13 +32,14 @@ func (project *OmnetProject) GetConfigs(ctx context.Context) (configs []string, 
 	return
 }
 
-func (project *OmnetProject) GetRunNumbers(ctx context.Context, config string) (numbers []string, err error) {
+// QRunNumbers returns all runnumbers for the given config.
+func (project *OmnetProject) QRunNumbers(ctx context.Context, config string) (numbers []string, err error) {
 
 	//
 	// Get runnumbers
 	//
 
-	sim, err := project.commandContext(ctx, "-c", config, "-q", "runnumbers", "-s")
+	sim, err := project.command(ctx, "-c", config, "-q", "runnumbers", "-s")
 	if err != nil {
 		return
 	}
