@@ -14,7 +14,6 @@ import (
 )
 
 const (
-	repeat = 5
 	broker = "85.214.35.83"
 	//broker = "localhost"
 )
@@ -22,6 +21,7 @@ const (
 var (
 	simulation string
 	connection string
+	repeat     int
 )
 
 var writer *csv.Writer
@@ -86,6 +86,7 @@ func main() {
 
 	flag.StringVar(&scenarioId, "s", "", "scenario")
 	flag.StringVar(&connection, "c", "", "connection: local|p2p|relay")
+	flag.IntVar(&repeat, "r", 3, "repeat")
 	flag.Parse()
 
 	if runtime.GOOS == "darwin" {
