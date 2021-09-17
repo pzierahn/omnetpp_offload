@@ -37,7 +37,7 @@ func (prov *provider) compile(ctx context.Context, simulation *pb.Simulation) (b
 		return
 	}
 
-	cfiles := simple.ChangeDetector{Root: base}
+	cfiles := simple.FilesChangeDetector{Root: base}
 	if err = cfiles.Snapshot(); err != nil {
 		return
 	}

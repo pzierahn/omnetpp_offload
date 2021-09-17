@@ -8,20 +8,20 @@ import (
 	"path/filepath"
 )
 
-// ChangeDetector detects and bundles which files were modified.
-type ChangeDetector struct {
+// FilesChangeDetector detects and bundles which files were modified.
+type FilesChangeDetector struct {
 	Root string
 	snap map[string][]byte
 }
 
 // Snapshot creates and stores a list of files and their checksums.
-func (cfiles *ChangeDetector) Snapshot() (err error) {
+func (cfiles *FilesChangeDetector) Snapshot() (err error) {
 	cfiles.snap, err = ListDir(cfiles.Root)
 	return
 }
 
 // ZipChanges compresses the changed files since the last snapshot.
-func (cfiles *ChangeDetector) ZipChanges(dirname string) (buffer bytes.Buffer, err error) {
+func (cfiles *FilesChangeDetector) ZipChanges(dirname string) (buffer bytes.Buffer, err error) {
 	files, err := ListDir(cfiles.Root)
 	if err != nil {
 		return
