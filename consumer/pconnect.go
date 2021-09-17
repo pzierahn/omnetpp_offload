@@ -52,7 +52,7 @@ func pconnect(ctx context.Context, prov *pb.ProviderInfo) (conn *grpc.ClientConn
 		connect = connectP2P
 
 	case "relay":
-		log.Println("########################## eval debug: connect only local!")
+		log.Println("########################## eval debug: connect only relay!")
 		connect = connectRelay
 	}
 
