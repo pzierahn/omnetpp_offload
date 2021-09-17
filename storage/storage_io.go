@@ -49,7 +49,7 @@ func streamReader(reader io.Reader) (stream chan *fileChunk) {
 			stream <- &fileChunk{
 				size:    size,
 				offset:  offset,
-				payload: buffer,
+				payload: buffer[:size],
 			}
 
 			offset += size

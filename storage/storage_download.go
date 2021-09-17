@@ -5,7 +5,6 @@ import (
 	"context"
 	pb "github.com/pzierahn/project.go.omnetpp/proto"
 	"io"
-	"time"
 )
 
 func (client *Client) Download(ctx context.Context, file *pb.StorageRef) (byt []byte, err error) {
@@ -15,7 +14,7 @@ func (client *Client) Download(ctx context.Context, file *pb.StorageRef) (byt []
 		return
 	}
 
-	start := time.Now()
+	//start := time.Now()
 	packages := 0
 
 	var buf bytes.Buffer
@@ -33,7 +32,7 @@ func (client *Client) Download(ctx context.Context, file *pb.StorageRef) (byt []
 			return
 		}
 
-		_, err = buf.Write(parcel.Payload)
+		_, err = buf.Write(parcel.Payload[:parcel.Size])
 		if err != nil {
 			return
 		}
@@ -41,8 +40,8 @@ func (client *Client) Download(ctx context.Context, file *pb.StorageRef) (byt []
 		packages++
 	}
 
-	log.Printf("Download: %s size=%d packages=%d time=%v",
-		file.Filename, buf.Len(), packages, time.Now().Sub(start))
+	//log.Printf("Download: %s buffer=%d packages=%d time=%v",
+	//	file.Filename, buf.Len(), packages, time.Now().Sub(start))
 
 	byt = buf.Bytes()
 

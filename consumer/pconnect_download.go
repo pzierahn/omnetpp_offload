@@ -24,7 +24,7 @@ func (pConn *providerConnection) download(ref *pb.StorageRef) (byt []byte, err e
 	dlsize := uint64(len(byt))
 	_ = done(dlsize, nil)
 
-	log.Printf("[%s] %s downloaded results %v in %v",
+	log.Printf("[%s] download=%s size=%v time=%v",
 		pConn.id(), ref.Filename, simple.ByteSize(dlsize), time.Now().Sub(start))
 
 	return
