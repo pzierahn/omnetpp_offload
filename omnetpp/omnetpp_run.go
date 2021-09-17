@@ -9,7 +9,8 @@ import (
 	"regexp"
 )
 
-// Run the simulation with configuration (-c) and run number (-r)
+// Run executes the simulation run with the given configuration and run number.
+// It passes the config as the -c argument and the run number as the -r argument to the simulation executable.
 func (project *OmnetProject) Run(ctx context.Context, config, run string) (err error) {
 	sim, err := project.command(ctx, "-c", config, "-r", run)
 

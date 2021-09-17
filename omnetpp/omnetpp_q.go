@@ -6,7 +6,8 @@ import (
 	"strings"
 )
 
-// QConfigs returns the all configs from the OMNeT++ project.
+// QConfigs returns all configs from the OMNeT++ project.
+// It requires that the simulation is compiled and ready to run.
 func (project *OmnetProject) QConfigs(ctx context.Context) (configs []string, err error) {
 
 	sim, err := project.command(ctx, "-s", "-a")
@@ -33,11 +34,8 @@ func (project *OmnetProject) QConfigs(ctx context.Context) (configs []string, er
 }
 
 // QRunNumbers returns all runnumbers for the given config.
+// It requires that the simulation is compiled and ready to run.
 func (project *OmnetProject) QRunNumbers(ctx context.Context, config string) (numbers []string, err error) {
-
-	//
-	// Get runnumbers
-	//
 
 	sim, err := project.command(ctx, "-c", config, "-q", "runnumbers", "-s")
 	if err != nil {

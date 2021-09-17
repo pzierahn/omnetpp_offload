@@ -10,6 +10,7 @@ import (
 	"runtime"
 )
 
+// MakeMake creates a Makefile in the designated project by using opp_makemake.
 func (project *OmnetProject) MakeMake(ctx context.Context) (err error) {
 
 	if project.BuildScript != "" {
@@ -46,6 +47,10 @@ func (project *OmnetProject) MakeMake(ctx context.Context) (err error) {
 	return
 }
 
+// Compile compiles the simulation. The simulation can
+// be built in two ways. If the config contains a build
+// script it will be used to compile the simulation.
+// Otherwise, a Makefile will be used to compile the simulation.
 func (project *OmnetProject) Compile(ctx context.Context) (err error) {
 
 	if project.BuildScript != "" {
@@ -86,6 +91,7 @@ func (project *OmnetProject) Compile(ctx context.Context) (err error) {
 	return
 }
 
+// Clean cleans the simulation source by calling make clean in the SourcePath.
 func (project *OmnetProject) Clean(ctx context.Context) (err error) {
 
 	//
@@ -104,6 +110,7 @@ func (project *OmnetProject) Clean(ctx context.Context) (err error) {
 	return
 }
 
+// Setup prepares the simulation for execution. It cleans, creates a makefile and compiles the simulation.
 func (project *OmnetProject) Setup(ctx context.Context, clean bool) (err error) {
 
 	if clean {
