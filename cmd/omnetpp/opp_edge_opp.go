@@ -113,7 +113,7 @@ func main() {
 	}
 
 	if run != "" {
-		err = opp.Run(configname, run)
+		err = opp.Run(ctx, configname, run)
 		if err != nil {
 			panic(err)
 		}

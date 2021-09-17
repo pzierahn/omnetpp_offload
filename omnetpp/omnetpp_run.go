@@ -9,8 +9,8 @@ import (
 	"regexp"
 )
 
-// RunContext the simulation with configuration (-c) and run number (-r)
-func (project *OmnetProject) RunContext(ctx context.Context, config, run string) (err error) {
+// Run the simulation with configuration (-c) and run number (-r)
+func (project *OmnetProject) Run(ctx context.Context, config, run string) (err error) {
 	sim, err := project.command(ctx, "-c", config, "-r", run)
 
 	if err != nil {
@@ -52,9 +52,4 @@ func (project *OmnetProject) RunContext(ctx context.Context, config, run string)
 	}
 
 	return
-}
-
-// Run the simulation with configuration (-c) and run number (-r)
-func (project *OmnetProject) Run(config, run string) (err error) {
-	return project.RunContext(context.Background(), config, run)
 }

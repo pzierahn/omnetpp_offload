@@ -61,7 +61,7 @@ func (prov *provider) run(ctx context.Context, run *pb.SimulationRun) (ref *pb.S
 	done := eval.LogRun(prov.providerId, run.Config, run.RunNum)
 
 	opp := omnetpp.New(&oppConf)
-	err = opp.RunContext(ctx, run.Config, run.RunNum)
+	err = opp.Run(ctx, run.Config, run.RunNum)
 	if err != nil {
 		return nil, done(err)
 	}
