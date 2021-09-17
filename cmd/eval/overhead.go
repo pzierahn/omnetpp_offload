@@ -28,7 +28,7 @@ var writer *csv.Writer
 
 func local() {
 	for inx := 0; inx < repeat; inx++ {
-		cmd := exec.Command("opp_runall", "-j", "4", "./tictoc", "-c", "TicToc18")
+		cmd := exec.Command("opp_runall", "-j", "1", "./tictoc", "-c", "TicToc18")
 		cmd.Dir = simulation
 
 		log.Printf("Run 0 --> %d", inx)
