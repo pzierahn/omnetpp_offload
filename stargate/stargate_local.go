@@ -60,7 +60,8 @@ func BroadcastTCP(ctx context.Context, dialAddr DialAddr, addr *net.TCPAddr) (er
 	return
 }
 
-// DialLocal will broadcast the dialAddr to the local network. It will return a remote address of the peer.
+// DialLocal will broadcast the dialAddr to the local network.
+// It returns a TCP address on which to connect to peers.
 func DialLocal(ctx context.Context, dialAddr DialAddr) (raddr net.TCPAddr, err error) {
 
 	log.Printf("DialLocal: dialAddr=%v", dialAddr)

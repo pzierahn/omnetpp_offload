@@ -17,6 +17,8 @@ var (
 	config         Config
 )
 
+// SetConfig sets the rendezvous address and the port number for the stargate packages.
+// This needs to be set before a connection can be established.
 func SetConfig(conf Config) {
 
 	config = conf

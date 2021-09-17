@@ -173,6 +173,9 @@ func (server *stargateServer) receiveDial() (err error) {
 	return
 }
 
+// Server starts a Stargate server that listens, on the rendezvous port,
+// for UDP and TCP connections. The UDP listener brokers peer-to-peer connections.
+// The TCP listener relays connections.
 func Server(ctx context.Context, relay bool) (err error) {
 
 	conn, err := net.ListenUDP("udp", &net.UDPAddr{
@@ -209,6 +212,3 @@ func Server(ctx context.Context, relay bool) (err error) {
 		}
 	}
 }
-
-// GOOS=linux GOARCH=amd64 go build cmd/main.go
-// scp main 7zierahn@rzssh1.informatik.uni-hamburg.de:~

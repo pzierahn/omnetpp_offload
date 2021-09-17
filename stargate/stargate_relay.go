@@ -107,6 +107,7 @@ func pipeAllTCP(conn1, conn2 *net.TCPConn) {
 	go pipeTCP(conn2, conn1)
 }
 
+// DialRelayTCP will establish a TCP relay connection over the stargate server.
 func DialRelayTCP(ctx context.Context, dial DialAddr) (conn *net.TCPConn, err error) {
 
 	raddr, err := config.tcpAddr()
@@ -121,12 +122,14 @@ func DialRelayTCP(ctx context.Context, dial DialAddr) (conn *net.TCPConn, err er
 		return
 	}
 
+	// Set connection timeout
 	if deadline, ok := ctx.Deadline(); ok {
 		err = conn.SetDeadline(deadline)
 		if err != nil {
 			return
 		}
 
+		// Reset deadline
 		defer func() {
 			_ = conn.SetDeadline(time.Time{})
 		}()
