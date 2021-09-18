@@ -18,7 +18,7 @@ var archLock = make(map[string]*sync.Mutex)
 var binaryMu sync.RWMutex
 var binaries = make(map[string][]byte)
 
-func (pConn *providerConnection) compileAndDownload(simulation *pb.Simulation) (err error) {
+func (pConn *providerConnection) compileAndDownload(simulation *simulation) (err error) {
 
 	arch := sysinfo.Signature(pConn.info.Arch)
 	store := storage.FromClient(pConn.store)
@@ -26,9 +26,8 @@ func (pConn *providerConnection) compileAndDownload(simulation *pb.Simulation) (
 	log.Printf("[%s] compile: %s", pConn.id(), arch)
 
 	var bin *pb.Binary
-	bin, err = pConn.provider.Compile(pConn.ctx, simulation)
+	bin, err = pConn.provider.Compile(pConn.ctx, simulation.proto())
 	if err != nil {
-		//return ccDone.Error(err)
 		return err
 	}
 
@@ -56,7 +55,7 @@ func (pConn *providerConnection) compileAndDownload(simulation *pb.Simulation) (
 	return
 }
 
-func (pConn *providerConnection) setupExecutable(simulation *pb.Simulation) (err error) {
+func (pConn *providerConnection) setupExecutable(simulation *simulation) (err error) {
 
 	arch := sysinfo.Signature(pConn.info.Arch)
 
@@ -84,7 +83,7 @@ func (pConn *providerConnection) setupExecutable(simulation *pb.Simulation) (err
 	}
 
 	binary := &checkoutObject{
-		SimulationId: simulation.Id,
+		SimulationId: simulation.id,
 		Filename:     fmt.Sprintf("binary/%s.tgz", arch),
 		Data:         buf,
 	}

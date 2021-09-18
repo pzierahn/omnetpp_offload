@@ -6,19 +6,19 @@ import (
 	"sync/atomic"
 )
 
-type queue struct {
+type taskQueue struct {
 	cond  *sync.Cond
 	size  int32
 	tasks []*pb.SimulationRun
 }
 
-func newQueue() (que *queue) {
-	return &queue{
+func newQueue() (que *taskQueue) {
+	return &taskQueue{
 		cond: sync.NewCond(&sync.Mutex{}),
 	}
 }
 
-func (que *queue) add(items ...*pb.SimulationRun) {
+func (que *taskQueue) add(items ...*pb.SimulationRun) {
 	que.cond.L.Lock()
 	defer que.cond.L.Unlock()
 
@@ -27,7 +27,7 @@ func (que *queue) add(items ...*pb.SimulationRun) {
 	que.cond.Broadcast()
 }
 
-func (que *queue) pop() (item *pb.SimulationRun, ok bool) {
+func (que *taskQueue) pop() (item *pb.SimulationRun, ok bool) {
 	que.cond.L.Lock()
 	defer que.cond.L.Unlock()
 
@@ -43,12 +43,12 @@ func (que *queue) pop() (item *pb.SimulationRun, ok bool) {
 	return
 }
 
-func (que *queue) len() (size int32) {
+func (que *taskQueue) len() (size int32) {
 	size = atomic.LoadInt32(&que.size)
 	return
 }
 
-func (que *queue) onUpdate(callback func() (cancel bool)) {
+func (que *taskQueue) onChange(callback func() (cancel bool)) {
 
 	cancel := callback()
 

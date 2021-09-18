@@ -39,7 +39,7 @@ func (pConn *providerConnection) extract(meta *checkoutObject) (err error) {
 	start := time.Now()
 	done := eval.LogTransfer(pConn.id(), eval.TransferDirectionUpload, meta.Filename)
 
-	upload := &storage.FileMeta{
+	upload := &storage.File{
 		Bucket:   meta.SimulationId,
 		Filename: meta.Filename,
 		Data:     meta.Data,

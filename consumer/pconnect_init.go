@@ -5,14 +5,14 @@ import (
 	"log"
 )
 
-func (pConn *providerConnection) collectTasks(cons *consumer) (tasks []*pb.SimulationRun, err error) {
+func (pConn *providerConnection) collectTasks(sim *simulation) (tasks []*pb.SimulationRun, err error) {
 
-	for _, conf := range cons.config.SimulateConfigs {
+	for _, conf := range sim.config.SimulateConfigs {
 
 		var runs *pb.SimulationRunList
 		runs, err = pConn.provider.ListRunNums(pConn.ctx, &pb.Simulation{
-			Id:        cons.simulation.Id,
-			OppConfig: cons.simulation.OppConfig,
+			Id:        sim.id,
+			OppConfig: sim.config.OppConfig,
 			Config:    conf,
 		})
 		if err != nil {
@@ -25,13 +25,12 @@ func (pConn *providerConnection) collectTasks(cons *consumer) (tasks []*pb.Simul
 	return
 }
 
-func (pConn *providerConnection) init(cons *consumer) (err error) {
+func (pConn *providerConnection) init(sim *simulation) (err error) {
 
-	simulation := cons.simulation
+	ctx := sim.ctx
+	pConn.ctx = ctx
 
-	pConn.ctx = cons.ctx
-
-	session, err := pConn.provider.GetSession(cons.ctx, simulation)
+	session, err := pConn.provider.GetSession(ctx, sim.proto())
 	if err != nil {
 		return
 	}
@@ -40,9 +39,9 @@ func (pConn *providerConnection) init(cons *consumer) (err error) {
 		session.Ttl.AsTime(), session.SourceExtracted, session.ExecutableExtracted)
 
 	source := &checkoutObject{
-		SimulationId: simulation.Id,
+		SimulationId: sim.id,
 		Filename:     "source.tgz",
-		Data:         cons.simulationSource,
+		Data:         sim.source,
 	}
 
 	if !session.SourceExtracted {
@@ -51,29 +50,29 @@ func (pConn *providerConnection) init(cons *consumer) (err error) {
 		}
 
 		session.SourceExtracted = true
-		session, _ = pConn.provider.SetSession(cons.ctx, session)
+		session, _ = pConn.provider.SetSession(ctx, session)
 	}
 
 	if !session.ExecutableExtracted {
-		if err = pConn.setupExecutable(simulation); err != nil {
+		if err = pConn.setupExecutable(sim); err != nil {
 			return
 		}
 
 		session.ExecutableExtracted = true
-		session, _ = pConn.provider.SetSession(cons.ctx, session)
+		session, _ = pConn.provider.SetSession(ctx, session)
 	}
 
-	go pConn.downloader(1, cons)
+	go pConn.downloader(1, sim)
 
-	stream, err := pConn.provider.Allocate(cons.ctx)
+	stream, err := pConn.provider.Allocate(ctx)
 	if err != nil {
 		return
 	}
 
-	go pConn.allocationHandler(stream, cons)
+	go pConn.allocationHandler(stream, sim)
 
-	go cons.allocate.onUpdate(func() (cancel bool) {
-		err = pConn.sendAllocationRequest(stream, cons)
+	go sim.queue.onChange(func() (cancel bool) {
+		err = pConn.sendAllocationRequest(stream, sim)
 		if err != nil {
 			log.Println(err)
 			return true

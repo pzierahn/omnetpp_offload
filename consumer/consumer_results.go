@@ -6,9 +6,9 @@ import (
 )
 
 // Extract Results files to the right place
-func (cons *consumer) extractResults(byt []byte) {
-	err := simple.ExtractTarGz(cons.config.Path, byt)
+func (sim *simulation) extractResults(byt []byte) {
+	err := simple.ExtractTarGz(sim.config.Path, byt)
 	if err != nil {
-		log.Printf("ExtractTarGz failed: %v", err)
+		log.Printf("cloudn't extract files: %v", err)
 	}
 }

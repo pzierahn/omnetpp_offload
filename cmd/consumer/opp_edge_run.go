@@ -55,12 +55,5 @@ func main() {
 	ctx, cnl := context.WithTimeout(context.Background(), timeout)
 	defer cnl()
 
-	//go func() {
-	//	select {
-	//	case <-ctx.Done():
-	//		log.Fatalf("simulation timeout (%v)", timeout)
-	//	}
-	//}()
-
-	consumer.Start(ctx, &runConfig)
+	consumer.OffloadSimulation(ctx, &runConfig)
 }

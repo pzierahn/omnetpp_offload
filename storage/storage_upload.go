@@ -16,7 +16,7 @@ type UploadProgress struct {
 }
 
 // Upload uploads a file to the storage server and returns a storage reference.
-func (client *Client) Upload(meta *FileMeta, fb chan<- UploadProgress) (ref *pb.StorageRef, err error) {
+func (client *Client) Upload(meta *File, fb chan<- UploadProgress) (ref *pb.StorageRef, err error) {
 
 	md := metadata.New(map[string]string{
 		"bucket":   meta.Bucket,

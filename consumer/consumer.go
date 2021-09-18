@@ -4,7 +4,6 @@ import (
 	"context"
 	"github.com/pzierahn/project.go.omnetpp/omnetpp"
 	pb "github.com/pzierahn/project.go.omnetpp/proto"
-	"google.golang.org/grpc"
 	"log"
 	"sync"
 )
@@ -16,18 +15,23 @@ type Config struct {
 	Ignore          []string `json:"ignore"`
 }
 
-type consumer struct {
-	ctx        context.Context
-	config     *Config
-	simulation *pb.Simulation
-	connMu     sync.RWMutex
-	bconn      *grpc.ClientConn
-
+type simulation struct {
+	ctx      context.Context
+	config   *Config
+	id       string
 	finished sync.WaitGroup
-	allocate *queue
+	queue    *taskQueue
+	//simulation *pb.Simulation
 
 	// TODO: Persist bytes to HD
-	simulationSource []byte
+	source []byte
+}
+
+func (sim *simulation) proto() (simulation *pb.Simulation) {
+	return &pb.Simulation{
+		Id:        sim.id,
+		OppConfig: sim.config.OppConfig,
+	}
 }
 
 func init() {

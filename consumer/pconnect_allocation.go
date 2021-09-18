@@ -5,7 +5,7 @@ import (
 	"log"
 )
 
-func (pConn *providerConnection) allocationHandler(stream pb.Provider_AllocateClient, cons *consumer) {
+func (pConn *providerConnection) allocationHandler(stream pb.Provider_AllocateClient, cons *simulation) {
 	log.Printf("[%s] start allocator", pConn.id())
 
 	for {
@@ -19,7 +19,7 @@ func (pConn *providerConnection) allocationHandler(stream pb.Provider_AllocateCl
 
 		for inx := uint32(0); inx < alloc.Slots; inx++ {
 
-			task, ok := cons.allocate.pop()
+			task, ok := cons.queue.pop()
 			if !ok {
 				//
 				// No tasks left
@@ -32,8 +32,7 @@ func (pConn *providerConnection) allocationHandler(stream pb.Provider_AllocateCl
 				ref, err := pConn.run(task)
 				if err != nil {
 					log.Printf("[%s] run failed: reschedule %+v", pConn.id(), task)
-					// Add item back to queue to send right allocation num
-					cons.allocate.add(task)
+					cons.queue.add(task)
 					return
 				}
 
@@ -45,8 +44,8 @@ func (pConn *providerConnection) allocationHandler(stream pb.Provider_AllocateCl
 				//buf, err := pConn.download(ref)
 				//if err != nil {
 				//	log.Printf("[%s] download failed: reschedule %+v", pConn.id(), task)
-				//	// Add item back to queue to send right allocation num
-				//	cons.allocate.add(task)
+				//	// Add item back to taskQueue to send right allocation num
+				//	cons.queue.add(task)
 				//	return
 				//}
 				//
@@ -62,12 +61,12 @@ func (pConn *providerConnection) allocationHandler(stream pb.Provider_AllocateCl
 	}
 }
 
-func (pConn *providerConnection) sendAllocationRequest(stream pb.Provider_AllocateClient, cons *consumer) (err error) {
-	request := cons.allocate.len()
+func (pConn *providerConnection) sendAllocationRequest(stream pb.Provider_AllocateClient, cons *simulation) (err error) {
+	request := cons.queue.len()
 	log.Printf("[%s] request %d slots", pConn.id(), request)
 
 	err = stream.Send(&pb.AllocateRequest{
-		SimulationId: cons.simulation.Id,
+		SimulationId: cons.id,
 		Request:      uint32(request),
 	})
 

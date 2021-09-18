@@ -1,6 +1,6 @@
 package storage
 
-type FileMeta struct {
+type File struct {
 	Bucket   string
 	Filename string
 	Data     []byte
