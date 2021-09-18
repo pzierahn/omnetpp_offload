@@ -12,12 +12,6 @@ import (
 	"time"
 )
 
-var archMu sync.Mutex
-var archLock = make(map[string]*sync.Mutex)
-
-var binaryMu sync.RWMutex
-var binaries = make(map[string][]byte)
-
 func (pConn *providerConnection) compileAndDownload(simulation *simulation) (err error) {
 
 	arch := sysinfo.Signature(pConn.info.Arch)
@@ -48,9 +42,9 @@ func (pConn *providerConnection) compileAndDownload(simulation *simulation) (err
 	log.Printf("[%s] compile: downloaded %s exe (%v in %v)",
 		pConn.id(), arch, simple.ByteSize(size), time.Now().Sub(start))
 
-	binaryMu.Lock()
-	binaries[arch] = byt
-	binaryMu.Unlock()
+	simulation.bmu.Lock()
+	simulation.binaries[arch] = byt
+	simulation.bmu.Unlock()
 
 	return
 }
@@ -61,21 +55,21 @@ func (pConn *providerConnection) setupExecutable(simulation *simulation) (err er
 
 	// TODO: Find an easy way to do this
 	var lock *sync.Mutex
-	archMu.Lock()
-	if aLock, ok := archLock[arch]; ok {
+	simulation.amu.Lock()
+	if aLock, ok := simulation.archLock[arch]; ok {
 		lock = aLock
 	} else {
 		lock = &sync.Mutex{}
-		archLock[arch] = lock
+		simulation.archLock[arch] = lock
 	}
-	archMu.Unlock()
+	simulation.amu.Unlock()
 
 	lock.Lock()
 	defer lock.Unlock()
 
-	binaryMu.RLock()
-	buf, ok := binaries[arch]
-	binaryMu.RUnlock()
+	simulation.bmu.RLock()
+	buf, ok := simulation.binaries[arch]
+	simulation.bmu.RUnlock()
 
 	if !ok {
 		err = pConn.compileAndDownload(simulation)

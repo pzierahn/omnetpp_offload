@@ -21,7 +21,10 @@ type simulation struct {
 	id       string
 	finished sync.WaitGroup
 	queue    *taskQueue
-	//simulation *pb.Simulation
+	amu      sync.Mutex
+	archLock map[string]*sync.Mutex
+	bmu      sync.RWMutex
+	binaries map[string][]byte
 
 	// TODO: Persist bytes to HD
 	source []byte
