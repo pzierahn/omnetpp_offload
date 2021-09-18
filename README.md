@@ -55,25 +55,3 @@ go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@latest
 go get -u google.golang.org/grpc
 GOOS=linux GOARCH=amd64 go build cmd/consumer/opp_edge_run.go
 ```
-
-Generate protobufs
-
-```shell
-cd proto
-
-protoc --go_out=. --go_opt=paths=source_relative \
-    --go-grpc_out=. --go-grpc_opt=paths=source_relative \
-    broker.proto
-
-protoc --go_out=. --go_opt=paths=source_relative \
-    --go-grpc_out=. --go-grpc_opt=paths=source_relative \
-    storage.proto
-
-protoc --go_out=. --go_opt=paths=source_relative \
-    --go-grpc_out=. --go-grpc_opt=paths=source_relative \
-    opp_config.proto
-    
-protoc --go_out=. --go_opt=paths=source_relative \
-    --go-grpc_out=. --go-grpc_opt=paths=source_relative \
-    eval.proto
-```
