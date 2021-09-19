@@ -10,6 +10,11 @@ import (
 )
 
 func (sim *simulation) connect(prov *pb.ProviderInfo, once *sync.Once, onInit chan int32) {
+
+	//
+	// Phase 1: Connect to provider
+	//
+
 	cc, err := pconnect(sim.ctx, prov)
 	if err != nil {
 		log.Println(prov.ProviderId, err)
@@ -24,11 +29,19 @@ func (sim *simulation) connect(prov *pb.ProviderInfo, once *sync.Once, onInit ch
 		downloadPipe: make(chan *download, 128),
 	}
 
-	err = pconn.init(sim)
+	//
+	// Phase 2: Deploy the simulation
+	//
+
+	err = pconn.deploy(sim)
 	if err != nil {
 		log.Println(prov.ProviderId, err)
 		return
 	}
+
+	//
+	// Phase 3: Execute the simulation
+	//
 
 	once.Do(func() {
 		log.Printf("[%s] list simulation run numbers", pconn.id())
@@ -42,6 +55,12 @@ func (sim *simulation) connect(prov *pb.ProviderInfo, once *sync.Once, onInit ch
 		sim.queue.add(tasks...)
 		onInit <- sim.queue.len()
 	})
+
+	err = pconn.execute(sim)
+	if err != nil {
+		log.Println(prov.ProviderId, err)
+		return
+	}
 }
 
 func (sim *simulation) startConnector(bconn *grpc.ClientConn, onInit chan int32) {

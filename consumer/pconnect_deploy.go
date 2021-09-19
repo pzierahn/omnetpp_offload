@@ -25,7 +25,7 @@ func (pConn *providerConnection) collectTasks(sim *simulation) (tasks []*pb.Simu
 	return
 }
 
-func (pConn *providerConnection) init(sim *simulation) (err error) {
+func (pConn *providerConnection) deploy(sim *simulation) (err error) {
 
 	ctx := sim.ctx
 	pConn.ctx = ctx
@@ -35,7 +35,7 @@ func (pConn *providerConnection) init(sim *simulation) (err error) {
 		return
 	}
 
-	log.Printf("init: deadline=%s source=%v exec=%v",
+	log.Printf("deploy: deadline=%s source=%v exec=%v",
 		session.Ttl.AsTime(), session.SourceExtracted, session.ExecutableExtracted)
 
 	source := &checkoutObject{
@@ -61,25 +61,6 @@ func (pConn *providerConnection) init(sim *simulation) (err error) {
 		session.ExecutableExtracted = true
 		session, _ = pConn.provider.SetSession(ctx, session)
 	}
-
-	go pConn.downloader(1, sim)
-
-	stream, err := pConn.provider.Allocate(ctx)
-	if err != nil {
-		return
-	}
-
-	go pConn.allocationHandler(stream, sim)
-
-	go sim.queue.onChange(func() (cancel bool) {
-		err = pConn.sendAllocationRequest(stream, sim)
-		if err != nil {
-			log.Println(err)
-			return true
-		}
-
-		return false
-	})
 
 	return
 }
