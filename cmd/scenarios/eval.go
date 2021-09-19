@@ -45,7 +45,7 @@ func initDockerSSH() {
 	go func() {
 		select {
 		case rec := <-sig:
-			log.Printf("received SIGTERM %v\n", rec)
+			log.Printf("received Interrupt %v\n", rec)
 			stop(dockerId)
 			os.Exit(1)
 		}
@@ -260,6 +260,9 @@ func runEvaluation(connect string, jobs int) {
 		log.Printf("record: %v", record)
 		_ = writer.Write(record)
 		writer.Flush()
+
+		// Wait some time to clear buffers.
+		time.Sleep(time.Second * 2)
 	}
 }
 
