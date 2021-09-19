@@ -38,13 +38,13 @@ func (pConn *providerConnection) deploy(sim *simulation) (err error) {
 	log.Printf("deploy: deadline=%s source=%v exec=%v",
 		session.Ttl.AsTime(), session.SourceExtracted, session.ExecutableExtracted)
 
-	source := &checkoutObject{
-		SimulationId: sim.id,
-		Filename:     "source.tgz",
-		Data:         sim.source,
-	}
-
 	if !session.SourceExtracted {
+		source := &fileMeta{
+			SimulationId: sim.id,
+			Filename:     "source.tgz",
+			Data:         sim.source,
+		}
+
 		if err = pConn.extract(source); err != nil {
 			return
 		}

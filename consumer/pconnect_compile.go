@@ -76,7 +76,7 @@ func (pConn *providerConnection) setupExecutable(simulation *simulation) (err er
 		return
 	}
 
-	binary := &checkoutObject{
+	binary := &fileMeta{
 		SimulationId: simulation.id,
 		Filename:     fmt.Sprintf("binary/%s.tgz", arch),
 		Data:         buf,

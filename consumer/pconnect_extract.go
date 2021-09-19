@@ -9,13 +9,13 @@ import (
 	"time"
 )
 
-type checkoutObject struct {
+type fileMeta struct {
 	SimulationId string
 	Filename     string
 	Data         []byte
 }
 
-func (pConn *providerConnection) extract(meta *checkoutObject) (err error) {
+func (pConn *providerConnection) extract(meta *fileMeta) (err error) {
 
 	size := uint64(len(meta.Data))
 	log.Printf("[%s] upload: %+v (%v)",
