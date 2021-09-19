@@ -13,6 +13,7 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
+	"os/exec"
 	"os/signal"
 	"path/filepath"
 	"strings"
@@ -35,6 +36,7 @@ var (
 	defaultJobNums  = []int{1, 2, 4, 6, 8}
 	defaultConnects = []string{"p2p", "relay"}
 	repeat          = 5
+	docker          bool
 	jobNums         []int
 	connects        []string
 )
@@ -175,7 +177,7 @@ func runScenario(scenario, connect string, trail int) (duration time.Duration, e
 	return
 }
 
-func startDocker(jobs int) (id string) {
+func startDocker(jobs int) (cancel context.CancelFunc) {
 	ctx := context.Background()
 	resp, err := cli.ContainerCreate(ctx, &container.Config{
 		Image: "pzierahn/omnetpp_edge",
@@ -194,7 +196,9 @@ func startDocker(jobs int) (id string) {
 		panic(err)
 	}
 
-	return resp.ID
+	return func() {
+		stop(resp.ID)
+	}
 }
 
 func stop(id string) {
@@ -213,6 +217,19 @@ func stop(id string) {
 	}
 }
 
+func startNative(jobs int) (cancel context.CancelFunc) {
+
+	ctx, cancel := context.WithCancel(context.Background())
+	cmd := exec.CommandContext(ctx, "go", "run", "cmd/worker/opp_edge_worker.go",
+		"-broker", broker,
+		"-jobs", fmt.Sprint(jobs))
+	if err := cmd.Start(); err != nil {
+		log.Fatalf("unable to start worker: %s", err)
+	}
+
+	return
+}
+
 func overheadFile(scenario string) (file *os.File, err error) {
 
 	dir := "evaluation/meta"
@@ -225,18 +242,21 @@ func overheadFile(scenario string) (file *os.File, err error) {
 	return os.Create(filename)
 }
 
-func runEvaluation(connect string, jobs int) {
-	dockerId = startDocker(jobs)
-	defer stop(dockerId)
+func runEvaluation(connect string, jobs int) error {
 
 	// Sleep to ensure that the docker is started and connected.
 	time.Sleep(time.Second * 3)
 
-	scenario := fmt.Sprintf("%sj%dd", string(connect[0]), jobs)
+	var scenario string
+	if docker {
+		scenario = fmt.Sprintf("%sj%dd", string(connect[0]), jobs)
+	} else {
+		scenario = fmt.Sprintf("%sj%d", string(connect[0]), jobs)
+	}
+
 	file, err := overheadFile(scenario)
 	if err != nil {
-		stop(dockerId)
-		log.Fatalf("unable to create logfile: %s", err)
+		return fmt.Errorf("unable to create logfile: %s", err)
 	}
 	defer func() { _ = file.Close() }()
 
@@ -249,8 +269,7 @@ func runEvaluation(connect string, jobs int) {
 		duration, err := runScenario(scenario, connect, inx)
 
 		if err != nil {
-			stop(dockerId)
-			log.Fatalln(err)
+			return err
 		}
 
 		record := []string{
@@ -264,6 +283,8 @@ func runEvaluation(connect string, jobs int) {
 		// Wait some time to clear buffers.
 		time.Sleep(time.Second * 2)
 	}
+
+	return nil
 }
 
 func main() {
@@ -273,6 +294,7 @@ func main() {
 	nums := flags.IntSlice("j", defaultJobNums, "set parallel job numbers")
 	conns := flags.StringSlice("c", defaultConnects, "set connection")
 	flag.IntVar(&repeat, "r", repeat, "repeat")
+	flag.BoolVar(&docker, "d", false, "use docker")
 	flag.Parse()
 
 	jobNums = *nums
@@ -281,6 +303,7 @@ func main() {
 	log.Printf("jobNums: %v", jobNums)
 	log.Printf("connects: %v", connects)
 	log.Printf("repeat: %v", repeat)
+	log.Printf("docker: %v", docker)
 
 	initDockerSSH()
 	defer func() {
@@ -298,9 +321,22 @@ func main() {
 
 	updateRepo()
 
-	for _, connect := range connects {
-		for _, jobs := range jobNums {
-			runEvaluation(connect, jobs)
+	var cnl context.CancelFunc
+
+	for _, jobs := range jobNums {
+		if docker {
+			cnl = startDocker(jobs)
+		} else {
+			cnl = startNative(jobs)
 		}
+
+		for _, connect := range connects {
+			if err := runEvaluation(connect, jobs); err != nil {
+				cnl()
+				log.Fatalln(err)
+			}
+		}
+
+		cnl()
 	}
 }
