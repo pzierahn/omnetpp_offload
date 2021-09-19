@@ -17,6 +17,7 @@ func (sim *simulation) connect(prov *pb.ProviderInfo, once *sync.Once, onInit ch
 	}
 
 	pconn := &providerConnection{
+		conn:         cc,
 		info:         prov,
 		provider:     pb.NewProviderClient(cc),
 		store:        pb.NewStorageClient(cc),

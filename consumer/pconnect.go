@@ -22,6 +22,7 @@ const (
 
 type providerConnection struct {
 	ctx          context.Context
+	conn         *grpc.ClientConn
 	info         *pb.ProviderInfo
 	provider     pb.ProviderClient
 	store        pb.StorageClient
@@ -35,6 +36,11 @@ type download struct {
 
 func (pConn *providerConnection) id() (name string) {
 	return pConn.info.ProviderId
+}
+
+func (pConn *providerConnection) close() {
+	close(pConn.downloadPipe)
+	_ = pConn.conn.Close()
 }
 
 func pconnect(ctx context.Context, prov *pb.ProviderInfo) (conn *grpc.ClientConn, err error) {
