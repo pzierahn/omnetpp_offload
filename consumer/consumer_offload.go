@@ -19,10 +19,7 @@ func OffloadSimulation(ctx context.Context, config *Config) {
 	}
 
 	id := simple.NamedId(config.Tag, 8)
-	log.Println("#################################################")
 	log.Printf("OffloadSimulation: simulationId %s", id)
-	log.Println("#################################################")
-
 	log.Printf("OffloadSimulation: connecting to broker (%v)", gconfig.BrokerDialAddr())
 
 	conn, err := grpc.Dial(

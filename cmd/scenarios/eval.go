@@ -32,9 +32,11 @@ var (
 )
 
 var (
-	jobNums  = []int{1, 2, 4, 6, 8}
-	repeat   = 5
-	connects = []string{"p2p", "relay"}
+	defaultJobNums  = []int{1, 2, 4, 6, 8}
+	defaultConnects = []string{"p2p", "relay"}
+	repeat          = 5
+	jobNums         []int
+	connects        []string
 )
 
 func initDockerSSH() {
@@ -265,10 +267,17 @@ func main() {
 
 	log.SetFlags(log.LstdFlags | log.Lshortfile)
 
-	jobNums = *flags.IntSlice("j", jobNums, "set parallel job numbers")
-	connects = *flags.StringSlice("c", connects, "set connection")
+	nums := flags.IntSlice("j", defaultJobNums, "set parallel job numbers")
+	conns := flags.StringSlice("c", defaultConnects, "set connection")
 	flag.IntVar(&repeat, "r", repeat, "repeat")
 	flag.Parse()
+
+	jobNums = *nums
+	connects = *conns
+
+	log.Printf("jobNums: %v", jobNums)
+	log.Printf("connects: %v", connects)
+	log.Printf("repeat: %v", repeat)
 
 	initDockerSSH()
 	defer func() {
