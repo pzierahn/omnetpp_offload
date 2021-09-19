@@ -71,7 +71,7 @@ func (server *Server) Scenario(_ context.Context, scenario *pb.EvalScenario) (*e
 	server.files = make(map[int]*os.File)
 	server.sync = make(map[int]*sync.Mutex)
 
-	id := fmt.Sprintf("s%s-t%s", scenario.ScenarioId, scenario.TrailId)
+	id := fmt.Sprintf("%s-%s", scenario.ScenarioId, scenario.TrailId)
 
 	for val, typ := range protoTypes {
 		var name string
