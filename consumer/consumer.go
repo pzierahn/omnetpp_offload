@@ -16,15 +16,19 @@ type Config struct {
 }
 
 type simulation struct {
+	id       string
 	ctx      context.Context
 	config   *Config
-	id       string
 	finished sync.WaitGroup
 	queue    *taskQueue
 	amu      sync.Mutex
 	archLock map[string]*sync.Mutex
 	bmu      sync.RWMutex
 	binaries map[string][]byte
+
+	// TODO: Store connections central
+	//cmu         sync.RWMutex
+	//connections map[string]*providerConnection
 
 	// TODO: Persist bytes to HD
 	source []byte

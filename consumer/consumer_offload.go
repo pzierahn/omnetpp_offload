@@ -48,13 +48,13 @@ func OffloadSimulation(ctx context.Context, config *Config) {
 	}
 
 	sim := &simulation{
+		id:       id,
 		ctx:      ctx,
 		config:   config,
 		queue:    newQueue(),
 		source:   buf.Bytes(),
 		archLock: make(map[string]*sync.Mutex),
 		binaries: make(map[string][]byte),
-		id:       id,
 	}
 
 	onInit := make(chan int32)

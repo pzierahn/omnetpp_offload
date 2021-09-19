@@ -39,6 +39,8 @@ func (pConn *providerConnection) id() (name string) {
 }
 
 func (pConn *providerConnection) close() {
+	//TODO: pConn.provider.DropSession(ctx, &pb.Session{})
+
 	close(pConn.downloadPipe)
 	_ = pConn.conn.Close()
 }
