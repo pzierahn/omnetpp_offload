@@ -4,6 +4,8 @@
   <component name="NewModuleRootManager">
     <content url="file://$MODULE_DIR$">
       <excludeFolder url="file://$MODULE_DIR$/debug" />
+      <excludeFolder url="file://$MODULE_DIR$/evaluation/meta" />
+      <excludeFolder url="file://$MODULE_DIR$/evaluation/data" />
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />

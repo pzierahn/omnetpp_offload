@@ -15,6 +15,8 @@ type combine struct {
 
 func main() {
 
+	// scp -r "pzierahn@85.214.35.83:/home/pzierahn/.cache/omnetpp-edge/evaluation/*.csv" meta
+
 	outdir := "data"
 	_ = os.RemoveAll(outdir)
 	_ = os.MkdirAll(outdir, 0755)
@@ -66,6 +68,10 @@ func main() {
 			byt, err := os.ReadFile(filepath.Join(obj.src, file.Name()))
 			if err != nil {
 				panic(err)
+			}
+
+			if len(byt) == 0 {
+				continue
 			}
 
 			txt := string(byt)

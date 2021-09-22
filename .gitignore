@@ -18,7 +18,8 @@ vendor/
 *.tar
 *.zip
 
-data/
+# data/
+meta/
 debug
 build/
 
