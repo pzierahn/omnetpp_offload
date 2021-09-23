@@ -72,17 +72,27 @@ func (pConn *providerConnection) setupExecutable(simulation *simulation) (err er
 	simulation.bmu.RUnlock()
 
 	if !ok {
+
+		//
+		// Simulation executable is missing for providers architecture and OS.
+		// Compile and download the executable.
+		//
+
 		err = pConn.compileAndDownload(simulation)
-		return
-	}
+	} else {
 
-	binary := &fileMeta{
-		SimulationId: simulation.id,
-		Filename:     fmt.Sprintf("binary/%s.tgz", arch),
-		Data:         buf,
-	}
+		//
+		// Simulation executable is already compiled for providers architecture and OS.
+		//
 
-	err = pConn.extract(binary)
+		binary := &fileMeta{
+			SimulationId: simulation.id,
+			Filename:     fmt.Sprintf("binary/%s.tgz", arch),
+			Data:         buf,
+		}
+
+		err = pConn.extract(binary)
+	}
 
 	return
 }

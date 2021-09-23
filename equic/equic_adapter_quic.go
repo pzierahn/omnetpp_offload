@@ -8,8 +8,6 @@ import (
 	"github.com/lucas-clemente/quic-go"
 )
 
-var _ net.Conn = (*Conn)(nil)
-
 type Conn struct {
 	Sess   quic.Session
 	Stream quic.Stream

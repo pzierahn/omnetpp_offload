@@ -49,7 +49,7 @@ func pconnect(ctx context.Context, prov *pb.ProviderInfo) (conn *grpc.ClientConn
 
 	connect := connectAll
 
-	// Eval stuff to ensure that only the desired connection will be established
+	// Eval stuff to ensure that only the desired connection will be used
 	switch os.Getenv("CONNECT") {
 	case "local":
 		log.Println("########################## eval debug: connect only local!")
@@ -84,6 +84,7 @@ func pconnect(ctx context.Context, prov *pb.ProviderInfo) (conn *grpc.ClientConn
 		conn, err = pconnectRelay(ctx, prov.ProviderId)
 		if err == nil {
 			eval.LogSetup(eval.ConnectRelay, prov)
+			return
 		}
 	}
 
@@ -119,7 +120,7 @@ func pconnectRelay(ctx context.Context, providerId string) (cc *grpc.ClientConn,
 		conn.RemoteAddr().String(),
 		grpc.WithInsecure(),
 		grpc.WithBlock(),
-		grpc.WithContextDialer(func(ctx context.Context, s string) (net.Conn, error) {
+		grpc.WithContextDialer(func(_ context.Context, _ string) (net.Conn, error) {
 			return conn, nil
 		}),
 	)
