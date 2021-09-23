@@ -120,18 +120,6 @@ func runScenario(scenario, connect string, trail int) (duration time.Duration, e
 
 	log.Printf("Staring scenario scenario=%s connect=%s trail=%d", scenario, connect, trail)
 
-	session, err := sshClient.NewSession()
-	if err != nil {
-		err = fmt.Errorf("unable to create a new session: %s", err)
-		return
-	}
-	defer func() {
-		_ = session.Close()
-	}()
-
-	session.Stdout = os.Stdout
-	session.Stderr = os.Stderr
-
 	// session.Setenv() doesn't work.
 	// see https://vic.demuzere.be/articles/environment-variables-setenv-ssh-golang/
 	envVars := []string{
@@ -165,6 +153,18 @@ func runScenario(scenario, connect string, trail int) (duration time.Duration, e
 	)
 
 	log.Printf("bashscript:\n%s\n", strings.Join(cmd, "; \n"))
+
+	session, err := sshClient.NewSession()
+	if err != nil {
+		err = fmt.Errorf("unable to create a new session: %s", err)
+		return
+	}
+	defer func() {
+		_ = session.Close()
+	}()
+
+	session.Stdout = os.Stdout
+	session.Stderr = os.Stderr
 
 	start := time.Now()
 	if err = session.Run(strings.Join(cmd, "; ")); err != nil {
@@ -243,9 +243,6 @@ func overheadFile(scenario string) (file *os.File, err error) {
 }
 
 func runEvaluation(connect string, jobs int) error {
-
-	// Sleep to ensure that the docker is started and connected.
-	time.Sleep(time.Second * 3)
 
 	var scenario string
 	if docker {
@@ -329,6 +326,8 @@ func main() {
 		} else {
 			cnl = startNative(jobs)
 		}
+
+		time.Sleep(time.Second * 3)
 
 		for _, connect := range connects {
 			if err := runEvaluation(connect, jobs); err != nil {
