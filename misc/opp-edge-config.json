@@ -14,7 +14,7 @@
     "run": [
         "General"
     ],
-    "exclude": [
+    "ignore": [
         "\\.git*",
         "\\.DS_Store",
         "^.idea/*",

@@ -11,12 +11,10 @@ type Client struct {
 
 func FromClient(storeClient pb.StorageClient) (client Client) {
 	client.storage = storeClient
-
 	return
 }
 
 func FromConnection(conn *grpc.ClientConn) (client Client) {
 	client.storage = pb.NewStorageClient(conn)
-
 	return
 }

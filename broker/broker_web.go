@@ -42,7 +42,7 @@ func stargateStatus(writer http.ResponseWriter, _ *http.Request) {
 	}
 }
 
-func (broker *broker) startWebService() {
+func (broker *broker) startDebugWebAPI() {
 
 	log.Println("start web service on http://localhost:8090/providers")
 	http.HandleFunc("/providers", broker.pStatusHandle)

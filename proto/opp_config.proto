@@ -4,23 +4,23 @@ package service;
 option go_package = "./proto";
 
 message OppConfig {
-  // buildscript (optional)
+  // buildscript path from simulation root (optional)
   string buildScript = 1;
 
   // This is the directory in which the simulation will be executed
   string basePath = 2;
 
-  // Simulation ini files
+  // Simulation ini files (from simulation root)
   repeated string iniFiles = 3;
 
-  // Ned include directories
+  // Ned include directories (from simulation root)
   repeated string nedPaths = 4;
 
-  // Run opp_run -l ... instead of running the simulation directly
+  // Use 'opp_run -l ...' instead of running the simulation directly
   bool useLib = 5;
 
   // TODO: Rename to executablePath
-  // Simulation exe or lib
+  // Simulation exe or lib (from simulation root)
   string simulation = 6;
 
   // TODO: Rename to makefilePath

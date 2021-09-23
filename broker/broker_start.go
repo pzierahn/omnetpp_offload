@@ -28,7 +28,7 @@ func Start() (err error) {
 		listener:    make(map[string]chan<- *pb.ProviderList),
 	}
 
-	go brk.startWebService()
+	go brk.startDebugWebAPI()
 
 	lis, err := net.ListenTCP("tcp", &net.TCPAddr{
 		Port: gconfig.BrokerPort(),
