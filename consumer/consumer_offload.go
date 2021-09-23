@@ -36,7 +36,7 @@ func OffloadSimulation(ctx context.Context, config *Config) {
 
 	eval.Init(conn)
 	eval.SetScenario(id)
-	eval.DeviceId = "simulation"
+	eval.DeviceId = "consumer"
 
 	log.Printf("OffloadSimulation: zipping %s", config.Path)
 
