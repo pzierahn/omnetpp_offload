@@ -40,29 +40,13 @@ func (pConn *providerConnection) allocationHandler(stream pb.Provider_AllocateCl
 					task: task,
 					ref:  ref,
 				}
-
-				//buf, err := pConn.download(ref)
-				//if err != nil {
-				//	log.Printf("[%s] download failed: reschedule %+v", pConn.id(), task)
-				//	// Add item back to taskQueue to send right allocation num
-				//	cons.queue.add(task)
-				//	return
-				//}
-				//
-				//done := eval.LogAction(eval.ActionExtract, ref.Filename)
-				//cons.extractResults(buf)
-				//_ = done(nil)
-				//
-				//_, _ = pConn.store.Delete(pConn.ctx, ref)
-				//
-				//cons.finished.Done()
 			}()
 		}
 	}
 }
 
 func (pConn *providerConnection) execute(sim *simulation) (err error) {
-	go pConn.downloader(1, sim)
+	go pConn.downloader(sim)
 
 	stream, err := pConn.provider.Allocate(sim.ctx)
 	if err != nil {

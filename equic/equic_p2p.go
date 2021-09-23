@@ -11,18 +11,15 @@ import (
 func P2PDialGRPC(ctx context.Context, dialAddr stargate.DialAddr) (conn *grpc.ClientConn, err error) {
 	gate, remote, err := stargate.DialP2PUDP(ctx, dialAddr)
 	if err != nil {
-		// Connection failed!
 		return
 	}
 
-	conn, err = grpc.Dial(
+	return grpc.Dial(
 		remote.String(),
 		grpc.WithInsecure(),
 		grpc.WithBlock(),
 		grpc.WithContextDialer(dialAdapter(gate)),
 	)
-
-	return
 }
 
 func P2PListenerQUIC(ctx context.Context, dialAddr stargate.DialAddr) (p2p quic.Listener, err error) {
