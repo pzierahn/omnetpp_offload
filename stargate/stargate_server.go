@@ -15,19 +15,19 @@ const (
 	cleanTimeout = time.Second * 40
 )
 
-type waiter struct {
+type linger struct {
 	addr     *net.UDPAddr
 	timeout  *time.Timer
 	dialAddr DialAddr
 }
 
 type stargateServer struct {
-	conn    *net.UDPConn
-	mu      sync.RWMutex
-	waiting map[udpAddr]*waiter
-	peers   map[DialAddr]*net.UDPAddr
-	relayMu sync.Mutex
-	relay   map[DialAddr]*net.TCPConn
+	conn      *net.UDPConn
+	mu        sync.RWMutex
+	lingering map[udpAddr]*linger
+	peers     map[DialAddr]*net.UDPAddr
+	relayMu   sync.Mutex
+	relay     map[DialAddr]*net.TCPConn
 }
 
 var server *stargateServer
@@ -42,7 +42,7 @@ func DebugValues() (bytes []byte, err error) {
 	defer server.mu.RUnlock()
 
 	waiting := make(map[udpAddr]string)
-	for addr, wait := range server.waiting {
+	for addr, wait := range server.lingering {
 		waiting[addr] = wait.dialAddr
 	}
 
@@ -69,7 +69,7 @@ func (server *stargateServer) heartbeatDispatcher(ctx context.Context) {
 		case <-ticker.C:
 			server.mu.RLock()
 
-			for _, wait := range server.waiting {
+			for _, wait := range server.lingering {
 				log.Printf("send heartbeat: addr=%v", wait.addr)
 
 				_, err := server.conn.WriteTo([]byte("heartbeat"), wait.addr)
@@ -97,7 +97,7 @@ func (server *stargateServer) prune(dial DialAddr, addr *net.UDPAddr) {
 	log.Printf("pruning: dialAddr=%v addr=%v", dial, addr)
 
 	delete(server.peers, dial)
-	delete(server.waiting, addr.String())
+	delete(server.lingering, addr.String())
 }
 
 func (server *stargateServer) receiveDial() (err error) {
@@ -115,7 +115,7 @@ func (server *stargateServer) receiveDial() (err error) {
 	server.mu.Lock()
 	defer server.mu.Unlock()
 
-	if wait, ok := server.waiting[addr.String()]; ok {
+	if wait, ok := server.lingering[addr.String()]; ok {
 
 		//
 		// The dialing clients send periodically new dial signals to ensure that the NAT stays open.
@@ -128,15 +128,15 @@ func (server *stargateServer) receiveDial() (err error) {
 
 	if peerAddr, ok := server.peers[dial]; ok {
 		//
-		// Other peers already waiting
+		// Other peers already lingering
 		//
 
 		defer func() {
 			delete(server.peers, dial)
 
-			if wait, ok := server.waiting[peerAddr.String()]; ok {
+			if wait, ok := server.lingering[peerAddr.String()]; ok {
 				wait.timeout.Stop()
-				delete(server.waiting, peerAddr.String())
+				delete(server.lingering, peerAddr.String())
 			}
 		}()
 
@@ -157,7 +157,7 @@ func (server *stargateServer) receiveDial() (err error) {
 		timeout := time.NewTimer(cleanTimeout)
 
 		server.peers[dial] = addr
-		server.waiting[addr.String()] = &waiter{
+		server.lingering[addr.String()] = &linger{
 			addr:     addr,
 			timeout:  timeout,
 			dialAddr: dial,
@@ -188,10 +188,10 @@ func Server(ctx context.Context, relay bool) (err error) {
 	log.Printf("start stargate server on %v", conn.LocalAddr())
 
 	server = &stargateServer{
-		conn:    conn,
-		waiting: make(map[string]*waiter),
-		peers:   make(map[string]*net.UDPAddr),
-		relay:   make(map[string]*net.TCPConn),
+		conn:      conn,
+		lingering: make(map[string]*linger),
+		peers:     make(map[string]*net.UDPAddr),
+		relay:     make(map[string]*net.TCPConn),
 	}
 
 	if relay {
