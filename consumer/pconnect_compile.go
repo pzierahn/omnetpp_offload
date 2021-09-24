@@ -53,7 +53,6 @@ func (pConn *providerConnection) setupExecutable(simulation *simulation) (err er
 
 	arch := sysinfo.Signature(pConn.info.Arch)
 
-	// TODO: Find an easy way to do this
 	var lock *sync.Mutex
 	simulation.amu.Lock()
 	if aLock, ok := simulation.archLock[arch]; ok {

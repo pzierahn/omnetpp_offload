@@ -21,12 +21,12 @@ const (
 )
 
 type providerConnection struct {
-	ctx          context.Context
-	conn         *grpc.ClientConn
-	info         *pb.ProviderInfo
-	provider     pb.ProviderClient
-	store        pb.StorageClient
-	downloadPipe chan *download
+	ctx           context.Context
+	conn          *grpc.ClientConn
+	info          *pb.ProviderInfo
+	provider      pb.ProviderClient
+	store         pb.StorageClient
+	downloadQueue chan *download
 }
 
 type download struct {
@@ -41,7 +41,7 @@ func (pConn *providerConnection) id() (name string) {
 func (pConn *providerConnection) close() {
 	//TODO: pConn.provider.DropSession(ctx, &pb.Session{})
 
-	close(pConn.downloadPipe)
+	close(pConn.downloadQueue)
 	_ = pConn.conn.Close()
 }
 

@@ -36,7 +36,7 @@ func (pConn *providerConnection) allocationHandler(stream pb.Provider_AllocateCl
 					return
 				}
 
-				pConn.downloadPipe <- &download{
+				pConn.downloadQueue <- &download{
 					task: task,
 					ref:  ref,
 				}
@@ -46,7 +46,7 @@ func (pConn *providerConnection) allocationHandler(stream pb.Provider_AllocateCl
 }
 
 func (pConn *providerConnection) execute(sim *simulation) (err error) {
-	go pConn.downloader(sim)
+	go pConn.resultsDownloader(sim)
 
 	stream, err := pConn.provider.Allocate(sim.ctx)
 	if err != nil {

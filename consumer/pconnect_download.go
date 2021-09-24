@@ -30,18 +30,23 @@ func (pConn *providerConnection) download(ref *pb.StorageRef) (byt []byte, err e
 	return
 }
 
-func (pConn *providerConnection) downloader(sim *simulation) {
-	for obj := range pConn.downloadPipe {
+func (pConn *providerConnection) resultsDownloader(sim *simulation) {
+	for obj := range pConn.downloadQueue {
 		buf, err := pConn.download(obj.ref)
 		if err != nil {
 			log.Printf("[%s] download failed: reschedule %+v", pConn.id(), obj.task)
-			// Add item back to taskQueue to send right allocation num
+			// Reschedule task.
 			sim.queue.add(obj.task)
 			return
 		}
 
 		done := eval.LogAction(eval.ActionExtract, obj.ref.Filename)
-		sim.extractResults(buf)
+
+		err = simple.ExtractTarGz(sim.config.Path, buf)
+		if err != nil {
+			log.Fatalf("cloudn't extract files: %v", err)
+		}
+
 		_ = done(nil)
 
 		_, _ = pConn.store.Delete(pConn.ctx, obj.ref)
