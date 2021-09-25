@@ -5,6 +5,7 @@ import (
 	"flag"
 	"fmt"
 	"github.com/pzierahn/project.go.omnetpp/defines"
+	"github.com/pzierahn/project.go.omnetpp/simple"
 	"github.com/pzierahn/project.go.omnetpp/stargate"
 	"io/ioutil"
 	"os"
@@ -36,7 +37,8 @@ func init() {
 		}
 
 		if Config.Worker.Name == "" {
-			Config.Worker.Name = runtime.GOOS + "-" + runtime.GOARCH
+			//Config.Worker.Name = runtime.GOOS + "-" + runtime.GOARCH
+			Config.Worker.Name = simple.GetHostnameShort()
 		}
 
 		if Config.Worker.Jobs == 0 {
