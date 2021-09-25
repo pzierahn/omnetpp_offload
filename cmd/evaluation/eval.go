@@ -29,7 +29,7 @@ const (
 var (
 	cli       *client.Client
 	sshClient *ssh.Client
-	dockerId  string
+	cancel    context.CancelFunc
 )
 
 var (
@@ -48,7 +48,7 @@ func initDockerSSH() {
 		select {
 		case rec := <-sig:
 			log.Printf("received Interrupt %v\n", rec)
-			stop(dockerId)
+			cancel()
 			os.Exit(1)
 		}
 	}()
@@ -318,24 +318,22 @@ func main() {
 
 	updateRepo()
 
-	var cnl context.CancelFunc
-
 	for _, jobs := range jobNums {
 		if docker {
-			cnl = startDocker(jobs)
+			cancel = startDocker(jobs)
 		} else {
-			cnl = startNative(jobs)
+			cancel = startNative(jobs)
 		}
 
 		time.Sleep(time.Second * 3)
 
 		for _, connect := range connects {
 			if err := runEvaluation(connect, jobs); err != nil {
-				cnl()
+				cancel()
 				log.Fatalln(err)
 			}
 		}
 
-		cnl()
+		cancel()
 	}
 }
