@@ -98,7 +98,12 @@ func pconnectP2P(ctx context.Context, providerId string) (cc *grpc.ClientConn, e
 	ctx, cln := context.WithTimeout(ctx, time.Second*5)
 	defer cln()
 
-	return mimic.P2PDialGRPC(ctx, providerId)
+	gate, remote, err := stargate.DialP2PUDP(ctx, providerId)
+	if err != nil {
+		return
+	}
+
+	return mimic.DialGRPC(ctx, remote.String(), gate)
 }
 
 func pconnectRelay(ctx context.Context, providerId string) (cc *grpc.ClientConn, err error) {

@@ -107,9 +107,10 @@ func Start() {
 	// Start provider
 	//
 
-	go prov.listenLocal()
-	go prov.listenP2P()
-	go prov.listenRelay()
+	ctx := context.Background()
+	go prov.serveLocal(ctx)
+	go prov.serveP2P(ctx)
+	go prov.serveRelay(ctx)
 	prov.startAllocator()
 
 	return

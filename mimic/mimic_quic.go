@@ -92,10 +92,6 @@ type QUICListener struct {
 	ql quic.Listener
 }
 
-func NewQUICListener(ql quic.Listener) net.Listener {
-	return &QUICListener{ql}
-}
-
 // Accept waits for and returns the next connection to the listener.
 func (l *QUICListener) Accept() (net.Conn, error) {
 	sess, err := l.ql.Accept(context.Background())
