@@ -53,7 +53,6 @@ func Start() {
 	// Init stuff
 	//
 
-	eval.DeviceId = prov.providerId
 	prov.recoverSessions()
 
 	//
@@ -71,6 +70,7 @@ func Start() {
 		log.Fatalln(err)
 	}
 
+	eval.DeviceId = prov.providerId
 	eval.Init(brokerConn)
 
 	broker := pb.NewBrokerClient(brokerConn)

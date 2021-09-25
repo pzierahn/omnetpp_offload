@@ -2,7 +2,7 @@ package provider
 
 import (
 	"context"
-	"github.com/pzierahn/project.go.omnetpp/defines"
+	pb "github.com/pzierahn/project.go.omnetpp/proto"
 	"github.com/pzierahn/project.go.omnetpp/simple"
 	"log"
 	"os"
@@ -15,16 +15,13 @@ func (prov *provider) recoverSessions() {
 	prov.mu.Lock()
 	defer prov.mu.Unlock()
 
-	log.Printf("checking old sessions")
+	log.Printf("checking for old sessions")
 
-	dir := defines.CacheDir()
-	filename := filepath.Join(dir, "sessions.json")
-
-	if _, err := os.Stat(filename); err != nil {
+	if _, err := os.Stat(sessionsPath); err != nil {
 		return
 	}
 
-	err := simple.UnmarshallFile(filename, &prov.sessions)
+	err := simple.UnmarshallFile(sessionsPath, &prov.sessions)
 	if err != nil {
 		log.Fatalln(err)
 	}
@@ -65,4 +62,20 @@ func (prov *provider) expireSession(id simulationId, deadline time.Time) {
 		prov.cond.Broadcast()
 		prov.cond.L.Unlock()
 	}
+}
+
+func (prov *provider) dropSession(id simulationId) {
+
+	log.Printf("dropSession: simulationId=%v", id)
+
+	delete(prov.allocate, id)
+	delete(prov.requests, id)
+	delete(prov.assignments, id)
+	delete(prov.sessions, id)
+
+	// Clean up and remove simulation (delete simulation bucket)
+	_, _ = prov.store.Drop(nil, &pb.BucketRef{Bucket: id})
+
+	dir := filepath.Join(cachePath, id)
+	_ = os.RemoveAll(dir)
 }
