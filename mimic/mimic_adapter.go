@@ -8,7 +8,7 @@ import (
 	"net"
 )
 
-func DialGRPC(ctx context.Context, remote string, uconn *net.UDPConn) (conn *grpc.ClientConn, err error) {
+func DialGRPC(ctx context.Context, remote string, udpConn *net.UDPConn) (conn *grpc.ClientConn, err error) {
 
 	dialer := func(ctx context.Context, target string) (conn net.Conn, err error) {
 		tlsConf := &tls.Config{
@@ -21,7 +21,7 @@ func DialGRPC(ctx context.Context, remote string, uconn *net.UDPConn) (conn *grp
 			return
 		}
 
-		sess, err := quic.DialContext(ctx, uconn, rAddr, "", tlsConf, config)
+		sess, err := quic.DialContext(ctx, udpConn, rAddr, "", tlsConf, config)
 		if err != nil {
 			return
 		}
