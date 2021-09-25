@@ -9,7 +9,8 @@ import (
 	"time"
 )
 
-func DialP2P(ctx context.Context, addr string) (cc *grpc.ClientConn, err error) {
+// DialP2P creates a gRPC client connection over peer-to-peer.
+func DialP2P(ctx context.Context, addr stargate.DialAddr) (cc *grpc.ClientConn, err error) {
 
 	log.Printf("DialP2P: %v", addr)
 
@@ -32,10 +33,16 @@ func DialP2P(ctx context.Context, addr string) (cc *grpc.ClientConn, err error) 
 	)
 }
 
-func ServeP2P(addr string, server *grpc.Server) {
+// ServeP2P establishes a peer-to-peer connection over stargate to serve the server.
+func ServeP2P(addr stargate.DialAddr, server *grpc.Server) {
 	ctx := context.Background()
 
 	for {
+
+		//
+		// Establish a connection.
+		//
+
 		p2p, _, err := stargate.DialP2PUDP(ctx, addr)
 		if err != nil {
 			log.Println(err)
@@ -45,10 +52,15 @@ func ServeP2P(addr string, server *grpc.Server) {
 		listener, err := mimic.NewQUICListener(p2p)
 		if err != nil {
 			log.Println(err)
+			_ = p2p.Close()
 			continue
 		}
 
 		log.Printf("ServeP2P: new connection addr=%v", listener.Addr())
+
+		//
+		// Detach serving process.
+		//
 
 		go func() {
 			defer func() {

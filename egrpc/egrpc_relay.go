@@ -10,9 +10,10 @@ import (
 	"time"
 )
 
-func DialRelay(ctx context.Context, addr string) (cc *grpc.ClientConn, err error) {
+// DialRelay creates a gRPC client connection over the stargate relay server to the dial address.
+func DialRelay(ctx context.Context, addr stargate.DialAddr) (cc *grpc.ClientConn, err error) {
 
-	log.Printf("DialRelay: %v", addr)
+	log.Printf("DialRelay: addr=%v", addr)
 
 	ctx, cln := context.WithTimeout(ctx, time.Second*5)
 	defer cln()
@@ -22,7 +23,7 @@ func DialRelay(ctx context.Context, addr string) (cc *grpc.ClientConn, err error
 		return
 	}
 
-	log.Printf("DialRelay: dial %v", conn.RemoteAddr().String())
+	log.Printf("DialRelay: addr=%v remote=%v", addr, conn.RemoteAddr().String())
 
 	return grpc.DialContext(
 		ctx,
@@ -35,10 +36,16 @@ func DialRelay(ctx context.Context, addr string) (cc *grpc.ClientConn, err error
 	)
 }
 
-func ServeRelay(addr string, server *grpc.Server) {
+// ServeRelay establishes a relay connection over stargate to serve the server.
+func ServeRelay(addr stargate.DialAddr, server *grpc.Server) {
 	ctx := context.Background()
 
 	for {
+
+		//
+		// Establish a connection.
+		//
+
 		conn, err := stargate.DialRelayTCP(ctx, addr)
 		if err != nil {
 			log.Println(err)
@@ -47,10 +54,13 @@ func ServeRelay(addr string, server *grpc.Server) {
 
 		listener := mimic.TCPConnToListener(conn)
 
-		go func() {
-			log.Printf("serveRelay: listening LocalAddr=%v RemoteAddr=%v",
-				conn.LocalAddr(), conn.RemoteAddr())
+		log.Printf("ServeRelay: new connection addr=%v", conn.RemoteAddr())
 
+		//
+		// Detach serving process.
+		//
+
+		go func() {
 			defer func() {
 				_ = listener.Close()
 				_ = conn.Close()

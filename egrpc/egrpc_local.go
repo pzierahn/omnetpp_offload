@@ -10,7 +10,8 @@ import (
 	"time"
 )
 
-func DialLocal(ctx context.Context, addr string) (cc *grpc.ClientConn, err error) {
+// DialLocal creates a gRPC client connection over the local network.
+func DialLocal(ctx context.Context, addr stargate.DialAddr) (cc *grpc.ClientConn, err error) {
 
 	log.Printf("DialLocal: addr=%v", addr)
 
@@ -32,7 +33,8 @@ func DialLocal(ctx context.Context, addr string) (cc *grpc.ClientConn, err error
 	)
 }
 
-func ServeLocal(addr string, server *grpc.Server) {
+// ServeLocal takes as an input a stargate dial address and a gRPC server.
+func ServeLocal(addr stargate.DialAddr, server *grpc.Server) {
 
 	lis, err := net.ListenTCP("tcp", &net.TCPAddr{})
 	if err != nil {
