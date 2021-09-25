@@ -2,15 +2,12 @@ package consumer
 
 import (
 	"context"
+	"github.com/pzierahn/project.go.omnetpp/egrpc"
 	"github.com/pzierahn/project.go.omnetpp/eval"
-	"github.com/pzierahn/project.go.omnetpp/mimic"
 	pb "github.com/pzierahn/project.go.omnetpp/proto"
-	"github.com/pzierahn/project.go.omnetpp/stargate"
 	"google.golang.org/grpc"
 	"log"
-	"net"
 	"os"
-	"time"
 )
 
 const (
@@ -65,7 +62,7 @@ func pconnect(ctx context.Context, prov *pb.ProviderInfo) (conn *grpc.ClientConn
 	}
 
 	if connect&connectLocal != 0 {
-		conn, err = pconnectLocal(ctx, prov.ProviderId)
+		conn, err = egrpc.DialLocal(ctx, prov.ProviderId)
 		if err == nil {
 			eval.LogSetup(eval.ConnectLocal, prov)
 			return
@@ -73,7 +70,7 @@ func pconnect(ctx context.Context, prov *pb.ProviderInfo) (conn *grpc.ClientConn
 	}
 
 	if connect&connectP2P != 0 {
-		conn, err = pconnectP2P(ctx, prov.ProviderId)
+		conn, err = egrpc.DialP2P(ctx, prov.ProviderId)
 		if err == nil {
 			eval.LogSetup(eval.ConnectP2P, prov)
 			return
@@ -81,7 +78,7 @@ func pconnect(ctx context.Context, prov *pb.ProviderInfo) (conn *grpc.ClientConn
 	}
 
 	if connect&connectRelay != 0 {
-		conn, err = pconnectRelay(ctx, prov.ProviderId)
+		conn, err = egrpc.DialRelay(ctx, prov.ProviderId)
 		if err == nil {
 			eval.LogSetup(eval.ConnectRelay, prov)
 			return
@@ -89,74 +86,4 @@ func pconnect(ctx context.Context, prov *pb.ProviderInfo) (conn *grpc.ClientConn
 	}
 
 	return
-}
-
-func pconnectP2P(ctx context.Context, providerId string) (cc *grpc.ClientConn, err error) {
-
-	log.Printf("connectP2P: %v", providerId)
-
-	ctx, cln := context.WithTimeout(ctx, time.Second*5)
-	defer cln()
-
-	gate, raddr, err := stargate.DialP2PUDP(ctx, providerId)
-	if err != nil {
-		return
-	}
-
-	adapter := mimic.NewDialAdapter(gate)
-
-	return grpc.DialContext(
-		ctx,
-		raddr.String(),
-		grpc.WithInsecure(),
-		grpc.WithBlock(),
-		grpc.WithContextDialer(adapter),
-	)
-}
-
-func pconnectRelay(ctx context.Context, providerId string) (cc *grpc.ClientConn, err error) {
-
-	log.Printf("connectRelay: %v", providerId)
-
-	ctx, cln := context.WithTimeout(ctx, time.Second*5)
-	defer cln()
-
-	conn, err := stargate.DialRelayTCP(ctx, providerId)
-	if err != nil {
-		return
-	}
-
-	log.Printf("connectRelay: dial %v", conn.RemoteAddr().String())
-
-	return grpc.DialContext(
-		ctx,
-		conn.RemoteAddr().String(),
-		grpc.WithInsecure(),
-		grpc.WithBlock(),
-		grpc.WithContextDialer(func(_ context.Context, _ string) (net.Conn, error) {
-			return conn, nil
-		}),
-	)
-}
-
-func pconnectLocal(ctx context.Context, providerId string) (cc *grpc.ClientConn, err error) {
-
-	log.Printf("connectLocal: %v", providerId)
-
-	ctx, cln := context.WithTimeout(ctx, time.Second)
-	defer cln()
-
-	addr, err := stargate.DialLocal(ctx, providerId)
-	if err != nil {
-		return
-	}
-
-	log.Printf("pconnectLocal: dial %v", addr)
-
-	return grpc.DialContext(
-		ctx,
-		addr.String(),
-		grpc.WithInsecure(),
-		grpc.WithBlock(),
-	)
 }

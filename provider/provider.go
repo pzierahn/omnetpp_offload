@@ -2,6 +2,7 @@ package provider
 
 import (
 	"context"
+	"github.com/pzierahn/project.go.omnetpp/egrpc"
 	"github.com/pzierahn/project.go.omnetpp/eval"
 	"github.com/pzierahn/project.go.omnetpp/gconfig"
 	pb "github.com/pzierahn/project.go.omnetpp/proto"
@@ -104,13 +105,21 @@ func Start() {
 	}()
 
 	//
-	// Start provider
+	// Start gRPC server.
 	//
 
-	ctx := context.Background()
-	go prov.serveLocal(ctx)
-	go prov.serveP2P(ctx)
-	go prov.serveRelay(ctx)
+	server := grpc.NewServer()
+	pb.RegisterProviderServer(server, prov)
+	pb.RegisterStorageServer(server, prov.store)
+
+	go egrpc.ServeLocal(prov.providerId, server)
+	go egrpc.ServeP2P(prov.providerId, server)
+	go egrpc.ServeRelay(prov.providerId, server)
+
+	//
+	// Start resource allocator.
+	//
+
 	prov.startAllocator()
 
 	return
