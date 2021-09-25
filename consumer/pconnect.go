@@ -2,8 +2,8 @@ package consumer
 
 import (
 	"context"
-	"github.com/pzierahn/project.go.omnetpp/equic"
 	"github.com/pzierahn/project.go.omnetpp/eval"
+	"github.com/pzierahn/project.go.omnetpp/mimic"
 	pb "github.com/pzierahn/project.go.omnetpp/proto"
 	"github.com/pzierahn/project.go.omnetpp/stargate"
 	"google.golang.org/grpc"
@@ -98,7 +98,7 @@ func pconnectP2P(ctx context.Context, providerId string) (cc *grpc.ClientConn, e
 	ctx, cln := context.WithTimeout(ctx, time.Second*5)
 	defer cln()
 
-	return equic.P2PDialGRPC(ctx, providerId)
+	return mimic.P2PDialGRPC(ctx, providerId)
 }
 
 func pconnectRelay(ctx context.Context, providerId string) (cc *grpc.ClientConn, err error) {

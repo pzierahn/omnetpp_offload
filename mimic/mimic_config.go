@@ -1,4 +1,4 @@
-package equic
+package mimic
 
 import (
 	"github.com/lucas-clemente/quic-go"

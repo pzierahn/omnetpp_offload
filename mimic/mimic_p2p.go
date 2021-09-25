@@ -1,4 +1,4 @@
-package equic
+package mimic
 
 import (
 	"context"
@@ -41,5 +41,5 @@ func P2PListener(ctx context.Context, dialAddr stargate.DialAddr) (p2p net.Liste
 		return
 	}
 
-	return Listen(qLis), err
+	return NewQUICListener(qLis), err
 }

@@ -2,7 +2,7 @@ package provider
 
 import (
 	"context"
-	"github.com/pzierahn/project.go.omnetpp/equic"
+	"github.com/pzierahn/project.go.omnetpp/mimic"
 	pb "github.com/pzierahn/project.go.omnetpp/proto"
 	"github.com/pzierahn/project.go.omnetpp/stargate"
 	"google.golang.org/grpc"
@@ -27,7 +27,7 @@ func (prov *provider) listenRelay() {
 			server := grpc.NewServer()
 			pb.RegisterProviderServer(server, prov)
 			pb.RegisterStorageServer(server, prov.store)
-			err := server.Serve(equic.ListenTCP(conn))
+			err := server.Serve(mimic.TCPConnToListener(conn))
 			if err != nil {
 				log.Println(err)
 			}
@@ -38,7 +38,7 @@ func (prov *provider) listenRelay() {
 func (prov *provider) listenP2P() {
 	for {
 		ctx := context.Background()
-		p2p, err := equic.P2PListener(ctx, prov.providerId)
+		p2p, err := mimic.P2PListener(ctx, prov.providerId)
 		if err != nil {
 			log.Println(err)
 			continue

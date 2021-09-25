@@ -1,4 +1,4 @@
-package equic
+package mimic
 
 import (
 	"context"
@@ -8,47 +8,47 @@ import (
 	"github.com/lucas-clemente/quic-go"
 )
 
-type Conn struct {
+type QUICConn struct {
 	Sess   quic.Session
 	Stream quic.Stream
 }
 
-func NewConn(sess quic.Session) (net.Conn, error) {
+func NewQUICConn(sess quic.Session) (net.Conn, error) {
 	stream, err := sess.OpenStreamSync(context.Background())
 	if err != nil {
 		return nil, err
 	}
 
-	return &Conn{sess, stream}, nil
+	return &QUICConn{sess, stream}, nil
 }
 
 // Read reads data from the connection.
 // Read can be made to time out and return an Error with Timeout() == true
 // after a fixed time limit; see SetDeadline and SetReadDeadline.
-func (c *Conn) Read(b []byte) (n int, err error) {
+func (c *QUICConn) Read(b []byte) (n int, err error) {
 	return c.Stream.Read(b)
 }
 
 // Write writes data to the connection.
 // Write can be made to time out and return an Error with Timeout() == true
 // after a fixed time limit; see SetDeadline and SetWriteDeadline.
-func (c *Conn) Write(b []byte) (n int, err error) {
+func (c *QUICConn) Write(b []byte) (n int, err error) {
 	return c.Stream.Write(b)
 }
 
 // Close closes the connection.
 // Any blocked Read or Write operations will be unblocked and return errors.
-func (c *Conn) Close() error {
+func (c *QUICConn) Close() error {
 	return c.Stream.Close()
 }
 
 // LocalAddr returns the local network address.
-func (c *Conn) LocalAddr() net.Addr {
+func (c *QUICConn) LocalAddr() net.Addr {
 	return c.Sess.LocalAddr()
 }
 
 // RemoteAddr returns the remote network address.
-func (c *Conn) RemoteAddr() net.Addr {
+func (c *QUICConn) RemoteAddr() net.Addr {
 	return c.Sess.RemoteAddr()
 }
 
@@ -67,14 +67,14 @@ func (c *Conn) RemoteAddr() net.Addr {
 // the deadline after successful Read or Write calls.
 //
 // A zero value for t means I/O operations will not time out.
-func (c *Conn) SetDeadline(t time.Time) error {
+func (c *QUICConn) SetDeadline(t time.Time) error {
 	return c.Stream.SetDeadline(t)
 }
 
 // SetReadDeadline sets the deadline for future Read calls
 // and any currently-blocked Read call.
 // A zero value for t means Read will not time out.
-func (c *Conn) SetReadDeadline(t time.Time) error {
+func (c *QUICConn) SetReadDeadline(t time.Time) error {
 	return c.Stream.SetReadDeadline(t)
 
 }
@@ -84,20 +84,20 @@ func (c *Conn) SetReadDeadline(t time.Time) error {
 // Even if write times out, it may return n > 0, indicating that
 // some of the data was successfully written.
 // A zero value for t means Write will not time out.
-func (c *Conn) SetWriteDeadline(t time.Time) error {
+func (c *QUICConn) SetWriteDeadline(t time.Time) error {
 	return c.Stream.SetWriteDeadline(t)
 }
 
-type Listener struct {
+type QUICListener struct {
 	ql quic.Listener
 }
 
-func Listen(ql quic.Listener) net.Listener {
-	return &Listener{ql}
+func NewQUICListener(ql quic.Listener) net.Listener {
+	return &QUICListener{ql}
 }
 
 // Accept waits for and returns the next connection to the listener.
-func (l *Listener) Accept() (net.Conn, error) {
+func (l *QUICListener) Accept() (net.Conn, error) {
 	sess, err := l.ql.Accept(context.Background())
 	if err != nil {
 		return nil, err
@@ -108,16 +108,16 @@ func (l *Listener) Accept() (net.Conn, error) {
 		return nil, err
 	}
 
-	return &Conn{sess, s}, nil
+	return &QUICConn{sess, s}, nil
 }
 
 // Close closes the listener.
 // Any blocked Accept operations will be unblocked and return errors.
-func (l *Listener) Close() error {
+func (l *QUICListener) Close() error {
 	return l.ql.Close()
 }
 
 // Addr returns the listener's network address.
-func (l *Listener) Addr() net.Addr {
+func (l *QUICListener) Addr() net.Addr {
 	return l.ql.Addr()
 }

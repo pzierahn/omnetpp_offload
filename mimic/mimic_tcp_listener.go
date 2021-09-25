@@ -1,21 +1,21 @@
-package equic
+package mimic
 
 import (
 	"net"
 )
 
 type ListenerTCP struct {
-	conn *net.TCPConn
-	lock chan bool
+	conn  *net.TCPConn
+	block chan bool
 }
 
-func ListenTCP(conn *net.TCPConn) (lis net.Listener) {
+func TCPConnToListener(conn *net.TCPConn) (lis net.Listener) {
 	ch := make(chan bool, 1)
 	ch <- true
 
 	lis = &ListenerTCP{
-		conn: conn,
-		lock: ch,
+		conn:  conn,
+		block: ch,
 	}
 
 	return
@@ -23,7 +23,7 @@ func ListenTCP(conn *net.TCPConn) (lis net.Listener) {
 
 // Accept waits for and returns the next connection to the listener.
 func (l *ListenerTCP) Accept() (conn net.Conn, err error) {
-	<-l.lock
+	<-l.block
 	return l.conn, nil
 }
 
