@@ -31,9 +31,10 @@ func DialGRPC(ctx context.Context, remote string, udpConn *net.UDPConn) (conn *g
 			return
 		}
 
-		conn = &QUICConn{Sess: sess, Stream: stream}
-
-		return
+		return &QUICConn{
+			Sess:   sess,
+			Stream: stream,
+		}, nil
 	}
 
 	return grpc.DialContext(
