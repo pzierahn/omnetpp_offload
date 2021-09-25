@@ -2,11 +2,11 @@ package provider
 
 import (
 	"context"
-	"github.com/pzierahn/project.go.omnetpp/egrpc"
 	"github.com/pzierahn/project.go.omnetpp/eval"
 	"github.com/pzierahn/project.go.omnetpp/gconfig"
 	pb "github.com/pzierahn/project.go.omnetpp/proto"
 	"github.com/pzierahn/project.go.omnetpp/simple"
+	"github.com/pzierahn/project.go.omnetpp/stargrpc"
 	"github.com/pzierahn/project.go.omnetpp/storage"
 	"github.com/pzierahn/project.go.omnetpp/sysinfo"
 	"google.golang.org/grpc"
@@ -112,9 +112,9 @@ func Start() {
 	pb.RegisterProviderServer(server, prov)
 	pb.RegisterStorageServer(server, prov.store)
 
-	go egrpc.ServeLocal(prov.providerId, server)
-	go egrpc.ServeP2P(prov.providerId, server)
-	go egrpc.ServeRelay(prov.providerId, server)
+	go stargrpc.ServeLocal(prov.providerId, server)
+	go stargrpc.ServeP2P(prov.providerId, server)
+	go stargrpc.ServeRelay(prov.providerId, server)
 
 	//
 	// Start resource allocator.

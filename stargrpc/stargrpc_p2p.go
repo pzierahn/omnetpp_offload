@@ -1,4 +1,4 @@
-package egrpc
+package stargrpc
 
 import (
 	"context"

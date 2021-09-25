@@ -2,9 +2,9 @@ package consumer
 
 import (
 	"context"
-	"github.com/pzierahn/project.go.omnetpp/egrpc"
 	"github.com/pzierahn/project.go.omnetpp/eval"
 	pb "github.com/pzierahn/project.go.omnetpp/proto"
+	"github.com/pzierahn/project.go.omnetpp/stargrpc"
 	"google.golang.org/grpc"
 	"log"
 	"os"
@@ -62,7 +62,7 @@ func pconnect(ctx context.Context, prov *pb.ProviderInfo) (conn *grpc.ClientConn
 	}
 
 	if connect&connectLocal != 0 {
-		conn, err = egrpc.DialLocal(ctx, prov.ProviderId)
+		conn, err = stargrpc.DialLocal(ctx, prov.ProviderId)
 		if err == nil {
 			eval.LogSetup(eval.ConnectLocal, prov)
 			return
@@ -70,7 +70,7 @@ func pconnect(ctx context.Context, prov *pb.ProviderInfo) (conn *grpc.ClientConn
 	}
 
 	if connect&connectP2P != 0 {
-		conn, err = egrpc.DialP2P(ctx, prov.ProviderId)
+		conn, err = stargrpc.DialP2P(ctx, prov.ProviderId)
 		if err == nil {
 			eval.LogSetup(eval.ConnectP2P, prov)
 			return
@@ -78,7 +78,7 @@ func pconnect(ctx context.Context, prov *pb.ProviderInfo) (conn *grpc.ClientConn
 	}
 
 	if connect&connectRelay != 0 {
-		conn, err = egrpc.DialRelay(ctx, prov.ProviderId)
+		conn, err = stargrpc.DialRelay(ctx, prov.ProviderId)
 		if err == nil {
 			eval.LogSetup(eval.ConnectRelay, prov)
 			return
