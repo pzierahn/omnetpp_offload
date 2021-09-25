@@ -4,13 +4,20 @@ import (
 	"context"
 	"crypto/tls"
 	"github.com/lucas-clemente/quic-go"
-	"google.golang.org/grpc"
 	"net"
+	"time"
 )
 
-func DialGRPC(ctx context.Context, remote string, udpConn *net.UDPConn) (conn *grpc.ClientConn, err error) {
+var config = &quic.Config{
+	KeepAlive:      true,
+	MaxIdleTimeout: time.Millisecond * 2000,
+}
 
-	dialer := func(ctx context.Context, target string) (conn net.Conn, err error) {
+type DialAdapter func(ctx context.Context, target string) (conn net.Conn, err error)
+
+func NewDialAdapter(udpConn *net.UDPConn) (adapter DialAdapter) {
+
+	adapter = func(ctx context.Context, target string) (conn net.Conn, err error) {
 		tlsConf := &tls.Config{
 			InsecureSkipVerify: true,
 			NextProtos:         []string{"quic-echo-example"},
@@ -37,15 +44,11 @@ func DialGRPC(ctx context.Context, remote string, udpConn *net.UDPConn) (conn *g
 		}, nil
 	}
 
-	return grpc.DialContext(
-		ctx,
-		remote,
-		grpc.WithInsecure(),
-		grpc.WithBlock(),
-		grpc.WithContextDialer(dialer),
-	)
+	return
 }
 
+// NewQUICListener creates a QUIC connection from a UDP connection.
+// It returns a QUICListener which implements the net.Listener interface.
 func NewQUICListener(conn *net.UDPConn) (p2p net.Listener, err error) {
 
 	tlsConf, _ := generateTLSConfig()
