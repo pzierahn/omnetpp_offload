@@ -18,12 +18,6 @@ type p2pConnector struct {
 	timeout   time.Duration // Set a timeout for establishing the connection and exchanging messages
 }
 
-//type receiveAck []byte
-//
-//func (ack receiveAck) received() bool {
-//	return ack[0] == 1
-//}
-
 // Send see-you messages to open the NAT
 func (p2p *p2pConnector) sendSeeYou(ctx context.Context) (err error) {
 
