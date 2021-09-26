@@ -35,6 +35,7 @@ var (
 var (
 	defaultJobNums  = []int{1, 2, 4, 6, 8}
 	defaultConnects = []string{"p2p", "relay"}
+	start           int
 	repeat          = 5
 	docker          bool
 	jobNums         []int
@@ -262,7 +263,7 @@ func runEvaluation(connect string, jobs int) error {
 
 	_ = writer.Write([]string{"scenarioId", "trailId", "duration"})
 
-	for inx := 0; inx < repeat; inx++ {
+	for inx := start; inx < repeat; inx++ {
 		duration, err := runScenario(scenario, connect, inx)
 
 		if err != nil {
@@ -290,7 +291,8 @@ func main() {
 
 	nums := flags.IntSlice("j", defaultJobNums, "set parallel job numbers")
 	conns := flags.StringSlice("c", defaultConnects, "set connection")
-	flag.IntVar(&repeat, "r", repeat, "repeat")
+	flag.IntVar(&start, "ts", 0, "trail start")
+	flag.IntVar(&repeat, "tr", repeat, "repeat")
 	flag.BoolVar(&docker, "d", false, "use docker")
 	flag.Parse()
 
@@ -299,6 +301,7 @@ func main() {
 
 	log.Printf("jobNums: %v", jobNums)
 	log.Printf("connects: %v", connects)
+	log.Printf("start: %v", start)
 	log.Printf("repeat: %v", repeat)
 	log.Printf("docker: %v", docker)
 
