@@ -1,6 +1,7 @@
 package simple
 
 import (
+	"context"
 	"fmt"
 	"google.golang.org/grpc/metadata"
 	"strconv"
@@ -47,4 +48,16 @@ func MetaString(md metadata.MD, key string) (value string, err error) {
 	}
 
 	return
+}
+
+func MetaStringFromContext(ctx context.Context, key string) (value string, err error) {
+
+	md, ok := metadata.FromIncomingContext(ctx)
+
+	if !ok {
+		err = fmt.Errorf("metadata missing")
+		return
+	}
+
+	return MetaString(md, key)
 }

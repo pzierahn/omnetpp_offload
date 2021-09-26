@@ -9,7 +9,7 @@ import (
 	"sync"
 )
 
-func (sim *simulation) connect(prov *pb.ProviderInfo, once *sync.Once, onInit chan int32) {
+func (sim *simulation) connect(prov *pb.ProviderInfo, once *sync.Once, onInit chan uint32) {
 
 	//
 	// Phase 1: Connect to provider
@@ -63,7 +63,7 @@ func (sim *simulation) connect(prov *pb.ProviderInfo, once *sync.Once, onInit ch
 	}
 }
 
-func (sim *simulation) startConnector(bconn *grpc.ClientConn, onInit chan int32) {
+func (sim *simulation) startConnector(bconn *grpc.ClientConn, onInit chan uint32) {
 
 	broker := pb.NewBrokerClient(bconn)
 	stream, err := broker.Providers(sim.ctx, &emptypb.Empty{})

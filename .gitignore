@@ -20,7 +20,7 @@ vendor/
 
 # data/
 meta/
-debug
+cmd/debug
 build/
 
 .DS_Store

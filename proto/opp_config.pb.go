@@ -25,18 +25,18 @@ type OppConfig struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	// buildscript (optional)
+	// buildscript path from simulation root (optional)
 	BuildScript string `protobuf:"bytes,1,opt,name=buildScript,proto3" json:"buildScript,omitempty"`
 	// This is the directory in which the simulation will be executed
 	BasePath string `protobuf:"bytes,2,opt,name=basePath,proto3" json:"basePath,omitempty"`
-	// Simulation ini files
+	// Simulation ini files (from simulation root)
 	IniFiles []string `protobuf:"bytes,3,rep,name=iniFiles,proto3" json:"iniFiles,omitempty"`
-	// Ned include directories
+	// Ned include directories (from simulation root)
 	NedPaths []string `protobuf:"bytes,4,rep,name=nedPaths,proto3" json:"nedPaths,omitempty"`
-	// Run opp_run -l ... instead of running the simulation directly
+	// Use 'opp_run -l ...' instead of running the simulation directly
 	UseLib bool `protobuf:"varint,5,opt,name=useLib,proto3" json:"useLib,omitempty"`
 	// TODO: Rename to executablePath
-	// Simulation exe or lib
+	// Simulation exe or lib (from simulation root)
 	Simulation string `protobuf:"bytes,6,opt,name=simulation,proto3" json:"simulation,omitempty"`
 	// TODO: Rename to makefilePath
 	// Directory that (should) contain the Makefile

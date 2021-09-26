@@ -68,8 +68,8 @@ func (c *providerClient) Allocate(ctx context.Context, opts ...grpc.CallOption) 
 }
 
 type Provider_AllocateClient interface {
-	Send(*AllocateRequest) error
-	Recv() (*AllocatedSlots, error)
+	Send(*FreeSlot) error
+	Recv() (*AllocateSlot, error)
 	grpc.ClientStream
 }
 
@@ -77,12 +77,12 @@ type providerAllocateClient struct {
 	grpc.ClientStream
 }
 
-func (x *providerAllocateClient) Send(m *AllocateRequest) error {
+func (x *providerAllocateClient) Send(m *FreeSlot) error {
 	return x.ClientStream.SendMsg(m)
 }
 
-func (x *providerAllocateClient) Recv() (*AllocatedSlots, error) {
-	m := new(AllocatedSlots)
+func (x *providerAllocateClient) Recv() (*AllocateSlot, error) {
+	m := new(AllocateSlot)
 	if err := x.ClientStream.RecvMsg(m); err != nil {
 		return nil, err
 	}
@@ -246,8 +246,8 @@ func _Provider_Allocate_Handler(srv interface{}, stream grpc.ServerStream) error
 }
 
 type Provider_AllocateServer interface {
-	Send(*AllocatedSlots) error
-	Recv() (*AllocateRequest, error)
+	Send(*AllocateSlot) error
+	Recv() (*FreeSlot, error)
 	grpc.ServerStream
 }
 
@@ -255,12 +255,12 @@ type providerAllocateServer struct {
 	grpc.ServerStream
 }
 
-func (x *providerAllocateServer) Send(m *AllocatedSlots) error {
+func (x *providerAllocateServer) Send(m *AllocateSlot) error {
 	return x.ServerStream.SendMsg(m)
 }
 
-func (x *providerAllocateServer) Recv() (*AllocateRequest, error) {
-	m := new(AllocateRequest)
+func (x *providerAllocateServer) Recv() (*FreeSlot, error) {
+	m := new(FreeSlot)
 	if err := x.ServerStream.RecvMsg(m); err != nil {
 		return nil, err
 	}

@@ -15,36 +15,39 @@ import (
 	"time"
 )
 
+type simulationId = string
+
 type provider struct {
 	pb.UnimplementedProviderServer
-	providerId  string
-	store       *storage.Server
-	mu          *sync.RWMutex
-	cond        *sync.Cond
-	slots       uint32
-	freeSlots   int32
-	requests    map[simulationId]uint32
-	assignments map[simulationId]uint32
-	allocate    map[simulationId]chan<- uint32
-	sessions    map[simulationId]*pb.Session
+	providerId     string
+	store          *storage.Server
+	mu             *sync.RWMutex
+	sessions       map[simulationId]*pb.Session
+	executionTimes map[simulationId]time.Duration
+	slots          chan int
+	cond           *sync.Cond
+	allocRecvs     map[simulationId]chan<- int
 }
 
 func Start() {
 
 	store := &storage.Server{}
 
+	slots := make(chan int, gconfig.Jobs())
+	for inx := 0; inx < gconfig.Jobs(); inx++ {
+		slots <- 1
+	}
+
 	mu := &sync.RWMutex{}
 	prov := &provider{
-		providerId:  simple.NamedId(gconfig.Config.Worker.Name, 8),
-		store:       store,
-		slots:       uint32(gconfig.Jobs()),
-		freeSlots:   int32(gconfig.Jobs()),
-		mu:          mu,
-		cond:        sync.NewCond(mu),
-		requests:    make(map[simulationId]uint32),
-		assignments: make(map[simulationId]uint32),
-		allocate:    make(map[simulationId]chan<- uint32),
-		sessions:    make(map[simulationId]*pb.Session),
+		providerId:     simple.NamedId(gconfig.Config.Worker.Name, 8),
+		store:          store,
+		slots:          slots,
+		mu:             mu,
+		cond:           sync.NewCond(mu),
+		sessions:       make(map[simulationId]*pb.Session),
+		executionTimes: make(map[simulationId]time.Duration),
+		allocRecvs:     make(map[simulationId]chan<- int),
 	}
 
 	log.Printf("start provider (%v)", prov.providerId)
@@ -54,6 +57,27 @@ func Start() {
 	//
 
 	prov.recoverSessions()
+
+	simple.Watch("/sessions", func() interface{} {
+		mu.RLock()
+		defer mu.RUnlock()
+
+		return prov.sessions
+	})
+	simple.Watch("/executionTimes", func() interface{} {
+		mu.RLock()
+		defer mu.RUnlock()
+
+		data := make(map[string]string)
+
+		for id, dur := range prov.executionTimes {
+			data[id] = dur.String()
+		}
+
+		return data
+	})
+
+	go simple.StartWatchServer()
 
 	//
 	// Register provider

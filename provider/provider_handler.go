@@ -11,10 +11,9 @@ import (
 	"log"
 	"os"
 	"path/filepath"
-	"sync/atomic"
+	"sync"
+	"time"
 )
-
-type simulationId = string
 
 func (prov *provider) GetSession(ctx context.Context, sim *pb.Simulation) (sess *pb.Session, err error) {
 
@@ -98,6 +97,15 @@ func (prov *provider) Extract(_ context.Context, bundle *pb.Bundle) (empty *empt
 
 func (prov *provider) Compile(ctx context.Context, simulation *pb.Simulation) (bin *pb.Binary, err error) {
 	log.Printf("Compile: %v", simulation.Id)
+	started := time.Now()
+
+	defer func() {
+		duration := time.Now().Sub(started)
+		prov.mu.Lock()
+		prov.executionTimes[simulation.Id] += duration
+		prov.mu.Unlock()
+	}()
+
 	return prov.compile(ctx, simulation)
 }
 
@@ -132,8 +140,13 @@ func (prov *provider) ListRunNums(ctx context.Context, simulation *pb.Simulation
 
 func (prov *provider) Run(ctx context.Context, run *pb.SimulationRun) (ref *pb.StorageRef, err error) {
 
-	log.Printf("Run: id=%v config='%s' runNum='%s'",
+	log.Printf("Run: id=%v config=%s runNum=%s",
 		run.SimulationId, run.Config, run.RunNum)
+
+	if run.SimulationId == "" {
+		err = fmt.Errorf("simulation id missing")
+		return
+	}
 
 	if run.Config == "" {
 		err = fmt.Errorf("simulation config missing")
@@ -145,32 +158,16 @@ func (prov *provider) Run(ctx context.Context, run *pb.SimulationRun) (ref *pb.S
 		return
 	}
 
-	if run.SimulationId == "" {
-		err = fmt.Errorf("SimulationId missing")
-		return
-	}
-
-	if atomic.LoadInt32(&prov.freeSlots) == 0 {
-		err = fmt.Errorf("no free slots avilable")
-		return
-	}
-
-	atomic.AddInt32(&prov.freeSlots, -1)
+	started := time.Now()
 
 	defer func() {
-		log.Printf("Run: id=%v config='%s' runNum='%s' done",
+		log.Printf("Run: id=%v config=%s runNum=%s finished",
 			run.SimulationId, run.Config, run.RunNum)
 
-		cond := prov.cond
-		cond.L.Lock()
-		atomic.AddInt32(&prov.freeSlots, 1)
-
-		if val, ok := prov.assignments[run.SimulationId]; ok && val > 0 {
-			prov.assignments[run.SimulationId]--
-		}
-
-		cond.Broadcast()
-		cond.L.Unlock()
+		duration := time.Now().Sub(started)
+		prov.mu.Lock()
+		prov.executionTimes[run.SimulationId] += duration
+		prov.mu.Unlock()
 	}()
 
 	return prov.run(ctx, run)
@@ -178,70 +175,62 @@ func (prov *provider) Run(ctx context.Context, run *pb.SimulationRun) (ref *pb.S
 
 func (prov *provider) Allocate(stream pb.Provider_AllocateServer) (err error) {
 
-	var sId string
+	ctx := stream.Context()
+	simId, err := simple.MetaStringFromContext(ctx, "simulationId")
+	if err != nil {
+		log.Println(err)
+		return
+	}
 
-	allocate := make(chan uint32)
+	allocRecv := make(chan int, 1)
+	defer close(allocRecv)
 
+	prov.register(simId, allocRecv)
+	defer prov.unregister(simId)
+
+	var mu sync.Mutex
+	var allocations uint32
 	defer func() {
-		log.Printf("Allocate: unregister SimulationId=%v", sId)
+		mu.Lock()
+		defer mu.Unlock()
 
-		cond := prov.cond
-		cond.L.Lock()
-		delete(prov.allocate, sId)
-		delete(prov.requests, sId)
-		delete(prov.assignments, sId)
-		cond.Broadcast()
-		cond.L.Unlock()
+		log.Printf("Allocate: feed back %v allocations", allocations)
 
-		close(allocate)
+		for inx := uint32(0); inx < allocations; inx++ {
+			prov.slots <- 1
+		}
 	}()
 
 	go func() {
-		for slots := range allocate {
-			log.Printf("Allocate: SimulationId=%s allocate=%d", sId, slots)
+		for range allocRecv {
+			log.Printf("Allocate: %v allocate", simId)
 
-			err = stream.Send(&pb.AllocatedSlots{Slots: slots})
+			err := stream.Send(&pb.AllocateSlot{})
 			if err != nil {
-				log.Println(err)
+				log.Printf("Allocate: send error %v", err)
 				break
 			}
+
+			mu.Lock()
+			allocations++
+			mu.Unlock()
 		}
 	}()
 
-	cond := prov.cond
-
 	for {
-		var req *pb.AllocateRequest
-		req, err = stream.Recv()
+		_, err := stream.Recv()
 		if err != nil {
+			log.Printf("Allocate: recv error %v", err)
 			break
 		}
 
-		if sId == "" {
-			sId = req.SimulationId
-			log.Printf("Allocate: register SimulationId=%v", sId)
+		log.Printf("Allocate: %v free", simId)
 
-			prov.mu.Lock()
-			prov.allocate[sId] = allocate
-			prov.mu.Unlock()
-		}
+		prov.slots <- 1
 
-		if sId == "" {
-			err = fmt.Errorf("error: missing SimulationId")
-			log.Println(err)
-			break
-		}
-
-		log.Printf("Allocate: SimulationId=%s request=%d", sId, req.Request)
-
-		cond.L.Lock()
-
-		if val, _ := prov.requests[sId]; val != req.Request {
-			prov.requests[sId] = req.Request
-			cond.Broadcast()
-		}
-
-		cond.L.Unlock()
+		mu.Lock()
+		allocations--
+		mu.Unlock()
 	}
 
 	return

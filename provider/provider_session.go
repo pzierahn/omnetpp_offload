@@ -68,9 +68,9 @@ func (prov *provider) dropSession(id simulationId) {
 
 	log.Printf("dropSession: simulationId=%v", id)
 
-	delete(prov.allocate, id)
-	delete(prov.requests, id)
-	delete(prov.assignments, id)
+	//delete(prov.allocate, id)
+	//delete(prov.requests, id)
+	//delete(prov.assignments, id)
 	delete(prov.sessions, id)
 
 	// Clean up and remove simulation (delete simulation bucket)
