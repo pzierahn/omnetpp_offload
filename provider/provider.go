@@ -32,11 +32,6 @@ type provider struct {
 
 func Start(config gconfig.Config) {
 
-	stargate.SetConfig(stargate.Config{
-		Addr: config.Broker.Address,
-		Port: config.Broker.StargatePort,
-	})
-
 	store := &storage.Server{}
 
 	slots := make(chan int, config.Provider.Jobs)
@@ -135,8 +130,13 @@ func Start(config gconfig.Config) {
 	}()
 
 	//
-	// Start gRPC server.
+	// Start stargate-gRPC servers.
 	//
+
+	stargate.SetConfig(stargate.Config{
+		Addr: config.Broker.Address,
+		Port: config.Broker.StargatePort,
+	})
 
 	server := grpc.NewServer()
 	pb.RegisterProviderServer(server, prov)
