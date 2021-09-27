@@ -117,7 +117,7 @@ func updateRepo() {
 	}
 }
 
-func runScenario(scenario, connect string, trail int) (duration time.Duration, err error) {
+func startScenarioRemote(scenario, connect string, trail int) (duration time.Duration, err error) {
 
 	log.Printf("Staring scenario scenario=%s connect=%s trail=%d", scenario, connect, trail)
 
@@ -264,7 +264,7 @@ func runEvaluation(connect string, jobs int) error {
 	_ = writer.Write([]string{"scenarioId", "trailId", "duration"})
 
 	for inx := start; inx < repeat; inx++ {
-		duration, err := runScenario(scenario, connect, inx)
+		duration, err := startScenarioRemote(scenario, connect, inx)
 
 		if err != nil {
 			return err

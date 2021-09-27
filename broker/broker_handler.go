@@ -65,7 +65,7 @@ func (broker *broker) Providers(_ *emptypb.Empty, stream pb.Broker_ProvidersServ
 	}
 
 	//
-	// Create a providers changed event dispatcher
+	// Create a provider-list-changed event dispatcher
 	//
 
 	for {
