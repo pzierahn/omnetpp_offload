@@ -9,7 +9,7 @@ import (
 	"sync"
 )
 
-func (sim *simulation) connect(prov *pb.ProviderInfo, once *sync.Once, onInit chan uint32) {
+func (sim *simulation) connect(prov *pb.ProviderInfo, once *sync.Once) {
 
 	//
 	// Phase 1: Connect to provider
@@ -52,7 +52,7 @@ func (sim *simulation) connect(prov *pb.ProviderInfo, once *sync.Once, onInit ch
 
 		log.Printf("[%s] created %d jobs", pconn.id(), len(tasks))
 		sim.queue.add(tasks...)
-		onInit <- sim.queue.len()
+		sim.onInit <- sim.queue.len()
 	})
 
 	err = pconn.execute(sim)
@@ -62,7 +62,7 @@ func (sim *simulation) connect(prov *pb.ProviderInfo, once *sync.Once, onInit ch
 	}
 }
 
-func (sim *simulation) startConnector(bconn *grpc.ClientConn, onInit chan uint32) {
+func (sim *simulation) startConnector(bconn *grpc.ClientConn) {
 
 	broker := pb.NewBrokerClient(bconn)
 	stream, err := broker.Providers(sim.ctx, &emptypb.Empty{})
@@ -107,7 +107,7 @@ func (sim *simulation) startConnector(bconn *grpc.ClientConn, onInit chan uint32
 				connections[prov.ProviderId] = true
 				mux.Unlock()
 
-				go sim.connect(prov, &once, onInit)
+				go sim.connect(prov, &once)
 			}
 		}
 	}

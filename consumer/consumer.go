@@ -25,13 +25,13 @@ type simulation struct {
 	archLock map[string]*sync.Mutex
 	bmu      sync.RWMutex
 	binaries map[string][]byte
+	onInit   chan uint32
+	// TODO: Persist bytes to HD
+	source []byte
 
 	// TODO: Store connections central
 	//cmu         sync.RWMutex
 	//connections map[string]*providerConnection
-
-	// TODO: Persist bytes to HD
-	source []byte
 }
 
 func (sim *simulation) proto() (simulation *pb.Simulation) {

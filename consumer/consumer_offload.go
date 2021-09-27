@@ -47,6 +47,9 @@ func OffloadSimulation(ctx context.Context, config *Config) {
 		log.Fatalln(err)
 	}
 
+	onInit := make(chan uint32)
+	defer close(onInit)
+
 	sim := &simulation{
 		id:       id,
 		ctx:      ctx,
@@ -55,12 +58,10 @@ func OffloadSimulation(ctx context.Context, config *Config) {
 		source:   buf.Bytes(),
 		archLock: make(map[string]*sync.Mutex),
 		binaries: make(map[string][]byte),
+		onInit:   onInit,
 	}
 
-	onInit := make(chan uint32)
-	defer close(onInit)
-
-	go sim.startConnector(conn, onInit)
+	go sim.startConnector(conn)
 
 	sim.finished.Add(int(<-onInit))
 	sim.finished.Wait()
