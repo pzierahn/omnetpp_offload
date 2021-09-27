@@ -7,7 +7,9 @@ import (
 )
 
 func (pConn *providerConnection) execute(sim *simulation) (err error) {
-	go pConn.resultsDownloader(sim)
+
+	downloadQueue := make(chan *download, 32)
+	go pConn.resultsDownloader(downloadQueue, sim)
 
 	ctx := metadata.AppendToOutgoingContext(sim.ctx, "simulationId", sim.id)
 
@@ -65,7 +67,7 @@ func (pConn *providerConnection) execute(sim *simulation) (err error) {
 				return
 			}
 
-			pConn.downloadQueue <- &download{
+			downloadQueue <- &download{
 				task: task,
 				ref:  ref,
 			}

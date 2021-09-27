@@ -8,6 +8,7 @@ import (
 	"google.golang.org/grpc"
 	"log"
 	"os"
+	"sync"
 )
 
 const (
@@ -18,12 +19,12 @@ const (
 )
 
 type providerConnection struct {
-	ctx           context.Context
-	conn          *grpc.ClientConn
-	info          *pb.ProviderInfo
-	provider      pb.ProviderClient
-	store         pb.StorageClient
-	downloadQueue chan *download
+	ctx      context.Context
+	conn     *grpc.ClientConn
+	info     *pb.ProviderInfo
+	provider pb.ProviderClient
+	store    pb.StorageClient
+	dmu      sync.Mutex
 }
 
 type download struct {
@@ -38,7 +39,7 @@ func (pConn *providerConnection) id() (name string) {
 func (pConn *providerConnection) close() {
 	//TODO: pConn.provider.DropSession(ctx, &pb.Session{})
 
-	close(pConn.downloadQueue)
+	//close(pConn.downloadQueue)
 	_ = pConn.conn.Close()
 }
 

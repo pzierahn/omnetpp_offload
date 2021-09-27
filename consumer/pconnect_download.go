@@ -11,6 +11,10 @@ import (
 
 func (pConn *providerConnection) download(ref *pb.StorageRef) (byt []byte, err error) {
 
+	// Allow only one download process per provider.
+	pConn.dmu.Lock()
+	defer pConn.dmu.Unlock()
+
 	start := time.Now()
 	store := storage.FromClient(pConn.store)
 	done := eval.LogTransfer(pConn.id(), eval.TransferDirectionDownload, ref.Filename)
@@ -30,8 +34,8 @@ func (pConn *providerConnection) download(ref *pb.StorageRef) (byt []byte, err e
 	return
 }
 
-func (pConn *providerConnection) resultsDownloader(sim *simulation) {
-	for obj := range pConn.downloadQueue {
+func (pConn *providerConnection) resultsDownloader(queue chan *download, sim *simulation) {
+	for obj := range queue {
 		buf, err := pConn.download(obj.ref)
 		if err != nil {
 			log.Printf("[%s] download failed: reschedule %+v", pConn.id(), obj.task)
@@ -41,13 +45,11 @@ func (pConn *providerConnection) resultsDownloader(sim *simulation) {
 		}
 
 		done := eval.LogAction(eval.ActionExtract, obj.ref.Filename)
-
 		err = simple.ExtractTarGz(sim.config.Path, buf)
+		_ = done(err)
 		if err != nil {
 			log.Fatalf("cloudn't extract files: %v", err)
 		}
-
-		_ = done(nil)
 
 		_, _ = pConn.store.Delete(pConn.ctx, obj.ref)
 
