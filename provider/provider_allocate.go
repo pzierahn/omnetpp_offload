@@ -1,7 +1,6 @@
 package provider
 
 import (
-	"log"
 	"time"
 )
 
@@ -43,8 +42,6 @@ func (prov *provider) startAllocator() {
 				lowest = duration
 			}
 		}
-
-		log.Printf("allocate slot to %s (exeTime=%v)", simId, lowest)
 
 		ch := prov.allocRecvs[simId]
 		ch <- 1

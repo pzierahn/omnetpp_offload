@@ -207,7 +207,7 @@ func (prov *provider) Allocate(stream pb.Provider_AllocateServer) (err error) {
 
 	go func() {
 		for range allocRecv {
-			log.Printf("Allocate: %v allocate", simId)
+			log.Printf("Allocate: slot to %v", simId)
 
 			err := stream.Send(&pb.AllocateSlot{})
 			if err != nil {
@@ -228,7 +228,7 @@ func (prov *provider) Allocate(stream pb.Provider_AllocateServer) (err error) {
 			break
 		}
 
-		log.Printf("Allocate: %v free", simId)
+		log.Printf("Allocate: free slot %v", simId)
 
 		prov.slots <- 1
 
