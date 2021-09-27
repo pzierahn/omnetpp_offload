@@ -4,7 +4,6 @@ import (
 	"flag"
 	"github.com/pzierahn/project.go.omnetpp/gconfig"
 	"github.com/pzierahn/project.go.omnetpp/provider"
-	"github.com/pzierahn/project.go.omnetpp/stargate"
 	"github.com/pzierahn/project.go.omnetpp/storage"
 )
 
@@ -16,7 +15,7 @@ func init() {
 
 func main() {
 
-	gconfig.ParseFlags(gconfig.ParseAll)
+	config := gconfig.ParseFlags()
 
 	if clean {
 		provider.Clean()
@@ -24,10 +23,5 @@ func main() {
 		return
 	}
 
-	stargate.SetConfig(stargate.Config{
-		Addr: gconfig.BrokerAddr(),
-		Port: gconfig.StargatePort(),
-	})
-
-	provider.Start()
+	provider.Start(config)
 }

@@ -4,7 +4,7 @@ import (
 	"context"
 	"encoding/csv"
 	"fmt"
-	"github.com/pzierahn/project.go.omnetpp/defines"
+	"github.com/pzierahn/project.go.omnetpp/gconfig"
 	pb "github.com/pzierahn/project.go.omnetpp/proto"
 	"github.com/pzierahn/project.go.omnetpp/simple"
 	"google.golang.org/protobuf/proto"
@@ -56,7 +56,7 @@ func (server *Server) Scenario(_ context.Context, scenario *pb.EvalScenario) (*e
 		return &emptypb.Empty{}, nil
 	}
 
-	dir := filepath.Join(defines.CacheDir(), "evaluation")
+	dir := filepath.Join(gconfig.CacheDir(), "evaluation")
 	if err := os.MkdirAll(dir, 0755); err != nil {
 		panic(err)
 	}

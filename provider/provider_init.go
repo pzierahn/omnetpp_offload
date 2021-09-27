@@ -1,7 +1,7 @@
 package provider
 
 import (
-	"github.com/pzierahn/project.go.omnetpp/defines"
+	"github.com/pzierahn/project.go.omnetpp/gconfig"
 	"log"
 	"os"
 	"path/filepath"
@@ -14,10 +14,10 @@ func init() {
 	log.SetFlags(log.LstdFlags | log.Lshortfile)
 	log.SetPrefix("Provider ")
 
-	cachePath = filepath.Join(defines.CacheDir(), "simulations")
+	cachePath = filepath.Join(gconfig.CacheDir(), "simulations")
 	_ = os.MkdirAll(cachePath, 0755)
 
-	sessionsPath = filepath.Join(defines.CacheDir(), "sessions.json")
+	sessionsPath = filepath.Join(gconfig.CacheDir(), "sessions.json")
 }
 
 func Clean() {

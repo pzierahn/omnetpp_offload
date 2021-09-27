@@ -6,6 +6,7 @@ import (
 	"github.com/pzierahn/project.go.omnetpp/gconfig"
 	pb "github.com/pzierahn/project.go.omnetpp/proto"
 	"github.com/pzierahn/project.go.omnetpp/simple"
+	"github.com/pzierahn/project.go.omnetpp/stargate"
 	"github.com/pzierahn/project.go.omnetpp/stargrpc"
 	"github.com/pzierahn/project.go.omnetpp/storage"
 	"github.com/pzierahn/project.go.omnetpp/sysinfo"
@@ -29,18 +30,23 @@ type provider struct {
 	allocRecvs     map[simulationId]chan<- int
 }
 
-func Start() {
+func Start(config gconfig.Config) {
+
+	stargate.SetConfig(stargate.Config{
+		Addr: config.Broker.Address,
+		Port: config.Broker.StargatePort,
+	})
 
 	store := &storage.Server{}
 
-	slots := make(chan int, gconfig.Jobs())
-	for inx := 0; inx < gconfig.Jobs(); inx++ {
+	slots := make(chan int, config.Provider.Jobs)
+	for inx := 0; inx < config.Provider.Jobs; inx++ {
 		slots <- 1
 	}
 
 	mu := &sync.RWMutex{}
 	prov := &provider{
-		providerId:     simple.NamedId(gconfig.Config.Worker.Name, 8),
+		providerId:     simple.NamedId(config.Provider.Name, 8),
 		store:          store,
 		slots:          slots,
 		mu:             mu,
@@ -83,10 +89,10 @@ func Start() {
 	// Register provider
 	//
 
-	log.Printf("connect to broker %v", gconfig.BrokerDialAddr())
+	log.Printf("connect to broker %v", config.Broker.BrokerDialAddr())
 
 	brokerConn, err := grpc.Dial(
-		gconfig.BrokerDialAddr(),
+		config.Broker.BrokerDialAddr(),
 		grpc.WithInsecure(),
 		grpc.WithBlock(),
 	)

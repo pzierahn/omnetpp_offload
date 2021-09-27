@@ -1,42 +1,56 @@
 package gconfig
 
 import (
+	"encoding/json"
 	"fmt"
+	"io/ioutil"
+	"os"
+	"path/filepath"
 )
 
 const (
 	defaultBrokerPort = 8888
 )
 
-type Configfile struct {
-	Broker struct {
-		Address      string `json:"address"`
-		BrokerPort   int    `json:"port"`
-		StargatePort int    `json:"stargatePort"`
-	} `json:"broker"`
-	Worker struct {
-		Name string `json:"name"`
-		Jobs int    `json:"jobs"`
-	} `json:"provider"`
+type Broker struct {
+	Address      string `json:"address"`
+	BrokerPort   int    `json:"port"`
+	StargatePort int    `json:"stargatePort"`
 }
 
-func BrokerPort() (port int) {
-	return Config.Broker.BrokerPort
-}
-
-func Jobs() (jobs int) {
-	return Config.Worker.Jobs
-}
-
-func StargatePort() (port int) {
-	return Config.Broker.StargatePort
-}
-
-func BrokerAddr() (addr string) {
-	return Config.Broker.Address
-}
-
-func BrokerDialAddr() (addr string) {
-	addr = fmt.Sprintf("%s:%d", Config.Broker.Address, Config.Broker.BrokerPort)
+func (conf Broker) BrokerDialAddr() (addr string) {
+	addr = fmt.Sprintf("%s:%d", conf.Address, conf.BrokerPort)
 	return
+}
+
+type Provider struct {
+	Name string `json:"name"`
+	Jobs int    `json:"jobs"`
+}
+
+type Config struct {
+	Broker   Broker   `json:"broker"`
+	Provider Provider `json:"provider"`
+}
+
+func Write() {
+	configPath := ConfigDir()
+
+	err := os.MkdirAll(configPath, 0755)
+	if err != nil {
+		panic(err)
+	}
+
+	byt, err := json.MarshalIndent(defaultConfig, "", "  ")
+	if err != nil {
+		panic(err)
+	}
+
+	configFile := filepath.Join(configPath, "configuration.json")
+	fmt.Println("write config to", configFile)
+
+	err = ioutil.WriteFile(configFile, byt, 0644)
+	if err != nil {
+		panic(err)
+	}
 }

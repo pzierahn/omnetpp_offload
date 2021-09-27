@@ -1,4 +1,4 @@
-package defines
+package gconfig
 
 import (
 	"os"

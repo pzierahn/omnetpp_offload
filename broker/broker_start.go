@@ -11,7 +11,12 @@ import (
 	"net"
 )
 
-func Start() (err error) {
+func Start(config gconfig.Broker) (err error) {
+
+	stargate.SetConfig(stargate.Config{
+		Addr: config.Address,
+		Port: config.StargatePort,
+	})
 
 	go func() {
 		err := stargate.Server(context.Background(), true)
@@ -20,7 +25,7 @@ func Start() (err error) {
 		}
 	}()
 
-	log.Printf("start broker on :%d", gconfig.BrokerPort())
+	log.Printf("start broker on :%d", config.BrokerPort)
 
 	brk := broker{
 		providers:   make(map[string]*pb.ProviderInfo),
@@ -31,7 +36,7 @@ func Start() (err error) {
 	go brk.startDebugWebAPI()
 
 	lis, err := net.ListenTCP("tcp", &net.TCPAddr{
-		Port: gconfig.BrokerPort(),
+		Port: config.BrokerPort,
 	})
 	if err != nil {
 		log.Fatalln(err)

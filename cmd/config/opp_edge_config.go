@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
-	"github.com/pzierahn/project.go.omnetpp/defines"
 	"github.com/pzierahn/project.go.omnetpp/gconfig"
 )
 
@@ -18,18 +17,18 @@ func init() {
 
 func main() {
 
-	gconfig.ParseFlags(gconfig.ParseAll)
+	config := gconfig.ParseFlags()
 
 	if showPaths {
-		fmt.Println("CacheDir:  ", defines.CacheDir())
-		fmt.Println("ConfigDir: ", defines.ConfigDir())
+		fmt.Println("CacheDir:  ", gconfig.CacheDir())
+		fmt.Println("ConfigDir: ", gconfig.ConfigDir())
 		return
 	}
 
-	jbyt, _ := json.MarshalIndent(gconfig.Config, "", "  ")
+	jbyt, _ := json.MarshalIndent(config, "", "  ")
 	fmt.Println(string(jbyt))
 
 	if save {
-		gconfig.Persist()
+		gconfig.Write()
 	}
 }

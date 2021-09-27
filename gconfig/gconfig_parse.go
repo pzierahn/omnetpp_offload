@@ -3,8 +3,6 @@ package gconfig
 import (
 	"encoding/json"
 	"flag"
-	"fmt"
-	"github.com/pzierahn/project.go.omnetpp/defines"
 	"github.com/pzierahn/project.go.omnetpp/simple"
 	"github.com/pzierahn/project.go.omnetpp/stargate"
 	"io/ioutil"
@@ -14,12 +12,12 @@ import (
 )
 
 const (
-	ParseBroker = 1 << iota
-	ParseWorker
-	ParseAll = ParseBroker | ParseWorker
+	parseBroker = 1 << iota
+	parseWorker
+	parseAll = parseBroker | parseWorker
 )
 
-var Config Configfile
+var defaultConfig Config
 
 func init() {
 
@@ -28,25 +26,25 @@ func init() {
 		// Set default values
 		//
 
-		if Config.Broker.BrokerPort == 0 {
-			Config.Broker.BrokerPort = defaultBrokerPort
+		if defaultConfig.Broker.BrokerPort == 0 {
+			defaultConfig.Broker.BrokerPort = defaultBrokerPort
 		}
 
-		if Config.Broker.StargatePort == 0 {
-			Config.Broker.StargatePort = stargate.DefaultPort
+		if defaultConfig.Broker.StargatePort == 0 {
+			defaultConfig.Broker.StargatePort = stargate.DefaultPort
 		}
 
-		if Config.Worker.Name == "" {
-			//Config.Worker.Name = runtime.GOOS + "-" + runtime.GOARCH
-			Config.Worker.Name = simple.GetHostnameShort()
+		if defaultConfig.Provider.Name == "" {
+			//Config.Provider.Name = runtime.GOOS + "-" + runtime.GOARCH
+			defaultConfig.Provider.Name = simple.GetHostnameShort()
 		}
 
-		if Config.Worker.Jobs == 0 {
-			Config.Worker.Jobs = runtime.NumCPU()
+		if defaultConfig.Provider.Jobs == 0 {
+			defaultConfig.Provider.Jobs = runtime.NumCPU()
 		}
 	}()
 
-	configPath := defines.ConfigDir()
+	configPath := ConfigDir()
 	configFile := filepath.Join(configPath, "configuration.json")
 
 	if _, err := os.Stat(configFile); err != nil {
@@ -58,52 +56,40 @@ func init() {
 		panic(err)
 	}
 
-	err = json.Unmarshal(byt, &Config)
+	err = json.Unmarshal(byt, &defaultConfig)
 	if err != nil {
 		panic(err)
 	}
 }
 
-func ParseFlags(parse int) {
+func parseFlags(parse int) {
 
-	if ParseBroker&parse != 0 {
+	if parseBroker&parse != 0 {
 		//
 		// Broker command line arguments
 		//
-		flag.StringVar(&Config.Broker.Address, "broker", Config.Broker.Address, "set broker address")
-		flag.IntVar(&Config.Broker.BrokerPort, "port", Config.Broker.BrokerPort, "set broker port")
-		flag.IntVar(&Config.Broker.StargatePort, "stargate", Config.Broker.StargatePort, "set stargate port")
+		flag.StringVar(&defaultConfig.Broker.Address, "broker", defaultConfig.Broker.Address, "set broker address")
+		flag.IntVar(&defaultConfig.Broker.BrokerPort, "port", defaultConfig.Broker.BrokerPort, "set broker port")
+		flag.IntVar(&defaultConfig.Broker.StargatePort, "stargate", defaultConfig.Broker.StargatePort, "set stargate port")
 	}
 
-	if ParseWorker&parse != 0 {
+	if parseWorker&parse != 0 {
 		//
 		// Worker command line arguments
 		//
-		flag.StringVar(&Config.Worker.Name, "name", Config.Worker.Name, "set worker name")
-		flag.IntVar(&Config.Worker.Jobs, "jobs", Config.Worker.Jobs, "set how manny jobs should be started")
+		flag.StringVar(&defaultConfig.Provider.Name, "name", defaultConfig.Provider.Name, "set worker name")
+		flag.IntVar(&defaultConfig.Provider.Jobs, "jobs", defaultConfig.Provider.Jobs, "set how manny jobs should be started")
 	}
 
 	flag.Parse()
 }
 
-func Persist() {
-	configPath := defines.ConfigDir()
+func ParseFlags() Config {
+	parseFlags(parseAll)
+	return defaultConfig
+}
 
-	err := os.MkdirAll(configPath, 0755)
-	if err != nil {
-		panic(err)
-	}
-
-	byt, err := json.MarshalIndent(Config, "", "  ")
-	if err != nil {
-		panic(err)
-	}
-
-	configFile := filepath.Join(configPath, "configuration.json")
-	fmt.Println("write config to", configFile)
-
-	err = ioutil.WriteFile(configFile, byt, 0644)
-	if err != nil {
-		panic(err)
-	}
+func ParseFlagsBroker() Broker {
+	parseFlags(parseBroker)
+	return defaultConfig.Broker
 }

@@ -5,6 +5,7 @@ import (
 	"github.com/pzierahn/project.go.omnetpp/eval"
 	"github.com/pzierahn/project.go.omnetpp/gconfig"
 	"github.com/pzierahn/project.go.omnetpp/simple"
+	"github.com/pzierahn/project.go.omnetpp/stargate"
 	"google.golang.org/grpc"
 	"log"
 	"path/filepath"
@@ -12,7 +13,12 @@ import (
 )
 
 // OffloadSimulation starts the simulation offloading to providers.
-func OffloadSimulation(ctx context.Context, config *Config) {
+func OffloadSimulation(ctx context.Context, bconfig gconfig.Broker, config *Config) {
+
+	stargate.SetConfig(stargate.Config{
+		Addr: bconfig.Address,
+		Port: bconfig.StargatePort,
+	})
 
 	if config.Tag == "" {
 		config.Tag = filepath.Base(config.Path)
@@ -20,10 +26,10 @@ func OffloadSimulation(ctx context.Context, config *Config) {
 
 	id := simple.NamedId(config.Tag, 8)
 	log.Printf("OffloadSimulation: simulationId %s", id)
-	log.Printf("OffloadSimulation: connecting to broker (%v)", gconfig.BrokerDialAddr())
+	log.Printf("OffloadSimulation: connecting to broker (%v)", bconfig.BrokerDialAddr())
 
 	conn, err := grpc.Dial(
-		gconfig.BrokerDialAddr(),
+		bconfig.BrokerDialAddr(),
 		grpc.WithInsecure(),
 		grpc.WithBlock(),
 	)
