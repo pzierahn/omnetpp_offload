@@ -47,7 +47,7 @@ func (sim *simulation) connect(prov *pb.ProviderInfo, once *sync.Once, onInit ch
 
 		tasks, err := pconn.collectTasks(sim)
 		if err != nil {
-			log.Fatalln(err)
+			log.Fatalln(prov.ProviderId, err)
 		}
 
 		log.Printf("[%s] created %d jobs", pconn.id(), len(tasks))

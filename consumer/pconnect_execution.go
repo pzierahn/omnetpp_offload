@@ -37,12 +37,16 @@ func (pConn *providerConnection) execute(sim *simulation) (err error) {
 
 			_ = stream.Send(&pb.FreeSlot{})
 
-			// Wait if more slots are required.
+			log.Printf("[%s] idle", pConn.id())
+
+			// Wait to see if more slots are needed.
 			if sim.queue.linger() {
 
 				//
 				// A task was rescheduled, continue requesting slots.
 				//
+
+				log.Printf("[%s] continue requesting slots", pConn.id())
 
 				continue
 			} else {
@@ -61,15 +65,24 @@ func (pConn *providerConnection) execute(sim *simulation) (err error) {
 			ref, err := pConn.run(task)
 			_ = stream.Send(&pb.FreeSlot{})
 
-			if err != nil {
+			if err == nil {
+
+				//
+				// Execution was a success: download result
+				//
+
+				downloadQueue <- &download{
+					task: task,
+					ref:  ref,
+				}
+			} else {
+
+				//
+				// Execution failed: reschedule
+				//
+
 				log.Printf("[%s] run failed: reschedule %+v", pConn.id(), task)
 				sim.queue.add(task)
-				return
-			}
-
-			downloadQueue <- &download{
-				task: task,
-				ref:  ref,
 			}
 		}()
 	}
