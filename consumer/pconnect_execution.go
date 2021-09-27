@@ -2,6 +2,7 @@ package consumer
 
 import (
 	pb "github.com/pzierahn/project.go.omnetpp/proto"
+	"github.com/pzierahn/project.go.omnetpp/provider"
 	"google.golang.org/grpc/metadata"
 	"log"
 )
@@ -13,7 +14,7 @@ func (pConn *providerConnection) execute(sim *simulation) (err error) {
 
 	go pConn.resultsDownloader(downloadQueue, sim)
 
-	ctx := metadata.AppendToOutgoingContext(sim.ctx, "simulationId", sim.id)
+	ctx := metadata.AppendToOutgoingContext(sim.ctx, provider.MetaSimulationId, sim.id)
 
 	stream, err := pConn.provider.Allocate(ctx)
 	if err != nil {

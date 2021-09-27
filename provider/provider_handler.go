@@ -15,6 +15,10 @@ import (
 	"time"
 )
 
+const (
+	MetaSimulationId = "simulationId"
+)
+
 func (prov *provider) GetSession(ctx context.Context, sim *pb.Simulation) (sess *pb.Session, err error) {
 
 	log.Printf("GetSession: %v", sim.Id)
@@ -176,7 +180,7 @@ func (prov *provider) Run(ctx context.Context, run *pb.SimulationRun) (ref *pb.S
 func (prov *provider) Allocate(stream pb.Provider_AllocateServer) (err error) {
 
 	ctx := stream.Context()
-	simId, err := simple.MetaStringFromContext(ctx, "simulationId")
+	simId, err := simple.MetaStringFromContext(ctx, MetaSimulationId)
 	if err != nil {
 		log.Println(err)
 		return
