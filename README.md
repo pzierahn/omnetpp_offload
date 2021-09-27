@@ -1,16 +1,15 @@
 # OMNeT++ simulation distributor
 
-## Install and run a worker
-
-Install and run natively
+## Install command line tools
 
 ```shell
 go install cmd/worker/opp_edge_worker.go
 go install cmd/consumer/opp_edge_run.go
 go install cmd/config/opp_edge_config.go
+go install cmd/broker/opp_edge_broker.go
 ```
 
-Install and run with Docker
+## Install and run with Docker
 
 ```shell
 docker pull pzierahn/omnetpp_edge
@@ -19,7 +18,7 @@ docker run --rm pzierahn/omnetpp_edge opp_edge_worker -broker 85.214.35.83 -name
 
 ## Build and upload docker images
 
-Build cross-platform images for amd and arm
+Build cross-platform images for amd64 and arm64.
 
 ```shell
 docker buildx build \
@@ -44,9 +43,9 @@ go install cmd/broker/opp_edge_broker.go
 nohup opp_edge_broker > opp_edge_broker.log 2>&1 &
 ```
 
-## Developer Notes
+## Developer Notes (ignore)
 
-Install protobuf dependencies
+Install protobuf dependencies.
 
 ```shell
 go install google.golang.org/protobuf/cmd/protoc-gen-go@latest
