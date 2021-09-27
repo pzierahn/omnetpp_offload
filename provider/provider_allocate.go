@@ -1,6 +1,9 @@
 package provider
 
-import "sort"
+import (
+	"log"
+	"time"
+)
 
 func (prov *provider) register(simId string, allocRecv chan<- int) {
 
@@ -30,24 +33,19 @@ func (prov *provider) startAllocator() {
 			cond.Wait()
 		}
 
-		simIds := make([]string, len(prov.allocRecvs))
-		var inx int
-		for simId := range prov.allocRecvs {
-			simIds[inx] = simId
-			inx++
+		var simId string
+		var lowest = time.Duration(-1)
+
+		for id := range prov.allocRecvs {
+			duration := prov.executionTimes[id]
+			if lowest <= 0 || lowest > duration {
+				simId = id
+				lowest = duration
+			}
 		}
 
-		sort.SliceStable(simIds, func(i, j int) bool {
-			simId1 := simIds[i]
-			simId2 := simIds[j]
+		log.Printf("allocate slot to %s (exeTime=%v)", simId, lowest)
 
-			duration1 := prov.executionTimes[simId1]
-			duration2 := prov.executionTimes[simId2]
-
-			return duration1 < duration2
-		})
-
-		simId := simIds[0]
 		ch := prov.allocRecvs[simId]
 		ch <- 1
 
