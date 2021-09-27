@@ -9,6 +9,8 @@ import (
 func (pConn *providerConnection) execute(sim *simulation) (err error) {
 
 	downloadQueue := make(chan *download, 32)
+	defer close(downloadQueue)
+
 	go pConn.resultsDownloader(downloadQueue, sim)
 
 	ctx := metadata.AppendToOutgoingContext(sim.ctx, "simulationId", sim.id)
