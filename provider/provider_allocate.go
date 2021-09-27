@@ -29,6 +29,11 @@ func (prov *provider) startAllocator() {
 		cond.L.Lock()
 
 		if len(prov.allocRecvs) == 0 {
+
+			//
+			// Wait for new allocation receivers.
+			//
+
 			cond.Wait()
 		}
 
