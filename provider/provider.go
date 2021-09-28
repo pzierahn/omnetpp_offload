@@ -32,19 +32,11 @@ type provider struct {
 
 func Start(config gconfig.Config) {
 
-	store := &storage.Server{}
-
-	// Fill slot queue with the number of jobs.
-	slots := make(chan int, config.Provider.Jobs)
-	for inx := 0; inx < config.Provider.Jobs; inx++ {
-		slots <- 1
-	}
-
 	mu := &sync.RWMutex{}
 	prov := &provider{
 		providerId:     simple.NamedId(config.Provider.Name, 8),
-		store:          store,
-		slots:          slots,
+		store:          &storage.Server{},
+		slots:          make(chan int, config.Provider.Jobs),
 		mu:             mu,
 		newRecv:        sync.NewCond(mu),
 		sessions:       make(map[simulationId]*pb.Session),
@@ -134,14 +126,14 @@ func Start(config gconfig.Config) {
 	// Start stargate-gRPC servers.
 	//
 
+	server := grpc.NewServer()
+	pb.RegisterProviderServer(server, prov)
+	pb.RegisterStorageServer(server, prov.store)
+
 	stargate.SetConfig(stargate.Config{
 		Addr: config.Broker.Address,
 		Port: config.Broker.StargatePort,
 	})
-
-	server := grpc.NewServer()
-	pb.RegisterProviderServer(server, prov)
-	pb.RegisterStorageServer(server, prov.store)
 
 	go stargrpc.ServeLocal(prov.providerId, server)
 	go stargrpc.ServeP2P(prov.providerId, server)
@@ -151,7 +143,7 @@ func Start(config gconfig.Config) {
 	// Start resource allocator.
 	//
 
-	prov.startAllocator()
+	prov.startAllocator(config.Provider.Jobs)
 
 	return
 }

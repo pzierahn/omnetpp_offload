@@ -20,7 +20,12 @@ func (prov *provider) unregister(simId string) {
 	delete(prov.allocRecvs, simId)
 }
 
-func (prov *provider) startAllocator() {
+func (prov *provider) startAllocator(jobs int) {
+
+	// Init the slot queue with the number of jobs.
+	for inx := 0; inx < jobs; inx++ {
+		prov.slots <- 1
+	}
 
 	newRecv := prov.newRecv
 
@@ -48,8 +53,7 @@ func (prov *provider) startAllocator() {
 			}
 		}
 
-		ch := prov.allocRecvs[simId]
-		ch <- 1
+		prov.allocRecvs[simId] <- 1
 
 		newRecv.L.Unlock()
 	}
