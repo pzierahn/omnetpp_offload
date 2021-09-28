@@ -6,11 +6,11 @@ import (
 
 func (prov *provider) register(simId string, allocRecv chan<- int) {
 
-	cond := prov.cond
-	cond.L.Lock()
+	newRecv := prov.newRecv
+	newRecv.L.Lock()
 	prov.allocRecvs[simId] = allocRecv
-	cond.Broadcast()
-	cond.L.Unlock()
+	newRecv.Broadcast()
+	newRecv.L.Unlock()
 }
 
 func (prov *provider) unregister(simId string) {
@@ -22,11 +22,11 @@ func (prov *provider) unregister(simId string) {
 
 func (prov *provider) startAllocator() {
 
-	cond := prov.cond
+	newRecv := prov.newRecv
 
 	for range prov.slots {
 
-		cond.L.Lock()
+		newRecv.L.Lock()
 
 		if len(prov.allocRecvs) == 0 {
 
@@ -34,7 +34,7 @@ func (prov *provider) startAllocator() {
 			// Wait for new allocation receivers.
 			//
 
-			cond.Wait()
+			newRecv.Wait()
 		}
 
 		var simId string
@@ -51,6 +51,6 @@ func (prov *provider) startAllocator() {
 		ch := prov.allocRecvs[simId]
 		ch <- 1
 
-		cond.L.Unlock()
+		newRecv.L.Unlock()
 	}
 }

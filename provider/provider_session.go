@@ -56,11 +56,11 @@ func (prov *provider) expireSession(id simulationId, deadline time.Time) {
 	case <-ctx.Done():
 		log.Printf("expireSession: simulationId=%v nuke", id)
 
-		prov.cond.L.Lock()
+		prov.newRecv.L.Lock()
 		prov.dropSession(id)
 		prov.persistSessions()
-		prov.cond.Broadcast()
-		prov.cond.L.Unlock()
+		prov.newRecv.Broadcast()
+		prov.newRecv.L.Unlock()
 	}
 }
 

@@ -22,11 +22,11 @@ type provider struct {
 	pb.UnimplementedProviderServer
 	providerId     string
 	store          *storage.Server
+	slots          chan int
 	mu             *sync.RWMutex
 	sessions       map[simulationId]*pb.Session
 	executionTimes map[simulationId]time.Duration
-	slots          chan int
-	cond           *sync.Cond
+	newRecv        *sync.Cond
 	allocRecvs     map[simulationId]chan<- int
 }
 
@@ -34,6 +34,7 @@ func Start(config gconfig.Config) {
 
 	store := &storage.Server{}
 
+	// Fill slot queue with the number of jobs.
 	slots := make(chan int, config.Provider.Jobs)
 	for inx := 0; inx < config.Provider.Jobs; inx++ {
 		slots <- 1
@@ -45,7 +46,7 @@ func Start(config gconfig.Config) {
 		store:          store,
 		slots:          slots,
 		mu:             mu,
-		cond:           sync.NewCond(mu),
+		newRecv:        sync.NewCond(mu),
 		sessions:       make(map[simulationId]*pb.Session),
 		executionTimes: make(map[simulationId]time.Duration),
 		allocRecvs:     make(map[simulationId]chan<- int),
