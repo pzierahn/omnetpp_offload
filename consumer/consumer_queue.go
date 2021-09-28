@@ -7,11 +7,12 @@ import (
 )
 
 type taskQueue struct {
-	mu    *sync.RWMutex
-	cond  *sync.Cond
-	size  uint32
-	tasks []*pb.SimulationRun
-	kill  map[uint32]chan bool
+	mu     *sync.RWMutex
+	cond   *sync.Cond
+	size   uint32
+	tasks  []*pb.SimulationRun
+	kill   map[uint32]chan bool
+	closed bool
 }
 
 func newQueue() (que *taskQueue) {
@@ -55,9 +56,11 @@ func (que *taskQueue) len() (size uint32) {
 	return
 }
 
-func (que *taskQueue) killLingering() {
+func (que *taskQueue) close() {
 	que.mu.Lock()
 	defer que.mu.Unlock()
+
+	que.closed = true
 
 	for id, ch := range que.kill {
 		ch <- true
@@ -66,6 +69,12 @@ func (que *taskQueue) killLingering() {
 }
 
 func (que *taskQueue) linger() (linger bool) {
+
+	que.mu.Lock()
+	if que.closed {
+		return false
+	}
+	que.mu.Unlock()
 
 	id := rand.Uint32()
 

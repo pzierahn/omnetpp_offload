@@ -97,7 +97,7 @@ func OffloadSimulation(ctx context.Context, bconfig gconfig.Broker, config *Conf
 	//
 	//sim.finished.Wait()
 
-	sim.queue.killLingering()
+	sim.queue.close()
 
 	log.Printf("OffloadSimulation: simulation %s finished!", id)
 
