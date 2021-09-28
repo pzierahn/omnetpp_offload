@@ -7,30 +7,30 @@ import (
 )
 
 type taskQueue struct {
-	mu     *sync.RWMutex
-	cond   *sync.Cond
-	size   uint32
-	tasks  []*pb.SimulationRun
-	kill   map[uint32]chan bool
-	closed bool
+	mu       *sync.RWMutex
+	newTasks *sync.Cond
+	size     uint32
+	tasks    []*pb.SimulationRun
+	kill     map[uint32]chan bool
+	closed   bool
 }
 
 func newQueue() (que *taskQueue) {
 	mu := &sync.RWMutex{}
 	return &taskQueue{
-		mu:   mu,
-		cond: sync.NewCond(mu),
-		kill: make(map[uint32]chan bool),
+		mu:       mu,
+		newTasks: sync.NewCond(mu),
+		kill:     make(map[uint32]chan bool),
 	}
 }
 
 func (que *taskQueue) add(items ...*pb.SimulationRun) {
-	que.cond.L.Lock()
-	defer que.cond.L.Unlock()
+	que.newTasks.L.Lock()
+	defer que.newTasks.L.Unlock()
 
 	que.tasks = append(que.tasks, items...)
 	que.size = uint32(len(que.tasks))
-	que.cond.Broadcast()
+	que.newTasks.Broadcast()
 }
 
 func (que *taskQueue) pop() (item *pb.SimulationRun, ok bool) {
@@ -91,14 +91,14 @@ func (que *taskQueue) linger() (linger bool) {
 		que.mu.Unlock()
 	}()
 
-	live := make(chan bool)
+	live := make(chan bool, 1)
 	defer close(live)
 
 	go func() {
-		que.cond.L.Lock()
-		que.cond.Wait()
+		que.newTasks.L.Lock()
+		que.newTasks.Wait()
 		live <- true
-		que.cond.L.Unlock()
+		que.newTasks.L.Unlock()
 	}()
 
 	select {
