@@ -78,7 +78,7 @@ func parseFlags(parse int) {
 		// Worker command line arguments
 		//
 		flag.StringVar(&defaultConfig.Provider.Name, "name", defaultConfig.Provider.Name, "set worker name")
-		flag.IntVar(&defaultConfig.Provider.Jobs, "jobs", defaultConfig.Provider.Jobs, "set how manny jobs should be started")
+		flag.IntVar(&defaultConfig.Provider.Jobs, "jobs", defaultConfig.Provider.Jobs, "set how many jobs should be started")
 	}
 
 	flag.Parse()
