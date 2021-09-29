@@ -1,14 +1,3 @@
-scenario_id,simulation,started_from,devices,parallel jobs,arch,docker,connect,Notes
-s0,tictoc,Patricks-MBP,Patricks-MBP,1,amd64,FALSE,local,opp_run
-s1,tictoc,Patricks-MBP,Patricks-MBP,1,amd64,FALSE,local,One downloader
-s1p,tictoc,fioo@dc1.fioo.one,Patricks-MBP,1,amd64,FALSE,p2p,One downloader
-s2p,tictoc,fioo@dc1.fioo.one,Patricks-MBP,2,amd64,FALSE,p2p,One downloader
-s3p,tictoc,fioo@dc1.fioo.one,Patricks-MBP,4,amd64,FALSE,p2p,One downloader
-s4p,tictoc,fioo@dc1.fioo.one,Patricks-MBP,6,amd64,FALSE,p2p,One downloader
-s5p,tictoc,fioo@dc1.fioo.one,Patricks-MBP,8,amd64,FALSE,p2p,One downloader
-s1r,tictoc,fioo@dc1.fioo.one,Patricks-MBP,1,amd64,FALSE,relay,One downloader
-s2r,tictoc,fioo@dc1.fioo.one,Patricks-MBP,2,amd64,FALSE,relay,One downloader
-s3r,tictoc,fioo@dc1.fioo.one,Patricks-MBP,4,amd64,FALSE,relay,One downloader
-s4r,tictoc,fioo@dc1.fioo.one,Patricks-MBP,6,amd64,FALSE,relay,One downloader
-s5r,tictoc,fioo@dc1.fioo.one,Patricks-MBP,8,amd64,FALSE,relay,One downloader
-s1pd,tictoc,fioo@dc1.fioo.one,Patricks-MBP,1,amd64,TRUE,p2p,One downloader
+version https://git-lfs.github.com/spec/v1
+oid sha256:247c5ac64d8979c8a3df723aa67e6950d6e5837d51e978adb0f3f22355e9a010
+size 1066
