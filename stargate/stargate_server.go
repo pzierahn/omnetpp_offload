@@ -90,11 +90,11 @@ func (server *stargateServer) heartbeatDispatcher(ctx context.Context) {
 	}
 }
 
-func (server *stargateServer) prune(dial DialAddr, addr *net.UDPAddr) {
+func (server *stargateServer) clean(dial DialAddr, addr *net.UDPAddr) {
 	server.mu.Lock()
 	defer server.mu.Unlock()
 
-	log.Printf("pruning: dialAddr=%v addr=%v", dial, addr)
+	log.Printf("clean: dialAddr=%v addr=%v", dial, addr)
 
 	delete(server.peers, dial)
 	delete(server.lingering, addr.String())
@@ -119,7 +119,7 @@ func (server *stargateServer) receiveDial() (err error) {
 
 		//
 		// The dialing clients send periodically new dial signals to ensure that the NAT stays open.
-		// When this happens the server reset the waiters timeout to prevent pruning.
+		// When this happens the server reset the timeout to prevent pruning.
 		//
 
 		wait.timeout.Reset(cleanTimeout)
@@ -128,7 +128,7 @@ func (server *stargateServer) receiveDial() (err error) {
 
 	if peerAddr, ok := server.peers[dial]; ok {
 		//
-		// Other peers already lingering
+		// Peers can be matched.
 		//
 
 		defer func() {
@@ -151,7 +151,7 @@ func (server *stargateServer) receiveDial() (err error) {
 		}
 	} else {
 		//
-		// Waiting for peers to dial in
+		// Waiting for other peer to dial in.
 		//
 
 		timeout := time.NewTimer(cleanTimeout)
@@ -165,7 +165,7 @@ func (server *stargateServer) receiveDial() (err error) {
 
 		go func() {
 			if _, prune := <-timeout.C; prune {
-				server.prune(dial, addr)
+				server.clean(dial, addr)
 			}
 		}()
 	}
