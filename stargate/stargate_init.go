@@ -17,6 +17,17 @@ var (
 	config         Config
 )
 
+var log *lg.Logger
+
+func init() {
+	log = lg.New(os.Stderr, "Stargate ", lg.LstdFlags|lg.Lshortfile)
+
+	SetConfig(Config{
+		Addr: DefaultAddr,
+		Port: DefaultPort,
+	})
+}
+
 // SetConfig sets the rendezvous address and the port number for the stargate packages.
 // This needs to be set before a connection can be established.
 func SetConfig(conf Config) {
@@ -30,15 +41,4 @@ func SetConfig(conf Config) {
 	if err != nil {
 		log.Fatalln(err)
 	}
-}
-
-var log *lg.Logger
-
-func init() {
-	log = lg.New(os.Stderr, "Stargate ", lg.LstdFlags|lg.Lshortfile)
-
-	SetConfig(Config{
-		Addr: DefaultAddr,
-		Port: DefaultPort,
-	})
 }

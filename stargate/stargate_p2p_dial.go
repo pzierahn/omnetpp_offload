@@ -32,7 +32,7 @@ func DialP2PUDP(ctx context.Context, dialAddr DialAddr) (conn *net.UDPConn, addr
 
 	helper := p2pConnector{
 		conn:    conn,
-		start:   peer.Index == 0,
+		start:   peer.Peer == 0,
 		peer:    addr,
 		timeout: time.Second * 2,
 	}

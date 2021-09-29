@@ -83,20 +83,21 @@ func (server *stargateServer) rendezvousTCP(conn *net.TCPConn) {
 }
 
 func pipeTCP(from, to *net.TCPConn) {
-	defer func() { _, _ = from.Close(), to.Close() }()
+	defer func() {
+		_ = from.Close()
+		_ = to.Close()
+	}()
 
 	for {
 		// https://stackoverflow.com/questions/2613734/maximum-packet-size-for-a-tcp-connection
 		buf := make([]byte, 65535)
 		br, err := from.Read(buf)
 		if err != nil {
-			//log.Println(err)
 			break
 		}
 
 		_, err = to.Write(buf[:br])
 		if err != nil {
-			//log.Println(err)
 			break
 		}
 	}

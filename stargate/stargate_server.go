@@ -31,7 +31,7 @@ type stargateServer struct {
 }
 
 type PeerResolve struct {
-	Index   int
+	Peer    int
 	Address *net.UDPAddr
 }
 
@@ -146,7 +146,7 @@ func (server *stargateServer) receiveDial() (err error) {
 		}()
 
 		payload1, _ := json.Marshal(PeerResolve{
-			Index:   0,
+			Peer:    0,
 			Address: addr,
 		})
 
@@ -156,7 +156,7 @@ func (server *stargateServer) receiveDial() (err error) {
 		}
 
 		payload2, _ := json.Marshal(PeerResolve{
-			Index:   1,
+			Peer:    1,
 			Address: peerAddr,
 		})
 
