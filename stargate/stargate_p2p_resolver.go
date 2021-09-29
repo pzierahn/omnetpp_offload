@@ -2,6 +2,7 @@ package stargate
 
 import (
 	"context"
+	"encoding/json"
 	"net"
 	"sync"
 	"time"
@@ -12,7 +13,7 @@ type peerResolver struct {
 	dial DialAddr
 }
 
-func (client *peerResolver) receive() (peer *net.UDPAddr, err error) {
+func (client *peerResolver) receivePeer() (peer PeerResolve, err error) {
 	buf := make([]byte, 1024)
 	var read int
 
@@ -24,23 +25,25 @@ func (client *peerResolver) receive() (peer *net.UDPAddr, err error) {
 
 		msg := string(buf[0:read])
 
-		log.Printf("receive: msg='%v'", msg)
+		log.Printf("receivePeer: msg=%v", msg)
 
 		if msg == "heartbeat" {
 			continue
 		}
 
-		return net.ResolveUDPAddr("udp", msg)
+		err = json.Unmarshal(buf[0:read], &peer)
+
+		return
 	}
 }
 
-func (client *peerResolver) send(ctx context.Context) (err error) {
+func (client *peerResolver) sendDialAddr(ctx context.Context) (err error) {
 
 	// Send a heartbeat signal ever 20 seconds to the broker keep the NAT gate open
 	tick := time.NewTicker(time.Second * 20)
 
 	for {
-		log.Printf("send: registration signal (dial=%s)", client.dial)
+		log.Printf("sendDialAddr: registration signal (dial=%s)", client.dial)
 
 		_, err = client.conn.WriteTo([]byte(client.dial), rendezvousAddr)
 		if err != nil {
@@ -55,7 +58,7 @@ func (client *peerResolver) send(ctx context.Context) (err error) {
 	}
 }
 
-func (client *peerResolver) resolvePeer(ctx context.Context) (peer *net.UDPAddr, err error) {
+func (client *peerResolver) resolvePeer(ctx context.Context) (peer PeerResolve, err error) {
 	log.Printf("resolvePeer: dialAddr=%s conn=%v", client.dial, client.conn.LocalAddr())
 
 	if deadline, ok := ctx.Deadline(); ok {
@@ -90,7 +93,7 @@ func (client *peerResolver) resolvePeer(ctx context.Context) (peer *net.UDPAddr,
 		defer cnlSend()
 
 		var recRrr error
-		peer, recRrr = client.receive()
+		peer, recRrr = client.receivePeer()
 		if recRrr != nil {
 			once.Do(func() {
 				err = recRrr
@@ -103,7 +106,7 @@ func (client *peerResolver) resolvePeer(ctx context.Context) (peer *net.UDPAddr,
 		defer wg.Done()
 
 		var sendErr error
-		sendErr = client.send(sendCtx)
+		sendErr = client.sendDialAddr(sendCtx)
 		if sendErr != nil {
 			once.Do(func() {
 				err = sendErr

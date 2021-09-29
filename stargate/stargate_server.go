@@ -30,6 +30,11 @@ type stargateServer struct {
 	relay     map[DialAddr]*net.TCPConn
 }
 
+type PeerResolve struct {
+	Index   int
+	Address *net.UDPAddr
+}
+
 var server *stargateServer
 
 func DebugValues() (bytes []byte, err error) {
@@ -70,7 +75,7 @@ func (server *stargateServer) heartbeatDispatcher(ctx context.Context) {
 			server.mu.RLock()
 
 			for _, wait := range server.lingering {
-				log.Printf("send heartbeat: addr=%v", wait.addr)
+				log.Printf("sendDialAddr heartbeat: addr=%v", wait.addr)
 
 				_, err := server.conn.WriteTo([]byte("heartbeat"), wait.addr)
 				if err != nil {
@@ -118,7 +123,7 @@ func (server *stargateServer) receiveDial() (err error) {
 	if wait, ok := server.lingering[addr.String()]; ok {
 
 		//
-		// The dialing clients send periodically new dial signals to ensure that the NAT stays open.
+		// The dialing clients sendDialAddr periodically new dial signals to ensure that the NAT stays open.
 		// When this happens the server reset the timeout to prevent pruning.
 		//
 
@@ -140,12 +145,22 @@ func (server *stargateServer) receiveDial() (err error) {
 			}
 		}()
 
-		_, err = server.conn.WriteToUDP([]byte(addr.String()), peerAddr)
+		payload1, _ := json.Marshal(PeerResolve{
+			Index:   0,
+			Address: addr,
+		})
+
+		_, err = server.conn.WriteToUDP(payload1, peerAddr)
 		if err != nil {
 			return
 		}
 
-		_, err = server.conn.WriteToUDP([]byte(peerAddr.String()), addr)
+		payload2, _ := json.Marshal(PeerResolve{
+			Index:   1,
+			Address: peerAddr,
+		})
+
+		_, err = server.conn.WriteToUDP(payload2, addr)
 		if err != nil {
 			return
 		}
