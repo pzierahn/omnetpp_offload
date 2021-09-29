@@ -26,3 +26,10 @@ build/
 .DS_Store
 /evaluation/connect.txt
 .ipynb_checkpoints
+
+evaluation/tictoc/tictoc
+evaluation/tictoc/out
+evaluation/tictoc/results
+*.sca
+*.vec
+*.vci
