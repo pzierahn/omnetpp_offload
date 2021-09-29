@@ -48,9 +48,10 @@ func (p2p *p2pConnector) connect(ctx context.Context) (err error) {
 		return
 	}
 
-	time.Sleep(time.Millisecond * 30)
-
 	if p2p.start {
+		// Sleep to ensure that peer-2 has time to receive the message.
+		time.Sleep(time.Millisecond * 30)
+
 		log.Printf("Write msgHello")
 		_, err = p2p.conn.WriteToUDP([]byte{msgHello}, p2p.peer)
 		if err != nil {
