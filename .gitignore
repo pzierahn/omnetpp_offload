@@ -25,3 +25,4 @@ build/
 
 .DS_Store
 /evaluation/connect.txt
+.ipynb_checkpoints
