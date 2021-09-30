@@ -8,7 +8,6 @@ import (
 	"time"
 )
 
-var server bool
 var timeout time.Duration
 var dialAddr string
 var write string
@@ -16,7 +15,6 @@ var serverAddr string
 var port int
 
 func init() {
-	flag.BoolVar(&server, "server", false, "start stun server")
 	flag.StringVar(&dialAddr, "dialAddr", "", "dial address")
 	flag.StringVar(&write, "write", "", "the message that will be transferred")
 	flag.DurationVar(&timeout, "timeout", time.Minute*8, "timeout for connection")
@@ -34,15 +32,6 @@ func main() {
 		Port: port,
 	})
 
-	if server {
-		err := stargate.Server(context.Background(), true)
-		if err != nil {
-			log.Fatalln(err)
-		}
-
-		return
-	}
-
 	if dialAddr == "" {
 		log.Fatalln("dialAddr missing!")
 	}
@@ -50,18 +39,21 @@ func main() {
 	ctx, cnl := context.WithTimeout(context.Background(), timeout)
 	defer cnl()
 
-	conn, peer, err := stargate.DialP2PUDP(ctx, dialAddr)
+	//conn, peer, err := stargate.DialP2PUDP(ctx, dialAddr)
+	conn, err := stargate.DialRelayTCP(ctx, dialAddr)
 	if err != nil {
 		log.Fatalln(err)
 	}
 	defer func() { _ = conn.Close() }()
 
-	log.Printf("Connected peer to peer: local=%v peer=%v", conn.LocalAddr(), peer)
+	//log.Printf("Connected peer to peer: local=%v peer=%v", conn.LocalAddr(), peer)
+	log.Printf("Connected peer to peer: local=%v peer=%v", conn.LocalAddr())
 
 	if write != "" {
 		log.Printf("Write: '%s'", write)
 
-		_, err = conn.WriteTo([]byte(write), peer)
+		//_, err = conn.WriteTo([]byte(write), peer)
+		_, err = conn.Write([]byte(write))
 		if err != nil {
 			log.Fatalln(err)
 		}

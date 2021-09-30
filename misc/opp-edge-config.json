@@ -8,6 +8,7 @@
         "simulations/",
         "src/"
     ],
+    "tag": "TaskletSystem",
     "useLib": true,
     "simulation": "src/TaskletSimulator",
     "sourcePath": "src/",
