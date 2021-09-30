@@ -24,9 +24,9 @@ func main() {
 		Port: port,
 	}
 
-	port := os.Getenv("PORT")
-	if port != "" {
-		config.Port, _ = strconv.Atoi(port)
+	envPort := os.Getenv("PORT")
+	if envPort != "" {
+		config.Port, _ = strconv.Atoi(envPort)
 	}
 
 	// Set stun server address
