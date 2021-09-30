@@ -43,7 +43,7 @@ go install cmd/broker/opp_edge_broker.go
 nohup opp_edge_broker > opp_edge_broker.log 2>&1 &
 ```
 
-## Developer Notes (ignore)
+## Developer Notes
 
 Install protobuf dependencies.
 
@@ -53,4 +53,13 @@ go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@latest
 
 go get -u google.golang.org/grpc
 GOOS=linux GOARCH=amd64 go build cmd/consumer/opp_edge_run.go
+```
+
+Build a new OMNeT++ image that supports amd64 and arm64.
+
+```shell
+docker buildx build \
+    --push \
+    --platform linux/arm64,linux/amd64 \
+    --tag pzierahn/omnetpp_edge:latest .
 ```
