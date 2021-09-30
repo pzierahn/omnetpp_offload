@@ -16,13 +16,13 @@ type FilesChangeDetector struct {
 
 // Snapshot creates and stores a list of files and their checksums.
 func (cfiles *FilesChangeDetector) Snapshot() (err error) {
-	cfiles.snap, err = ListDir(cfiles.Root)
+	cfiles.snap, err = ListDirChecksum(cfiles.Root)
 	return
 }
 
 // ZipChanges compresses the changed files since the last snapshot.
 func (cfiles *FilesChangeDetector) ZipChanges(dirname string) (buffer bytes.Buffer, err error) {
-	files, err := ListDir(cfiles.Root)
+	files, err := ListDirChecksum(cfiles.Root)
 	if err != nil {
 		return
 	}
@@ -32,8 +32,8 @@ func (cfiles *FilesChangeDetector) ZipChanges(dirname string) (buffer bytes.Buff
 	return TarGzFiles(cfiles.Root, dirname, diff)
 }
 
-// ListDir lists all files in the given directory with its blake2b checksum.
-func ListDir(root string) (files map[string][]byte, err error) {
+// ListDirChecksum lists all files in the given directory with its blake2b checksum.
+func ListDirChecksum(root string) (files map[string][]byte, err error) {
 
 	files = make(map[string][]byte)
 
