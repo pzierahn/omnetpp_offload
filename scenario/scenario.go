@@ -1,0 +1,73 @@
+package scenario
+
+import (
+	"fmt"
+	"github.com/docker/docker/client"
+	"golang.org/x/crypto/ssh"
+	"log"
+	"os"
+	"time"
+)
+
+type Simulation struct {
+	Broker     string
+	OppEdge    string
+	Simulation string
+}
+
+type Runner interface {
+	RunScenario(scenario, connect string, trail int) (duration time.Duration, err error)
+}
+
+type ScenarioRunnerRemote struct {
+	sim       Simulation
+	docker    *client.Client
+	sshClient *ssh.Client
+}
+
+type ScenarioRunnerLocal struct {
+	sim Simulation
+}
+
+func (runner ScenarioRunnerRemote) UpdateRepo() {
+
+	log.Printf("Updating repository %s", runner.sim.OppEdge)
+
+	session, err := runner.sshClient.NewSession()
+	if err != nil {
+		log.Fatalf("unable to create a new session: %s", err)
+	}
+	defer func() {
+		_ = session.Close()
+	}()
+
+	session.Stdout = os.Stdout
+	session.Stderr = os.Stderr
+
+	if err := session.Run(fmt.Sprintf("cd %s; git pull", runner.sim.OppEdge)); err != nil {
+		log.Fatalf("unable to update project: %s", err)
+	}
+}
+
+func NewScenarioRemote(sim Simulation) Runner {
+
+	var runner ScenarioRunnerRemote
+	runner.sim = sim
+
+	var err error
+	runner.sshClient, err = connectSSH()
+	if err != nil {
+		log.Fatalf("unable to connect ssh client: %s", err)
+	}
+
+	runner.UpdateRepo()
+
+	return runner
+}
+
+func NewScenario(sim Simulation) Runner {
+	var runner ScenarioRunnerLocal
+	runner.sim = sim
+
+	return runner
+}

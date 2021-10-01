@@ -22,7 +22,7 @@ func LogAction(action, meta string) (done func(err error) error) {
 	id := fmt.Sprintf("0x%00000000x", rand.Uint32())
 
 	ctx := context.Background()
-	_, _ = client.Action(ctx, &pb.ActionEvent{
+	_, _ = cli.Action(ctx, &pb.ActionEvent{
 		TimeStamp: string(ts),
 		DeviceId:  DeviceId,
 		Step:      uint32(StepStart),
@@ -36,7 +36,7 @@ func LogAction(action, meta string) (done func(err error) error) {
 		ts, _ = timestamp.MarshalText()
 
 		if err != nil {
-			_, _ = client.Action(ctx, &pb.ActionEvent{
+			_, _ = cli.Action(ctx, &pb.ActionEvent{
 				TimeStamp: string(ts),
 				DeviceId:  DeviceId,
 				Step:      uint32(StepError),
@@ -46,7 +46,7 @@ func LogAction(action, meta string) (done func(err error) error) {
 				Error:     err.Error(),
 			})
 		} else {
-			_, _ = client.Action(ctx, &pb.ActionEvent{
+			_, _ = cli.Action(ctx, &pb.ActionEvent{
 				TimeStamp: string(ts),
 				DeviceId:  DeviceId,
 				Step:      uint32(StepSuccess),

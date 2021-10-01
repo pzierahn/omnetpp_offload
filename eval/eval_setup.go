@@ -17,7 +17,7 @@ func LogSetup(connect string, details *pb.ProviderInfo) {
 	timestamp := time.Now()
 	ts, _ := timestamp.MarshalText()
 
-	_, _ = client.Setup(context.Background(), &pb.SetupEvent{
+	_, _ = cli.Setup(context.Background(), &pb.SetupEvent{
 		TimeStamp:  string(ts),
 		ProviderId: details.ProviderId,
 		Connect:    connect,

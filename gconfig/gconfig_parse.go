@@ -27,7 +27,7 @@ func init() {
 		//
 
 		if defaultConfig.Broker.BrokerPort == 0 {
-			defaultConfig.Broker.BrokerPort = defaultBrokerPort
+			defaultConfig.Broker.BrokerPort = DefaultBrokerPort
 		}
 
 		if defaultConfig.Broker.StargatePort == 0 {
@@ -82,6 +82,10 @@ func parseFlags(parse int) {
 	}
 
 	flag.Parse()
+}
+
+func Default() Config {
+	return defaultConfig
 }
 
 func ParseFlags() Config {

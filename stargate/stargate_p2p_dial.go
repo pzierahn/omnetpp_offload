@@ -23,6 +23,7 @@ func DialP2PUDP(ctx context.Context, dialAddr DialAddr) (conn *net.UDPConn, addr
 	}
 	peer, err := pr.resolvePeer(ctx)
 	if err != nil {
+		log.Printf("############# error: %v", err)
 		return
 	}
 

@@ -16,14 +16,14 @@ const (
 
 var DeviceId string
 
-var client pb.EvalClient
+var cli pb.EvalClient
 
 func Init(conn *grpc.ClientConn) {
-	client = pb.NewEvalClient(conn)
+	cli = pb.NewEvalClient(conn)
 }
 
 func SetScenario(simulationId string) {
-	_, _ = client.Scenario(context.Background(), &pb.EvalScenario{
+	_, _ = cli.Scenario(context.Background(), &pb.EvalScenario{
 		ScenarioId:   os.Getenv("SCENARIOID"),
 		TrailId:      os.Getenv("TRAILID"),
 		SimulationId: simulationId,

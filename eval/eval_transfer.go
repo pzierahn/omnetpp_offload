@@ -21,7 +21,7 @@ func LogTransfer(provider, direction, file string) (done func(dlsize uint64, err
 	id := fmt.Sprintf("0x%00000000x", rand.Uint32())
 
 	ctx := context.Background()
-	_, _ = client.Transfer(ctx, &pb.TransferEvent{
+	_, _ = cli.Transfer(ctx, &pb.TransferEvent{
 		TimeStamp:  string(ts),
 		ProviderId: provider,
 		Step:       uint32(StepStart),
@@ -35,7 +35,7 @@ func LogTransfer(provider, direction, file string) (done func(dlsize uint64, err
 		ts, _ = timestamp.MarshalText()
 
 		if err != nil {
-			_, _ = client.Transfer(ctx, &pb.TransferEvent{
+			_, _ = cli.Transfer(ctx, &pb.TransferEvent{
 				TimeStamp:   string(ts),
 				ProviderId:  provider,
 				Step:        uint32(StepError),
@@ -46,7 +46,7 @@ func LogTransfer(provider, direction, file string) (done func(dlsize uint64, err
 				Error:       err.Error(),
 			})
 		} else {
-			_, _ = client.Transfer(ctx, &pb.TransferEvent{
+			_, _ = cli.Transfer(ctx, &pb.TransferEvent{
 				TimeStamp:   string(ts),
 				ProviderId:  provider,
 				Step:        uint32(StepSuccess),

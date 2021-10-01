@@ -9,7 +9,7 @@ import (
 )
 
 const (
-	defaultBrokerPort = 8888
+	DefaultBrokerPort = 8888
 )
 
 type Broker struct {

@@ -43,10 +43,11 @@ func (client *peerResolver) sendDialAddr(ctx context.Context) (err error) {
 	tick := time.NewTicker(time.Second * 20)
 
 	for {
-		log.Printf("sendDialAddr: registration signal (dial=%s)", client.dial)
+		log.Printf("sendDialAddr: registration signal (dial=%s) to %v", client.dial, rendezvousAddr)
 
 		_, err = client.conn.WriteTo([]byte(client.dial), rendezvousAddr)
 		if err != nil {
+			log.Printf("################# error: %v", err)
 			return
 		}
 

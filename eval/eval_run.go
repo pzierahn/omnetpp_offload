@@ -16,7 +16,7 @@ func LogRun(provider, config, num string) (done func(err error) error) {
 	id := fmt.Sprintf("0x%00000000x", rand.Uint32())
 
 	ctx := context.Background()
-	_, _ = client.Run(ctx, &pb.RunEvent{
+	_, _ = cli.Run(ctx, &pb.RunEvent{
 		TimeStamp:  string(ts),
 		ProviderId: provider,
 		Step:       uint32(StepStart),
@@ -30,7 +30,7 @@ func LogRun(provider, config, num string) (done func(err error) error) {
 		ts, _ = timestamp.MarshalText()
 
 		if err != nil {
-			_, _ = client.Run(ctx, &pb.RunEvent{
+			_, _ = cli.Run(ctx, &pb.RunEvent{
 				TimeStamp:  string(ts),
 				ProviderId: provider,
 				Step:       uint32(StepError),
@@ -40,7 +40,7 @@ func LogRun(provider, config, num string) (done func(err error) error) {
 				Error:      err.Error(),
 			})
 		} else {
-			_, _ = client.Run(ctx, &pb.RunEvent{
+			_, _ = cli.Run(ctx, &pb.RunEvent{
 				TimeStamp:  string(ts),
 				ProviderId: provider,
 				Step:       uint32(StepSuccess),
