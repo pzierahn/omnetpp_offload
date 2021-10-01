@@ -56,7 +56,7 @@ func (server *Server) Scenario(_ context.Context, scenario *pb.EvalScenario) (*e
 		return &emptypb.Empty{}, nil
 	}
 
-	dir := filepath.Join(gconfig.CacheDir(), "evaluation")
+	dir := filepath.Join(gconfig.CacheDir(), "evaluation", scenario.ScenarioId)
 	if err := os.MkdirAll(dir, 0755); err != nil {
 		panic(err)
 	}
@@ -71,24 +71,23 @@ func (server *Server) Scenario(_ context.Context, scenario *pb.EvalScenario) (*e
 	server.files = make(map[int]*os.File)
 	server.sync = make(map[int]*sync.Mutex)
 
-	id := fmt.Sprintf("%s-%s", scenario.ScenarioId, scenario.TrailId)
+	id := fmt.Sprintf("t%02s", scenario.TrailId)
 
 	for val, typ := range protoTypes {
 		var name string
 
 		switch val {
 		case fileActions:
-			name = "actions-" + id + ".csv"
+			name = id + "-actions.csv"
 		case fileRuns:
-			name = "runs-" + id + ".csv"
+			name = id + "-runs.csv"
 		case fileTransfers:
-			name = "transfers-" + id + ".csv"
+			name = id + "-transfers.csv"
 		case fileSetups:
-			name = "setup-" + id + ".csv"
+			name = id + "-setup.csv"
 		}
 
 		filename := filepath.Join(dir, name)
-		//file, err := os.OpenFile(filename, os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0644)
 		file, err := os.OpenFile(filename, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0644)
 		if err != nil {
 			panic(err)
