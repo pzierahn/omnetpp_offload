@@ -29,6 +29,7 @@ message ProviderInfo {
   string providerId = 1;
   Arch arch = 2;
   uint32 numCPUs = 3;
+  uint32 numJobs = 4;
 }
 
 message Arch {

@@ -21,6 +21,7 @@ type simulationId = string
 type provider struct {
 	pb.UnimplementedProviderServer
 	providerId     string
+	numJobs        int
 	store          *storage.Server
 	slots          chan int
 	mu             *sync.RWMutex
@@ -35,6 +36,7 @@ func Start(config gconfig.Config) {
 	mu := &sync.RWMutex{}
 	prov := &provider{
 		providerId:     simple.NamedId(config.Provider.Name, 8),
+		numJobs:        config.Provider.Jobs,
 		store:          &storage.Server{},
 		slots:          make(chan int, config.Provider.Jobs),
 		mu:             mu,

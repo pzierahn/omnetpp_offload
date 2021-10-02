@@ -12,6 +12,7 @@ func (prov *provider) info() (info *pb.ProviderInfo) {
 		ProviderId: prov.providerId,
 		Arch:       sysinfo.Arch(),
 		NumCPUs:    uint32(runtime.NumCPU()),
+		NumJobs:    uint32(prov.numJobs),
 	}
 
 	return
