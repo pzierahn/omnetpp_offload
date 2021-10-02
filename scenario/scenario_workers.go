@@ -29,7 +29,8 @@ func NewWorker(broker string) (worker Worker) {
 
 func (worker Worker) StartNative(jobs int) (cancel context.CancelFunc) {
 
-	ctx, cancel := context.WithCancel(context.Background())
+	var ctx context.Context
+	ctx, cancel = context.WithCancel(context.Background())
 	cmd := exec.CommandContext(ctx, "go", "run", "cmd/worker/opp_edge_worker.go",
 		"-broker", worker.broker,
 		"-jobs", fmt.Sprint(jobs))
