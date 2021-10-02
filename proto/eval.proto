@@ -67,7 +67,8 @@ message SetupEvent {
   string timeStamp = 4;
   string providerId = 5;
   string connect = 6;
-  uint32 numCPUs = 7;
-  string arch = 8;
-  string os = 9;
+  string arch = 7;
+  string os = 8;
+  uint32 numCPUs = 9;
+  uint32 numJobs = 10;
 }

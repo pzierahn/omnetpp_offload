@@ -22,6 +22,7 @@ func LogSetup(connect string, details *pb.ProviderInfo) {
 		ProviderId: details.ProviderId,
 		Connect:    connect,
 		NumCPUs:    details.NumCPUs,
+		NumJobs:    details.NumJobs,
 		Arch:       details.Arch.Arch,
 		Os:         details.Arch.Os,
 	})
