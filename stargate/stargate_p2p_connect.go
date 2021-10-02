@@ -16,7 +16,7 @@ type p2pConnector struct {
 
 const (
 	_ = iota
-	msgPenetrateNAT
+	msgOpenNAT
 	msgHello
 	msgACK
 )
@@ -42,8 +42,8 @@ func (p2p *p2pConnector) connect(ctx context.Context) (err error) {
 	// Send first message to open the NAT. This message is possibly lost.
 	//
 
-	log.Printf("Write msgPenetrateNAT")
-	_, err = p2p.conn.WriteToUDP([]byte{msgPenetrateNAT}, p2p.peer)
+	log.Printf("Write msgOpenNAT")
+	_, err = p2p.conn.WriteToUDP([]byte{msgOpenNAT}, p2p.peer)
 	if err != nil {
 		return
 	}
@@ -69,7 +69,7 @@ func (p2p *p2pConnector) connect(ctx context.Context) (err error) {
 
 		log.Printf("Read %v", buf)
 
-		if buf[0] == msgPenetrateNAT {
+		if buf[0] == msgOpenNAT {
 
 			//
 			// Ignore NAT opening message.
