@@ -1,6 +1,7 @@
 package main
 
 import (
+	"io/fs"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -10,7 +11,7 @@ import (
 type combine struct {
 	file   string
 	prefix string
-	src    string
+	suffix string
 }
 
 func main() {
@@ -23,55 +24,49 @@ func main() {
 
 	csvs := []combine{
 		{
-			file:   "overhead.csv",
-			prefix: "overhead",
-			src:    "meta",
+			file:   "durations.csv",
+			prefix: "durations",
 		},
 		{
 			file:   "setup.csv",
-			prefix: "setup",
-			src:    "meta",
+			suffix: "setup.csv",
 		},
 		{
 			file:   "actions.csv",
-			prefix: "actions",
-			src:    "meta",
+			suffix: "actions.csv",
 		},
 		{
 			file:   "transfers.csv",
-			prefix: "transfers",
-			src:    "meta",
+			suffix: "transfers.csv",
 		},
 		{
 			file:   "runs.csv",
-			prefix: "runs",
-			src:    "meta",
+			suffix: "runs.csv",
 		},
 	}
 
 	for _, obj := range csvs {
 
-		files, err := os.ReadDir(obj.src)
-		if err != nil {
-			panic(err)
-		}
-
 		var entries []string
 		var inx int
 
-		for _, file := range files {
+		err := filepath.WalkDir("meta", func(path string, file fs.DirEntry, _ error) (err error) {
 
 			if !strings.HasPrefix(file.Name(), obj.prefix) {
-				continue
+				return
 			}
 
-			byt, err := os.ReadFile(filepath.Join(obj.src, file.Name()))
+			if !strings.HasSuffix(file.Name(), obj.suffix) {
+				return
+			}
+
+			byt, err := os.ReadFile(path)
 			if err != nil {
-				panic(err)
+				return
 			}
 
 			if len(byt) == 0 {
-				continue
+				return
 			}
 
 			txt := string(byt)
@@ -85,6 +80,11 @@ func main() {
 			}
 
 			inx++
+
+			return
+		})
+		if err != nil {
+			panic(err)
 		}
 
 		data := strings.Join(entries, "\n") + "\n"

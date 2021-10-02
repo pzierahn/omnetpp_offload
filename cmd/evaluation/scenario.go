@@ -46,10 +46,10 @@ func init() {
 }
 
 func csvFile(scenario string) (file *os.File, writer *csv.Writer) {
-	dir := "evaluation/meta"
+	dir := filepath.Join("evaluation", "meta", scenario)
 	_ = os.MkdirAll(dir, 0755)
 
-	filename := filepath.Join(dir, fmt.Sprintf("overhead-%s.csv", scenario))
+	filename := filepath.Join(dir, "durations.csv")
 
 	_ = os.Remove(filename)
 
