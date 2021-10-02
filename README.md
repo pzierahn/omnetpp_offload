@@ -32,8 +32,8 @@ docker buildx build \
 ## Run example simulations
 
 ```shell
-go run cmd/consumer/opp_edge_run.go -path ~/github/TaskletSimulator -config ~/github/TaskletSimulator/opp-edge-config.json
-go run cmd/consumer/opp_edge_run.go -path ~/Desktop/tictoc -config ~/Desktop/tictoc/opp-edge-config.json
+go run cmd/consumer/opp_edge_run.go -path ~/github/TaskletSimulator
+go run cmd/consumer/opp_edge_run.go -path evaluation/tictoc
 ```
 
 ## Install and run broker

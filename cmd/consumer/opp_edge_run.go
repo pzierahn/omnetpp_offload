@@ -20,7 +20,7 @@ func init() {
 	log.SetFlags(log.LstdFlags | log.Lshortfile)
 
 	flag.StringVar(&path, "path", ".", "set simulation path")
-	flag.StringVar(&configPath, "config", "opp-edge-config.json", "set simulation config json")
+	flag.StringVar(&configPath, "config", "", "set simulation config JSON")
 	flag.DurationVar(&timeout, "timeout", time.Hour*3, "set timeout for execution")
 }
 
@@ -31,6 +31,10 @@ func main() {
 	path, err := filepath.Abs(path)
 	if err != nil {
 		log.Fatalln(err)
+	}
+
+	if configPath == "" {
+		configPath = filepath.Join(path, "opp-edge-config.json")
 	}
 
 	var runConfig consumer.Config
