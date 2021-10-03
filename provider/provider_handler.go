@@ -186,6 +186,8 @@ func (prov *provider) Allocate(stream pb.Provider_AllocateServer) (err error) {
 		return
 	}
 
+	log.Printf("Allocate: new requester %v", simId)
+
 	allocRecv := make(chan int, 1)
 	defer close(allocRecv)
 

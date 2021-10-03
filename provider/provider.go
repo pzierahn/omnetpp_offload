@@ -72,6 +72,18 @@ func Start(config gconfig.Config) {
 
 		return data
 	})
+	simple.Watch("/allocRecvs", func() interface{} {
+		mu.RLock()
+		defer mu.RUnlock()
+
+		data := make(map[string]bool)
+
+		for id := range prov.allocRecvs {
+			data[id] = true
+		}
+
+		return data
+	})
 
 	go simple.StartWatchServer()
 

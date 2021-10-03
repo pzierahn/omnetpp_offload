@@ -60,6 +60,8 @@ func (pConn *providerConnection) execute(sim *simulation) (err error) {
 
 				log.Printf("[%s] stop requesting slots", pConn.id())
 
+				_ = stream.CloseSend()
+
 				break
 			}
 		}

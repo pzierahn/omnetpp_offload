@@ -78,7 +78,8 @@ func (sim *simulation) startConnector(bconn *grpc.ClientConn) {
 		providers, err := stream.Recv()
 		if err != nil {
 			// TODO: Restart connector
-			log.Fatalf("unable to recieve provider list update event: %v", err)
+			log.Printf("unable to recieve provider list update event: %v", err)
+			return
 		}
 
 		log.Printf("providers update event: %v", simple.PrettyString(providers.Items))

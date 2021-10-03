@@ -37,6 +37,7 @@ func OffloadSimulation(ctx context.Context, bconfig gconfig.Broker, config *Conf
 		log.Fatalln(err)
 	}
 	defer func() {
+		log.Printf("closing connection to broker")
 		_ = conn.Close()
 	}()
 
