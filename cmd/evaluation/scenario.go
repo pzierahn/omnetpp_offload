@@ -130,10 +130,7 @@ func main() {
 	log.Printf("docker: %v", docker)
 	log.Printf("local: %v", local)
 
-	defer func() {
-		log.Printf("stop worker...")
-		cancel()
-	}()
+	defer cancel()
 
 	worker := scenario.NewWorker(broker)
 

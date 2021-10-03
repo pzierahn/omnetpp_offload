@@ -29,8 +29,8 @@ func NewWorker(broker string) (worker Worker) {
 
 func (worker Worker) StartNative(jobs int) (cancel context.CancelFunc) {
 
-	var ctx context.Context
-	ctx, cancel = context.WithCancel(context.Background())
+	//var ctx context.Context
+	ctx, cnl := context.WithCancel(context.Background())
 	cmd := exec.CommandContext(ctx, "go", "run", "cmd/worker/opp_edge_worker.go",
 		"-broker", worker.broker,
 		"-jobs", fmt.Sprint(jobs))
@@ -38,7 +38,10 @@ func (worker Worker) StartNative(jobs int) (cancel context.CancelFunc) {
 		log.Fatalf("unable to start worker: %s", err)
 	}
 
-	return
+	return func() {
+		log.Printf("Stopping worker")
+		cnl()
+	}
 }
 
 func (worker Worker) StartDocker(jobs int) (cancel context.CancelFunc) {
