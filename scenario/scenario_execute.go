@@ -14,7 +14,7 @@ import (
 	"time"
 )
 
-func (runner ScenarioRunnerRemote) RunScenario(scenario, connect string, trail int) (duration time.Duration, err error) {
+func (runner RunnerRemote) RunScenario(scenario, connect string, trail int) (duration time.Duration, err error) {
 
 	log.Printf("Staring scenario scenarioId=%s connect=%s trailId=%d", scenario, connect, trail)
 
@@ -80,7 +80,7 @@ func (runner ScenarioRunnerRemote) RunScenario(scenario, connect string, trail i
 	return
 }
 
-func (runner ScenarioRunnerLocal) RunScenario(scenario, connect string, trail int) (duration time.Duration, err error) {
+func (runner RunnerLocal) RunScenario(scenario, connect string, trail int) (duration time.Duration, err error) {
 
 	log.Printf("Staring scenario scenarioId=%s connect=%s trailId=%d", scenario, connect, trail)
 

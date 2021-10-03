@@ -71,9 +71,9 @@ func runEvaluation(runner scenario.Runner, connect string, jobs int) error {
 			name += "d"
 		}
 
-		if local {
-			name += "l"
-		}
+		//if local {
+		//	name += "l"
+		//}
 	}
 
 	file, writer := csvFile(name)
@@ -101,7 +101,7 @@ func runEvaluation(runner scenario.Runner, connect string, jobs int) error {
 		writer.Flush()
 
 		// Wait some time to clear buffers.
-		time.Sleep(time.Second * 2)
+		time.Sleep(time.Second * 3)
 	}
 
 	return nil
@@ -129,6 +129,11 @@ func main() {
 	log.Printf("repeat: %v", repeat)
 	log.Printf("docker: %v", docker)
 	log.Printf("local: %v", local)
+
+	defer func() {
+		log.Printf("stop worker...")
+		cancel()
+	}()
 
 	worker := scenario.NewWorker(broker)
 

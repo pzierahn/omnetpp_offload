@@ -19,17 +19,17 @@ type Runner interface {
 	RunScenario(scenario, connect string, trail int) (duration time.Duration, err error)
 }
 
-type ScenarioRunnerRemote struct {
+type RunnerRemote struct {
 	sim       Simulation
 	docker    *client.Client
 	sshClient *ssh.Client
 }
 
-type ScenarioRunnerLocal struct {
+type RunnerLocal struct {
 	sim Simulation
 }
 
-func (runner ScenarioRunnerRemote) UpdateRepo() {
+func (runner RunnerRemote) UpdateRepo() {
 
 	log.Printf("Updating repository %s", runner.sim.OppEdge)
 
@@ -51,7 +51,7 @@ func (runner ScenarioRunnerRemote) UpdateRepo() {
 
 func NewScenarioRemote(sim Simulation) Runner {
 
-	var runner ScenarioRunnerRemote
+	var runner RunnerRemote
 	runner.sim = sim
 
 	var err error
@@ -66,7 +66,7 @@ func NewScenarioRemote(sim Simulation) Runner {
 }
 
 func NewScenario(sim Simulation) Runner {
-	var runner ScenarioRunnerLocal
+	var runner RunnerLocal
 	runner.sim = sim
 
 	return runner
