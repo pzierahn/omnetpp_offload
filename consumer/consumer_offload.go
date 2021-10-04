@@ -8,6 +8,7 @@ import (
 	"github.com/pzierahn/project.go.omnetpp/stargate"
 	"google.golang.org/grpc"
 	"log"
+	"os"
 	"path/filepath"
 	"sync"
 )
@@ -43,7 +44,7 @@ func OffloadSimulation(ctx context.Context, bconfig gconfig.Broker, config *Conf
 
 	eval.Init(conn)
 	eval.SetScenario(id)
-	eval.DeviceId = "consumer"
+	eval.DeviceId, _ = os.Hostname()
 
 	log.Printf("OffloadSimulation: zipping %s", config.Path)
 
