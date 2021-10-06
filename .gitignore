@@ -33,3 +33,4 @@ evaluation/tictoc/results
 *.sca
 *.vec
 *.vci
+/evaluation/tictoc/.cmdenv-log
