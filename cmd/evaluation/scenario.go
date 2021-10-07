@@ -9,6 +9,7 @@ import (
 	"google.golang.org/grpc/benchmark/flags"
 	"log"
 	"os"
+	"os/exec"
 	"os/signal"
 	"path/filepath"
 	"time"
@@ -28,6 +29,7 @@ var (
 	jobNums        []int
 	connects       []string
 	scenarioName   string
+	opprun         bool
 )
 
 var cancel context.CancelFunc
@@ -107,6 +109,45 @@ func runEvaluation(runner scenario.Runner, connect string, jobs int) error {
 	return nil
 }
 
+func omnetpprun() {
+	for _, jobs := range jobNums {
+		secnario := fmt.Sprintf("opp-run-j%d", jobs)
+
+		log.Printf("omnetpprun: %v", secnario)
+
+		file, writer := csvFile(secnario)
+		_ = writer.Write([]string{"scenarioId", "trailId", "duration"})
+		writer.Flush()
+
+		for inx := start; inx < repeat; inx++ {
+			starttime := time.Now()
+
+			cmd := exec.Command("opp_runall", "-j", fmt.Sprint(jobs),
+				"./tictoc", "-c", "TicToc18", "-u", "Cmdenv")
+			cmd.Dir = "evaluation/tictoc"
+
+			cmd.Stdout = os.Stdout
+			cmd.Stderr = os.Stderr
+
+			err := cmd.Run()
+			if err != nil {
+				log.Fatalln(err)
+			}
+
+			record := []string{
+				secnario, fmt.Sprint(inx), time.Now().Sub(starttime).String(),
+			}
+
+			log.Printf("record: %v", record)
+			_ = writer.Write(record)
+			writer.Flush()
+		}
+
+		writer.Flush()
+		_ = file.Close()
+	}
+}
+
 func main() {
 
 	log.SetFlags(log.LstdFlags | log.Lshortfile)
@@ -119,6 +160,7 @@ func main() {
 	flag.BoolVar(&local, "l", false, "start from local")
 	flag.BoolVar(&startWorker, "w", false, "start worker")
 	flag.StringVar(&scenarioName, "n", "", "scenario name")
+	flag.BoolVar(&opprun, "opprun", false, "run opp_run")
 	flag.Parse()
 
 	jobNums = *nums
@@ -133,7 +175,13 @@ func main() {
 	log.Printf("local: %v", local)
 	log.Printf("startWorker: %v", startWorker)
 	log.Printf("scenarioName: %v", scenarioName)
+	log.Printf("opprun: %v", opprun)
 	log.Printf("###################################################")
+
+	if opprun {
+		omnetpprun()
+		return
+	}
 
 	worker := scenario.NewWorker(broker)
 
