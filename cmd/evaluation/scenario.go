@@ -122,6 +122,7 @@ func omnetpprun() {
 		for inx := start; inx < repeat; inx++ {
 			starttime := time.Now()
 
+			// TODO: try with "-b", "1",
 			cmd := exec.Command("opp_runall", "-j", fmt.Sprint(jobs),
 				"./tictoc", "-c", "TicToc18", "-u", "Cmdenv")
 			cmd.Dir = "evaluation/tictoc"
@@ -212,8 +213,6 @@ func main() {
 
 		return
 	}
-
-	//defer cancel()
 
 	for _, jobs := range jobNums {
 		if docker {
