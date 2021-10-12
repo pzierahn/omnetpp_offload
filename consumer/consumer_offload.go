@@ -11,10 +11,13 @@ import (
 	"os"
 	"path/filepath"
 	"sync"
+	"time"
 )
 
 // OffloadSimulation starts the simulation offloading to providers.
 func OffloadSimulation(ctx context.Context, bconfig gconfig.Broker, config *Config) {
+
+	start := time.Now()
 
 	stargate.SetConfig(stargate.Config{
 		Addr: bconfig.Address,
@@ -101,7 +104,7 @@ func OffloadSimulation(ctx context.Context, bconfig gconfig.Broker, config *Conf
 
 	sim.queue.close()
 
-	log.Printf("OffloadSimulation: simulation %s finished!", id)
+	log.Printf("OffloadSimulation: simulation %s finished in %v!", id, time.Now().Sub(start))
 
 	return
 }
