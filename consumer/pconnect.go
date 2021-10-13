@@ -83,7 +83,7 @@ func pconnect(ctx context.Context, prov *pb.ProviderInfo) (conn *grpc.ClientConn
 	if connect&connectRelay != 0 {
 		conn, err = stargrpc.DialRelay(ctx, prov.ProviderId)
 		if err == nil {
-			log.Printf("[%v] Connect over relay", prov.ProviderId)
+			log.Printf("[%v] Connect over relay server", prov.ProviderId)
 			eval.LogSetup(eval.ConnectRelay, prov)
 			return
 		}
