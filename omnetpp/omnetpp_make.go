@@ -3,7 +3,7 @@ package omnetpp
 import (
 	"context"
 	"fmt"
-	"github.com/pzierahn/project.go.omnetpp/simple"
+	"github.com/pzierahn/omnetpp_offload/simple"
 	"os"
 	"os/exec"
 	"path/filepath"

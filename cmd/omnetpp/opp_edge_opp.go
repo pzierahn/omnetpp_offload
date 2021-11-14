@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
-	"github.com/pzierahn/project.go.omnetpp/omnetpp"
+	"github.com/pzierahn/omnetpp_offload/omnetpp"
 	"io/ioutil"
 	"log"
 	"path/filepath"

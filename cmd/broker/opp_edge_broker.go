@@ -1,8 +1,8 @@
 package main
 
 import (
-	"github.com/pzierahn/project.go.omnetpp/broker"
-	"github.com/pzierahn/project.go.omnetpp/gconfig"
+	"github.com/pzierahn/omnetpp_offload/broker"
+	"github.com/pzierahn/omnetpp_offload/gconfig"
 	"os"
 	"strconv"
 )

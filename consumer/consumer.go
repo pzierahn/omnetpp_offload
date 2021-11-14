@@ -2,8 +2,8 @@ package consumer
 
 import (
 	"context"
-	"github.com/pzierahn/project.go.omnetpp/omnetpp"
-	pb "github.com/pzierahn/project.go.omnetpp/proto"
+	"github.com/pzierahn/omnetpp_offload/omnetpp"
+	pb "github.com/pzierahn/omnetpp_offload/proto"
 	"log"
 	"sync"
 )

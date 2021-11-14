@@ -3,9 +3,9 @@ package provider
 import (
 	"context"
 	"fmt"
-	pb "github.com/pzierahn/project.go.omnetpp/proto"
-	"github.com/pzierahn/project.go.omnetpp/simple"
-	"github.com/pzierahn/project.go.omnetpp/sysinfo"
+	pb "github.com/pzierahn/omnetpp_offload/proto"
+	"github.com/pzierahn/omnetpp_offload/simple"
+	"github.com/pzierahn/omnetpp_offload/sysinfo"
 	"google.golang.org/protobuf/types/known/emptypb"
 	"google.golang.org/protobuf/types/known/timestamppb"
 	"log"

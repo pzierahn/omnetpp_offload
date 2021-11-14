@@ -1,10 +1,10 @@
 package consumer
 
 import (
-	"github.com/pzierahn/project.go.omnetpp/eval"
-	pb "github.com/pzierahn/project.go.omnetpp/proto"
-	"github.com/pzierahn/project.go.omnetpp/simple"
-	"github.com/pzierahn/project.go.omnetpp/storage"
+	"github.com/pzierahn/omnetpp_offload/eval"
+	pb "github.com/pzierahn/omnetpp_offload/proto"
+	"github.com/pzierahn/omnetpp_offload/simple"
+	"github.com/pzierahn/omnetpp_offload/storage"
 	"log"
 	"time"
 )

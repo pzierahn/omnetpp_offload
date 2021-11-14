@@ -3,7 +3,7 @@ package storage
 import (
 	"bytes"
 	"context"
-	pb "github.com/pzierahn/project.go.omnetpp/proto"
+	pb "github.com/pzierahn/omnetpp_offload/proto"
 	"io"
 )
 

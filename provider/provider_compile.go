@@ -3,11 +3,11 @@ package provider
 import (
 	"context"
 	"fmt"
-	"github.com/pzierahn/project.go.omnetpp/eval"
-	"github.com/pzierahn/project.go.omnetpp/omnetpp"
-	pb "github.com/pzierahn/project.go.omnetpp/proto"
-	"github.com/pzierahn/project.go.omnetpp/simple"
-	"github.com/pzierahn/project.go.omnetpp/sysinfo"
+	"github.com/pzierahn/omnetpp_offload/eval"
+	"github.com/pzierahn/omnetpp_offload/omnetpp"
+	pb "github.com/pzierahn/omnetpp_offload/proto"
+	"github.com/pzierahn/omnetpp_offload/simple"
+	"github.com/pzierahn/omnetpp_offload/sysinfo"
 	"path/filepath"
 )
 

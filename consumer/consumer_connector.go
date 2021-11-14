@@ -1,8 +1,8 @@
 package consumer
 
 import (
-	pb "github.com/pzierahn/project.go.omnetpp/proto"
-	"github.com/pzierahn/project.go.omnetpp/simple"
+	pb "github.com/pzierahn/omnetpp_offload/proto"
+	"github.com/pzierahn/omnetpp_offload/simple"
 	"google.golang.org/grpc"
 	"google.golang.org/protobuf/types/known/emptypb"
 	"log"

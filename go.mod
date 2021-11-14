@@ -1,4 +1,4 @@
-module github.com/pzierahn/project.go.omnetpp
+module github.com/pzierahn/omnetpp_offload
 
 go 1.17
 

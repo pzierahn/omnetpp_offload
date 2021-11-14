@@ -2,9 +2,9 @@ package consumer
 
 import (
 	"context"
-	"github.com/pzierahn/project.go.omnetpp/eval"
-	pb "github.com/pzierahn/project.go.omnetpp/proto"
-	"github.com/pzierahn/project.go.omnetpp/stargrpc"
+	"github.com/pzierahn/omnetpp_offload/eval"
+	pb "github.com/pzierahn/omnetpp_offload/proto"
+	"github.com/pzierahn/omnetpp_offload/stargrpc"
 	"google.golang.org/grpc"
 	"log"
 	"os"

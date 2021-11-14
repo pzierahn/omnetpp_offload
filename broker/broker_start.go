@@ -2,10 +2,10 @@ package broker
 
 import (
 	"context"
-	"github.com/pzierahn/project.go.omnetpp/eval"
-	"github.com/pzierahn/project.go.omnetpp/gconfig"
-	pb "github.com/pzierahn/project.go.omnetpp/proto"
-	"github.com/pzierahn/project.go.omnetpp/stargate"
+	"github.com/pzierahn/omnetpp_offload/eval"
+	"github.com/pzierahn/omnetpp_offload/gconfig"
+	pb "github.com/pzierahn/omnetpp_offload/proto"
+	"github.com/pzierahn/omnetpp_offload/stargate"
 	"google.golang.org/grpc"
 	"log"
 	"net"

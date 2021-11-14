@@ -1,8 +1,8 @@
 package provider
 
 import (
-	pb "github.com/pzierahn/project.go.omnetpp/proto"
-	"github.com/pzierahn/project.go.omnetpp/sysinfo"
+	pb "github.com/pzierahn/omnetpp_offload/proto"
+	"github.com/pzierahn/omnetpp_offload/sysinfo"
 	"runtime"
 )
 

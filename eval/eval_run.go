@@ -3,7 +3,7 @@ package eval
 import (
 	"context"
 	"fmt"
-	pb "github.com/pzierahn/project.go.omnetpp/proto"
+	pb "github.com/pzierahn/omnetpp_offload/proto"
 	"math/rand"
 	"time"
 )

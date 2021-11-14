@@ -2,7 +2,7 @@ package storage
 
 import (
 	"context"
-	pb "github.com/pzierahn/project.go.omnetpp/proto"
+	pb "github.com/pzierahn/omnetpp_offload/proto"
 	"google.golang.org/protobuf/types/known/emptypb"
 	"os"
 	"path/filepath"

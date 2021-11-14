@@ -2,9 +2,9 @@ package main
 
 import (
 	"flag"
-	"github.com/pzierahn/project.go.omnetpp/gconfig"
-	"github.com/pzierahn/project.go.omnetpp/provider"
-	"github.com/pzierahn/project.go.omnetpp/storage"
+	"github.com/pzierahn/omnetpp_offload/gconfig"
+	"github.com/pzierahn/omnetpp_offload/provider"
+	"github.com/pzierahn/omnetpp_offload/storage"
 )
 
 var clean bool

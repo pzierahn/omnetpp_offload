@@ -1,8 +1,8 @@
 package consumer
 
 import (
-	pb "github.com/pzierahn/project.go.omnetpp/proto"
-	"github.com/pzierahn/project.go.omnetpp/provider"
+	pb "github.com/pzierahn/omnetpp_offload/proto"
+	"github.com/pzierahn/omnetpp_offload/provider"
 	"google.golang.org/grpc/metadata"
 	"log"
 )

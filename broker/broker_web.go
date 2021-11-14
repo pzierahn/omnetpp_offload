@@ -2,9 +2,9 @@ package broker
 
 import (
 	"fmt"
-	pb "github.com/pzierahn/project.go.omnetpp/proto"
-	"github.com/pzierahn/project.go.omnetpp/simple"
-	"github.com/pzierahn/project.go.omnetpp/stargate"
+	pb "github.com/pzierahn/omnetpp_offload/proto"
+	"github.com/pzierahn/omnetpp_offload/simple"
+	"github.com/pzierahn/omnetpp_offload/stargate"
 	"log"
 	"net/http"
 )

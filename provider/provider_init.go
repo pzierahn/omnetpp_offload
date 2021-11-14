@@ -1,7 +1,7 @@
 package provider
 
 import (
-	"github.com/pzierahn/project.go.omnetpp/gconfig"
+	"github.com/pzierahn/omnetpp_offload/gconfig"
 	"log"
 	"os"
 	"path/filepath"

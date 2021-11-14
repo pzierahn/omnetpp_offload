@@ -3,7 +3,7 @@ package main
 import (
 	"context"
 	"flag"
-	"github.com/pzierahn/project.go.omnetpp/stargate"
+	"github.com/pzierahn/omnetpp_offload/stargate"
 	"log"
 	"time"
 )

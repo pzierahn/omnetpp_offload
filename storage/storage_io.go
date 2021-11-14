@@ -1,7 +1,7 @@
 package storage
 
 import (
-	"github.com/pzierahn/project.go.omnetpp/simple"
+	"github.com/pzierahn/omnetpp_offload/simple"
 	"io"
 )
 

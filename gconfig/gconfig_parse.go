@@ -3,8 +3,8 @@ package gconfig
 import (
 	"encoding/json"
 	"flag"
-	"github.com/pzierahn/project.go.omnetpp/simple"
-	"github.com/pzierahn/project.go.omnetpp/stargate"
+	"github.com/pzierahn/omnetpp_offload/simple"
+	"github.com/pzierahn/omnetpp_offload/stargate"
 	"io/ioutil"
 	"os"
 	"path/filepath"

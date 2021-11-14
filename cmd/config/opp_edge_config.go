@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
-	"github.com/pzierahn/project.go.omnetpp/gconfig"
+	"github.com/pzierahn/omnetpp_offload/gconfig"
 )
 
 var save bool

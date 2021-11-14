@@ -5,7 +5,7 @@ import (
 	"encoding/csv"
 	"flag"
 	"fmt"
-	"github.com/pzierahn/project.go.omnetpp/scenario"
+	"github.com/pzierahn/omnetpp_offload/scenario"
 	"google.golang.org/grpc/benchmark/flags"
 	"log"
 	"os"

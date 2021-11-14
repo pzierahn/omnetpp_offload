@@ -3,7 +3,7 @@ package stargrpc
 import (
 	"context"
 	"fmt"
-	"github.com/pzierahn/project.go.omnetpp/stargate"
+	"github.com/pzierahn/omnetpp_offload/stargate"
 	"google.golang.org/grpc"
 	"log"
 	"net"

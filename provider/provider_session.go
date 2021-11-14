@@ -2,8 +2,8 @@ package provider
 
 import (
 	"context"
-	pb "github.com/pzierahn/project.go.omnetpp/proto"
-	"github.com/pzierahn/project.go.omnetpp/simple"
+	pb "github.com/pzierahn/omnetpp_offload/proto"
+	"github.com/pzierahn/omnetpp_offload/simple"
 	"log"
 	"os"
 	"path/filepath"

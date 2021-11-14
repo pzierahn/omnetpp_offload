@@ -2,10 +2,10 @@ package consumer
 
 import (
 	"context"
-	"github.com/pzierahn/project.go.omnetpp/eval"
-	"github.com/pzierahn/project.go.omnetpp/gconfig"
-	"github.com/pzierahn/project.go.omnetpp/simple"
-	"github.com/pzierahn/project.go.omnetpp/stargate"
+	"github.com/pzierahn/omnetpp_offload/eval"
+	"github.com/pzierahn/omnetpp_offload/gconfig"
+	"github.com/pzierahn/omnetpp_offload/simple"
+	"github.com/pzierahn/omnetpp_offload/stargate"
 	"google.golang.org/grpc"
 	"log"
 	"os"

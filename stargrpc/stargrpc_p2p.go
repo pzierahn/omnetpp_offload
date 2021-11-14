@@ -2,8 +2,8 @@ package stargrpc
 
 import (
 	"context"
-	"github.com/pzierahn/project.go.omnetpp/mimic"
-	"github.com/pzierahn/project.go.omnetpp/stargate"
+	"github.com/pzierahn/omnetpp_offload/mimic"
+	"github.com/pzierahn/omnetpp_offload/stargate"
 	"google.golang.org/grpc"
 	"log"
 	"time"
