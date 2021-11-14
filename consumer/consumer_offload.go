@@ -76,32 +76,6 @@ func OffloadSimulation(ctx context.Context, bconfig gconfig.Broker, config *Conf
 
 	sim.finished.Add(int(<-onInit))
 	sim.finished.Wait()
-
-	//time.Sleep(time.Second*3)
-	//log.Printf("########### Add somemore stuff.")
-	//
-	//sim.finished.Add(4)
-	//
-	//sim.queue.add(&pb.SimulationRun{
-	//	SimulationId: id,
-	//	Config:       "TicToc18",
-	//	RunNum:       "1",
-	//}, &pb.SimulationRun{
-	//	SimulationId: id,
-	//	Config:       "TicToc18",
-	//	RunNum:       "2",
-	//}, &pb.SimulationRun{
-	//	SimulationId: id,
-	//	Config:       "TicToc18",
-	//	RunNum:       "3",
-	//}, &pb.SimulationRun{
-	//	SimulationId: id,
-	//	Config:       "TicToc18",
-	//	RunNum:       "4",
-	//})
-	//
-	//sim.finished.Wait()
-
 	sim.queue.close()
 
 	log.Printf("OffloadSimulation: simulation %s finished in %v!", id, time.Now().Sub(start))

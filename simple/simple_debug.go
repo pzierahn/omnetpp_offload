@@ -15,6 +15,12 @@ func Watch(path string, onRequest func() interface{}) {
 	})
 }
 
-func StartWatchServer() {
-	log.Fatal(http.ListenAndServe(":8077", nil))
+func StartWatchServer(addr string) {
+
+	if addr == "" {
+		addr = ":8077"
+	}
+
+	log.Printf("start watch server on %s", addr)
+	log.Fatal(http.ListenAndServe(addr, nil))
 }

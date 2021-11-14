@@ -54,38 +54,7 @@ func Start(config gconfig.Config) {
 
 	prov.recoverSessions()
 
-	simple.Watch("/sessions", func() interface{} {
-		mu.RLock()
-		defer mu.RUnlock()
-
-		return prov.sessions
-	})
-	simple.Watch("/executionTimes", func() interface{} {
-		mu.RLock()
-		defer mu.RUnlock()
-
-		data := make(map[string]string)
-
-		for id, dur := range prov.executionTimes {
-			data[id] = dur.String()
-		}
-
-		return data
-	})
-	simple.Watch("/allocRecvs", func() interface{} {
-		mu.RLock()
-		defer mu.RUnlock()
-
-		data := make(map[string]bool)
-
-		for id := range prov.allocRecvs {
-			data[id] = true
-		}
-
-		return data
-	})
-
-	go simple.StartWatchServer()
+	startWatchers(prov)
 
 	//
 	// Register provider

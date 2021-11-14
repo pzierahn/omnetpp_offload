@@ -37,7 +37,7 @@ type PeerResolve struct {
 
 var server *stargateServer
 
-func DebugValues() (bytes []byte, err error) {
+func DebugValues() interface{} {
 
 	//
 	// TODO: Add debug values from tcp relay!
@@ -61,7 +61,7 @@ func DebugValues() (bytes []byte, err error) {
 		Peers:     server.peers,
 	}
 
-	return json.MarshalIndent(data, "", "  ")
+	return data
 }
 
 func (server *stargateServer) heartbeatDispatcher(ctx context.Context) {
