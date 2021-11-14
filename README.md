@@ -3,17 +3,17 @@
 ## Install command line tools
 
 ```shell
-go install cmd/worker/opp_edge_worker.go
-go install cmd/consumer/opp_edge_run.go
-go install cmd/config/opp_edge_config.go
-go install cmd/broker/opp_edge_broker.go
+go install cmd/worker/opp_offload_worker.go
+go install cmd/run/opp_offload_run.go
+go install cmd/config/opp_offload_config.go
+go install cmd/broker/opp_offload_broker.go
 ```
 
 ## Install and run with Docker
 
 ```shell
-docker pull pzierahn/omnetpp_edge
-docker run --rm pzierahn/omnetpp_edge opp_edge_worker -broker 85.214.35.83 -name `hostname -s`
+docker pull pzierahn/omnetpp_offload
+docker run --rm pzierahn/omnetpp_offload opp_offload_worker -broker 85.214.35.83 -name `hostname -s`
 ```
 
 ## Build and upload docker images
@@ -24,23 +24,23 @@ Build cross-platform images for amd64 and arm64.
 docker buildx build \
     --push \
     --platform linux/arm64,linux/amd64 \
-    --tag pzierahn/omnetpp_edge:latest .
+    --tag pzierahn/omnetpp_offload:latest .
 ```
 
-> Build alternative: ```docker build -t pzierahn/omnetpp_edge .```
+> Build alternative: ```docker build -t pzierahn/omnetpp_offload .```
 
 ## Run example simulations
 
 ```shell
-go run cmd/consumer/opp_edge_run.go -path ~/github/TaskletSimulator
-go run cmd/consumer/opp_edge_run.go -path evaluation/tictoc
+go run cmd/consumer/opp_offload_run.go -path ~/github/TaskletSimulator
+go run cmd/consumer/opp_offload_run.go -path evaluation/tictoc
 ```
 
 ## Install and run broker
 
 ```shell
-go install cmd/broker/opp_edge_broker.go
-nohup opp_edge_broker > opp_edge_broker.log 2>&1 &
+go install cmd/broker/opp_offload_broker.go
+nohup opp_offload_broker > opp_offload_broker.log 2>&1 &
 ```
 
 ## Developer Notes
