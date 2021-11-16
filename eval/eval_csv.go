@@ -15,19 +15,23 @@ func MarshallCSV(obj interface{}) (headers, values []string) {
 	typ := reflect.TypeOf(obj)
 
 	for inx := 0; inx < vals.NumField(); inx++ {
-		field := vals.Field(inx)
-		tag := typ.Field(inx).Tag.Get("json")
-		parts := strings.Split(tag, ",")
+		valueField := vals.Field(inx)
+		typField := typ.Field(inx)
 
-		if len(parts) < 1 {
-			continue
+		header := typField.Name
+
+		jsonTag := typField.Tag.Get("json")
+		if jsonTag != "" {
+			parts := strings.Split(jsonTag, ",")
+
+			if len(parts) > 0 {
+				header = parts[0]
+			}
 		}
-
-		header := parts[0]
 
 		headers = append(headers, header)
 
-		switch val := field.Interface().(type) {
+		switch val := valueField.Interface().(type) {
 		case time.Time:
 			timebyt, _ := val.MarshalText()
 			values = append(values, string(timebyt))
