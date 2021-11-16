@@ -242,5 +242,5 @@ var Eval_ServiceDesc = grpc.ServiceDesc{
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
-	Metadata: "eval.proto",
+	Metadata: "evaluation.proto",
 }
