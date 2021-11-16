@@ -1,5 +1,5 @@
 ./docker.sh /bin/bash
 
-mamba install plotly
+mamba install plotly --yes
 
 start-notebook.sh
