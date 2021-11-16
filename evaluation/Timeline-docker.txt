@@ -1,0 +1,5 @@
+./docker.sh /bin/bash
+
+mamba install plotly
+
+start-notebook.sh
