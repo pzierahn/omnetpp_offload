@@ -27,7 +27,7 @@ func (server *Server) Init(_ context.Context, scenario *pb.Scenario) (*emptypb.E
 	server.mu.Lock()
 	defer server.mu.Unlock()
 
-	log.Printf("init: %s", simple.PrettyString(scenario))
+	log.Printf("Init: %s", simple.PrettyString(scenario))
 
 	if scenario.ScenarioId == "" {
 		return &emptypb.Empty{}, nil
@@ -54,6 +54,8 @@ func (server *Server) Init(_ context.Context, scenario *pb.Scenario) (*emptypb.E
 }
 
 func (server *Server) Finish(_ context.Context, _ *emptypb.Empty) (*emptypb.Empty, error) {
+
+	log.Printf("Finish: finishing evaluation logging")
 
 	server.mu.Lock()
 	defer server.mu.Unlock()
