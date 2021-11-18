@@ -1,9 +1,7 @@
 package eval
 
 import (
-	"context"
 	pb "github.com/pzierahn/omnetpp_offload/proto"
-	"time"
 )
 
 const (
@@ -14,16 +12,20 @@ const (
 
 func LogSetup(connect string, details *pb.ProviderInfo) {
 
-	timestamp := time.Now()
-	ts, _ := timestamp.MarshalText()
+	//
+	// TODO
+	//
 
-	_, _ = cli.Setup(context.Background(), &pb.SetupEvent{
-		TimeStamp:  string(ts),
-		ProviderId: details.ProviderId,
-		Connect:    connect,
-		NumCPUs:    details.NumCPUs,
-		NumJobs:    details.NumJobs,
-		Arch:       details.Arch.Arch,
-		Os:         details.Arch.Os,
-	})
+	//timestamp := time.Now()
+	//ts, _ := timestamp.MarshalText()
+	//
+	//_, _ = cli.Setup(context.Background(), &pb.SetupEvent{
+	//	TimeStamp:  string(ts),
+	//	ProviderId: details.ProviderId,
+	//	Connect:    connect,
+	//	NumCPUs:    details.NumCPUs,
+	//	NumJobs:    details.NumJobs,
+	//	Arch:       details.Arch.Arch,
+	//	Os:         details.Arch.Os,
+	//})
 }

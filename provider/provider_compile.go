@@ -42,17 +42,27 @@ func (prov *provider) compile(ctx context.Context, simulation *pb.Simulation) (b
 		return
 	}
 
-	done := eval.LogAction(eval.ActionCompile, sysinfo.ArchSignature())
+	done := eval.Log(eval.Event{
+		DeviceId: prov.providerId,
+		Activity: eval.ActivityCompile,
+		Filename: sysinfo.ArchSignature(),
+	})
 	err = opp.Setup(ctx, false)
-	_ = done(nil)
+	done(nil, 0)
+
 	if err != nil {
 		return
 	}
 
 	filename := fmt.Sprintf("binary/%s.tgz", sysinfo.ArchSignature())
-	done = eval.LogAction(eval.ActionCompress, filename)
+	done = eval.Log(eval.Event{
+		DeviceId: prov.providerId,
+		Activity: eval.ActivityCompress,
+		Filename: filename,
+	})
 	buf, err := cfiles.ZipChanges(simulation.Id)
-	_ = done(err)
+	done(err, 0)
+
 	if err != nil {
 		return
 	}

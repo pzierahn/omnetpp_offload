@@ -58,24 +58,34 @@ func (prov *provider) run(ctx context.Context, run *pb.SimulationRun) (ref *pb.S
 		Path:      simulationPath,
 	}
 
-	done := eval.LogRun(prov.providerId, run.Config, run.RunNum)
+	done := eval.Log(eval.Event{
+		DeviceId:      prov.providerId,
+		Activity:      eval.ActivityRun,
+		SimulationRun: run,
+	})
 
 	opp := omnetpp.New(&oppConf)
 	err = opp.Run(ctx, run.Config, run.RunNum)
-	if err != nil {
-		return nil, done(err)
-	}
+	done(nil, 0)
 
-	_ = done(nil)
+	if err != nil {
+		return nil, err
+	}
 
 	//
 	// Collect and upload results
 	//
 
 	filename := fmt.Sprintf("results/%s_%s.tgz", run.Config, run.RunNum)
-	done = eval.LogAction(eval.ActionCompress, filename)
+	done = eval.Log(eval.Event{
+		DeviceId:      prov.providerId,
+		Activity:      eval.ActivityCompress,
+		SimulationRun: run,
+		Filename:      filename,
+	})
 	buf, err := files.ZipChanges("")
-	_ = done(err)
+	done(err, 0)
+
 	if err != nil {
 		return
 	}

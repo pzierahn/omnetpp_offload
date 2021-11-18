@@ -32,8 +32,8 @@ docker buildx build \
 ## Run example simulations
 
 ```shell
-go run cmd/consumer/opp_offload_run.go -path ~/github/TaskletSimulator
-go run cmd/consumer/opp_offload_run.go -path evaluation/tictoc
+go run cmd/run/opp_offload_run.go -path ~/github/TaskletSimulator
+go run cmd/run/opp_offload_run.go -path evaluation/tictoc
 ```
 
 ## Install and run broker

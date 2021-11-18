@@ -8,55 +8,66 @@ import (
 	"time"
 )
 
-const (
-	ActionCompile  = "Compile"
-	ActionCompress = "Compress"
-	ActionExtract  = "Extract"
-)
+type Event struct {
+	DeviceId      string
+	Activity      string
+	SimulationRun *pb.SimulationRun
+	Filename      string
+}
 
-func LogAction(action, meta string) (done func(err error) error) {
+func (event Event) runId() (id string) {
+	if event.SimulationRun != nil {
+		id = fmt.Sprintf("%s_%03s", event.SimulationRun.Config, event.SimulationRun.RunNum)
+	}
 
-	timestamp := time.Now()
-	ts, _ := timestamp.MarshalText()
+	return
+}
 
-	id := fmt.Sprintf("0x%00000000x", rand.Uint32())
+func timestampNow() (ts string) {
+	data, _ := time.Now().MarshalText()
+	return string(data)
+}
+
+func Log(event Event) (done func(err error, dlsize uint64)) {
+
+	id := fmt.Sprintf("%00000000x", rand.Uint32())
 
 	ctx := context.Background()
-	_, _ = cli.Action(ctx, &pb.ActionEvent{
-		TimeStamp: string(ts),
-		DeviceId:  DeviceId,
-		Step:      uint32(StepStart),
-		EventId:   id,
-		Action:    action,
-		Meta:      meta,
+	_, _ = cli.Log(ctx, &pb.Event{
+		Timestamp:     timestampNow(),
+		DeviceId:      event.DeviceId,
+		State:         StateStarted,
+		EventId:       id,
+		Activity:      event.Activity,
+		Filename:      event.Filename,
+		SimulationRun: event.runId(),
 	})
 
-	done = func(err error) error {
-		timestamp = time.Now()
-		ts, _ = timestamp.MarshalText()
+	done = func(err error, dlsize uint64) {
+
+		var state uint32
+		var fail string
 
 		if err != nil {
-			_, _ = cli.Action(ctx, &pb.ActionEvent{
-				TimeStamp: string(ts),
-				DeviceId:  DeviceId,
-				Step:      uint32(StepError),
-				EventId:   id,
-				Action:    action,
-				Meta:      meta,
-				Error:     err.Error(),
-			})
+			state = StateFailed
+			fail = err.Error()
 		} else {
-			_, _ = cli.Action(ctx, &pb.ActionEvent{
-				TimeStamp: string(ts),
-				DeviceId:  DeviceId,
-				Step:      uint32(StepSuccess),
-				EventId:   id,
-				Action:    action,
-				Meta:      meta,
-			})
+			state = StateFinished
 		}
 
-		return err
+		_, _ = cli.Log(ctx, &pb.Event{
+			EventId:       id,
+			DeviceId:      event.DeviceId,
+			Timestamp:     timestampNow(),
+			State:         state,
+			Error:         fail,
+			Activity:      event.Activity,
+			Filename:      event.Filename,
+			SimulationRun: event.runId(),
+			ByteSize:      dlsize,
+		})
+
+		return
 	}
 
 	return

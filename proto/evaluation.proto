@@ -6,69 +6,37 @@ option go_package = "./proto";
 //import "google/protobuf/timestamp.proto";
 import "google/protobuf/empty.proto";
 
-service Eval {
-  rpc Scenario (EvalScenario)  returns (google.protobuf.Empty);
-  rpc Action   (ActionEvent)   returns (google.protobuf.Empty);
-  rpc Run      (RunEvent)      returns (google.protobuf.Empty);
-  rpc Transfer (TransferEvent) returns (google.protobuf.Empty);
-  rpc Setup    (SetupEvent)    returns (google.protobuf.Empty);
+service Evaluation {
+  rpc Init       (Scenario)              returns (google.protobuf.Empty);
+  rpc Finish     (google.protobuf.Empty) returns (google.protobuf.Empty);
+  rpc LogConnect (DeviceJoinEvent)       returns (google.protobuf.Empty);
+  rpc Log        (Event)                 returns (google.protobuf.Empty);
 }
 
-message EvalScenario {
+message DeviceJoinEvent {
+  string deviceId = 1;
+  string timestamp = 2;
+  string arch = 3;
+  string os = 4;
+  uint32 numCPUs = 5;
+  uint32 numJobs = 6;
+}
+
+message Scenario {
   string scenarioId = 1;
   string trailId = 2;
   string simulationId = 3;
 }
 
-message ActionEvent {
-  string scenarioId = 1;
-  string trailId = 2;
-  string simulationId = 3;
-  string timeStamp = 4;
-  string deviceId = 5;
-  string action = 6;
-  string meta = 7;
-  string eventId = 8;
-  uint32 step = 9;
-  string error = 10;
-}
+message Event {
+  string eventId = 1;
+  string deviceId = 2;
+  string timestamp = 3;
+  string activity = 4;
+  uint32 state = 5;
+  string simulationRun = 6;
+  string error = 7;
 
-message RunEvent {
-  string scenarioId = 1;
-  string trailId = 2;
-  string simulationId = 3;
-  string timeStamp = 4;
-  string providerId = 5;
-  string eventId = 6;
-  uint32 step = 7;
-  string runConfig = 8;
-  string runNumber = 9;
-  string error = 11;
-}
-
-message TransferEvent {
-  string scenarioId = 1;
-  string trailId = 2;
-  string simulationId = 3;
-  string timeStamp = 4;
-  string providerId = 5;
-  string eventId = 6;
-  uint32 step = 7;
-  string direction = 8;
-  string file = 9;
-  uint64 transferred = 10;
-  string error = 11;
-}
-
-message SetupEvent {
-  string scenarioId = 1;
-  string trailId = 2;
-  string simulationId = 3;
-  string timeStamp = 4;
-  string providerId = 5;
-  string connect = 6;
-  string arch = 7;
-  string os = 8;
-  uint32 numCPUs = 9;
-  uint32 numJobs = 10;
+  uint64 byteSize = 8; // download & upload size
+  string filename = 9; // filename
 }

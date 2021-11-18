@@ -7,7 +7,6 @@ import (
 	"github.com/pzierahn/omnetpp_offload/gconfig"
 	pb "github.com/pzierahn/omnetpp_offload/proto"
 	"github.com/pzierahn/omnetpp_offload/simple"
-	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/emptypb"
 	"log"
 	"os"
@@ -15,134 +14,88 @@ import (
 	"sync"
 )
 
-const (
-	fileActions = iota
-	fileRuns
-	fileTransfers
-	fileSetups
-)
-
 type Server struct {
-	pb.UnimplementedEvalServer
-	scenario *pb.EvalScenario
-	files    map[int]*os.File
-	sync     map[int]*sync.Mutex
+	pb.UnimplementedEvaluationServer
+	scenario *pb.Scenario
+	logFile  *os.File
+	writer   *csv.Writer
+	mu       sync.Mutex
 }
 
-func (server *Server) log(file int, msg proto.Message) {
+func (server *Server) Init(_ context.Context, scenario *pb.Scenario) (*emptypb.Empty, error) {
 
-	if server.scenario.ScenarioId == "" || server.scenario.TrailId == "" {
-		return
-	}
+	server.mu.Lock()
+	defer server.mu.Unlock()
 
-	server.sync[file].Lock()
-	defer server.sync[file].Unlock()
+	log.Printf("init: %s", simple.PrettyString(scenario))
 
-	log.Printf("log: %s", simple.PrettyString(msg))
-	_, values := MarshallProto(msg.ProtoReflect())
-
-	writer := csv.NewWriter(server.files[file])
-	defer writer.Flush()
-	_ = writer.Write(values)
-}
-
-func (server *Server) Scenario(_ context.Context, scenario *pb.EvalScenario) (*emptypb.Empty, error) {
-
-	log.Printf("scenario: %s", simple.PrettyString(scenario))
-
-	server.scenario = scenario
-
-	if scenario.ScenarioId == "" || server.scenario.TrailId == "" {
+	if scenario.ScenarioId == "" {
 		return &emptypb.Empty{}, nil
 	}
 
+	server.scenario = scenario
+
 	dir := filepath.Join(gconfig.CacheDir(), "evaluation", scenario.ScenarioId)
 	if err := os.MkdirAll(dir, 0755); err != nil {
-		panic(err)
+		log.Fatalln(err)
 	}
 
-	protoTypes := map[int]proto.Message{
-		fileActions:   &pb.ActionEvent{},
-		fileRuns:      &pb.RunEvent{},
-		fileTransfers: &pb.TransferEvent{},
-		fileSetups:    &pb.SetupEvent{},
+	filename := fmt.Sprintf("%s_%03s", scenario.ScenarioId, scenario.TrailId)
+	path := filepath.Join(dir, filename+".csv")
+	file, err := os.OpenFile(path, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0644)
+	if err != nil {
+		log.Fatalln(err)
 	}
 
-	server.files = make(map[int]*os.File)
-	server.sync = make(map[int]*sync.Mutex)
+	server.logFile = file
+	server.writer = csv.NewWriter(file)
 
-	id := fmt.Sprintf("%02s", scenario.TrailId)
+	return &emptypb.Empty{}, nil
+}
 
-	for val, typ := range protoTypes {
-		var name string
+func (server *Server) Finish(_ context.Context, _ *emptypb.Empty) (*emptypb.Empty, error) {
 
-		switch val {
-		case fileActions:
-			name = id + "-actions.csv"
-		case fileRuns:
-			name = id + "-runs.csv"
-		case fileTransfers:
-			name = id + "-transfers.csv"
-		case fileSetups:
-			name = id + "-setup.csv"
-		}
+	server.mu.Lock()
+	defer server.mu.Unlock()
 
-		filename := filepath.Join(dir, name)
-		file, err := os.OpenFile(filename, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0644)
-		if err != nil {
-			panic(err)
-		}
+	server.scenario = nil
+	_ = server.logFile.Close()
+	server.logFile = nil
 
-		stat, err := file.Stat()
-		if stat.Size() == 0 {
-			writer := csv.NewWriter(file)
-			headers, _ := MarshallProto(typ.ProtoReflect())
-			if err = writer.Write(headers); err != nil {
-				panic(err)
-			}
+	return &emptypb.Empty{}, nil
+}
 
-			writer.Flush()
-		}
+func (server *Server) Log(_ context.Context, event *pb.Event) (*emptypb.Empty, error) {
 
-		server.files[val] = file
-		server.sync[val] = &sync.Mutex{}
+	if server.logFile == nil {
+		return &emptypb.Empty{}, nil
 	}
 
-	return &emptypb.Empty{}, nil
-}
+	server.mu.Lock()
+	defer server.mu.Unlock()
 
-func (server *Server) Action(_ context.Context, event *pb.ActionEvent) (*emptypb.Empty, error) {
-	event.ScenarioId = server.scenario.ScenarioId
-	event.TrailId = server.scenario.TrailId
-	event.SimulationId = server.scenario.SimulationId
+	headers, record := MarshallProto(server.scenario.ProtoReflect())
 
-	server.log(fileActions, event)
-	return &emptypb.Empty{}, nil
-}
+	eh, er := MarshallProto(event.ProtoReflect())
+	headers = append(headers, eh...)
+	record = append(record, er...)
 
-func (server *Server) Run(_ context.Context, event *pb.RunEvent) (*emptypb.Empty, error) {
-	event.ScenarioId = server.scenario.ScenarioId
-	event.TrailId = server.scenario.TrailId
-	event.SimulationId = server.scenario.SimulationId
+	stat, err := server.logFile.Stat()
+	if err != nil {
+		log.Fatalln(err)
+	}
 
-	server.log(fileRuns, event)
-	return &emptypb.Empty{}, nil
-}
+	if stat.Size() == 0 {
+		if err = server.writer.Write(headers); err != nil {
+			log.Fatalln(err)
+		}
+	}
 
-func (server *Server) Transfer(_ context.Context, event *pb.TransferEvent) (*emptypb.Empty, error) {
-	event.ScenarioId = server.scenario.ScenarioId
-	event.TrailId = server.scenario.TrailId
-	event.SimulationId = server.scenario.SimulationId
+	if err = server.writer.Write(record); err != nil {
+		log.Fatalln(err)
+	}
 
-	server.log(fileTransfers, event)
-	return &emptypb.Empty{}, nil
-}
+	server.writer.Flush()
 
-func (server *Server) Setup(_ context.Context, event *pb.SetupEvent) (*emptypb.Empty, error) {
-	event.ScenarioId = server.scenario.ScenarioId
-	event.TrailId = server.scenario.TrailId
-	event.SimulationId = server.scenario.SimulationId
-
-	server.log(fileSetups, event)
 	return &emptypb.Empty{}, nil
 }

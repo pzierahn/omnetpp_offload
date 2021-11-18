@@ -37,7 +37,11 @@ func (pConn *providerConnection) extract(meta *fileMeta) (err error) {
 	storeCli := storage.FromClient(pConn.store)
 
 	start := time.Now()
-	done := eval.LogTransfer(pConn.id(), eval.TransferDirectionUpload, meta.Filename)
+	done := eval.Log(eval.Event{
+		DeviceId: pConn.id(),
+		Activity: eval.ActivityUpload,
+		Filename: meta.Filename,
+	})
 
 	upload := &storage.File{
 		Bucket:   meta.SimulationId,
@@ -45,11 +49,11 @@ func (pConn *providerConnection) extract(meta *fileMeta) (err error) {
 		Data:     meta.Data,
 	}
 	ref, err := storeCli.Upload(upload, ui)
-	if err != nil {
-		return done(0, err)
-	}
+	done(err, size)
 
-	_ = done(size, nil)
+	if err != nil {
+		return err
+	}
 
 	log.Printf("[%s] upload: finished file=%s size=%s time=%v",
 		pConn.id(), meta.Filename, simple.ByteSize(size), time.Now().Sub(start))

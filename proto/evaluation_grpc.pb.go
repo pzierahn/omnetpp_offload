@@ -15,230 +15,194 @@ import (
 // Requires gRPC-Go v1.32.0 or later.
 const _ = grpc.SupportPackageIsVersion7
 
-// EvalClient is the client API for Eval service.
+// EvaluationClient is the client API for Evaluation service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
-type EvalClient interface {
-	Scenario(ctx context.Context, in *EvalScenario, opts ...grpc.CallOption) (*emptypb.Empty, error)
-	Action(ctx context.Context, in *ActionEvent, opts ...grpc.CallOption) (*emptypb.Empty, error)
-	Run(ctx context.Context, in *RunEvent, opts ...grpc.CallOption) (*emptypb.Empty, error)
-	Transfer(ctx context.Context, in *TransferEvent, opts ...grpc.CallOption) (*emptypb.Empty, error)
-	Setup(ctx context.Context, in *SetupEvent, opts ...grpc.CallOption) (*emptypb.Empty, error)
+type EvaluationClient interface {
+	Init(ctx context.Context, in *Scenario, opts ...grpc.CallOption) (*emptypb.Empty, error)
+	Finish(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*emptypb.Empty, error)
+	LogConnect(ctx context.Context, in *DeviceJoinEvent, opts ...grpc.CallOption) (*emptypb.Empty, error)
+	Log(ctx context.Context, in *Event, opts ...grpc.CallOption) (*emptypb.Empty, error)
 }
 
-type evalClient struct {
+type evaluationClient struct {
 	cc grpc.ClientConnInterface
 }
 
-func NewEvalClient(cc grpc.ClientConnInterface) EvalClient {
-	return &evalClient{cc}
+func NewEvaluationClient(cc grpc.ClientConnInterface) EvaluationClient {
+	return &evaluationClient{cc}
 }
 
-func (c *evalClient) Scenario(ctx context.Context, in *EvalScenario, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+func (c *evaluationClient) Init(ctx context.Context, in *Scenario, opts ...grpc.CallOption) (*emptypb.Empty, error) {
 	out := new(emptypb.Empty)
-	err := c.cc.Invoke(ctx, "/service.Eval/Scenario", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/service.Evaluation/Init", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *evalClient) Action(ctx context.Context, in *ActionEvent, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+func (c *evaluationClient) Finish(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*emptypb.Empty, error) {
 	out := new(emptypb.Empty)
-	err := c.cc.Invoke(ctx, "/service.Eval/Action", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/service.Evaluation/Finish", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *evalClient) Run(ctx context.Context, in *RunEvent, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+func (c *evaluationClient) LogConnect(ctx context.Context, in *DeviceJoinEvent, opts ...grpc.CallOption) (*emptypb.Empty, error) {
 	out := new(emptypb.Empty)
-	err := c.cc.Invoke(ctx, "/service.Eval/Run", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/service.Evaluation/LogConnect", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *evalClient) Transfer(ctx context.Context, in *TransferEvent, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+func (c *evaluationClient) Log(ctx context.Context, in *Event, opts ...grpc.CallOption) (*emptypb.Empty, error) {
 	out := new(emptypb.Empty)
-	err := c.cc.Invoke(ctx, "/service.Eval/Transfer", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/service.Evaluation/Log", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *evalClient) Setup(ctx context.Context, in *SetupEvent, opts ...grpc.CallOption) (*emptypb.Empty, error) {
-	out := new(emptypb.Empty)
-	err := c.cc.Invoke(ctx, "/service.Eval/Setup", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-// EvalServer is the server API for Eval service.
-// All implementations must embed UnimplementedEvalServer
+// EvaluationServer is the server API for Evaluation service.
+// All implementations must embed UnimplementedEvaluationServer
 // for forward compatibility
-type EvalServer interface {
-	Scenario(context.Context, *EvalScenario) (*emptypb.Empty, error)
-	Action(context.Context, *ActionEvent) (*emptypb.Empty, error)
-	Run(context.Context, *RunEvent) (*emptypb.Empty, error)
-	Transfer(context.Context, *TransferEvent) (*emptypb.Empty, error)
-	Setup(context.Context, *SetupEvent) (*emptypb.Empty, error)
-	mustEmbedUnimplementedEvalServer()
+type EvaluationServer interface {
+	Init(context.Context, *Scenario) (*emptypb.Empty, error)
+	Finish(context.Context, *emptypb.Empty) (*emptypb.Empty, error)
+	LogConnect(context.Context, *DeviceJoinEvent) (*emptypb.Empty, error)
+	Log(context.Context, *Event) (*emptypb.Empty, error)
+	mustEmbedUnimplementedEvaluationServer()
 }
 
-// UnimplementedEvalServer must be embedded to have forward compatible implementations.
-type UnimplementedEvalServer struct {
+// UnimplementedEvaluationServer must be embedded to have forward compatible implementations.
+type UnimplementedEvaluationServer struct {
 }
 
-func (UnimplementedEvalServer) Scenario(context.Context, *EvalScenario) (*emptypb.Empty, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method Scenario not implemented")
+func (UnimplementedEvaluationServer) Init(context.Context, *Scenario) (*emptypb.Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Init not implemented")
 }
-func (UnimplementedEvalServer) Action(context.Context, *ActionEvent) (*emptypb.Empty, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method Action not implemented")
+func (UnimplementedEvaluationServer) Finish(context.Context, *emptypb.Empty) (*emptypb.Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Finish not implemented")
 }
-func (UnimplementedEvalServer) Run(context.Context, *RunEvent) (*emptypb.Empty, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method Run not implemented")
+func (UnimplementedEvaluationServer) LogConnect(context.Context, *DeviceJoinEvent) (*emptypb.Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method LogConnect not implemented")
 }
-func (UnimplementedEvalServer) Transfer(context.Context, *TransferEvent) (*emptypb.Empty, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method Transfer not implemented")
+func (UnimplementedEvaluationServer) Log(context.Context, *Event) (*emptypb.Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Log not implemented")
 }
-func (UnimplementedEvalServer) Setup(context.Context, *SetupEvent) (*emptypb.Empty, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method Setup not implemented")
-}
-func (UnimplementedEvalServer) mustEmbedUnimplementedEvalServer() {}
+func (UnimplementedEvaluationServer) mustEmbedUnimplementedEvaluationServer() {}
 
-// UnsafeEvalServer may be embedded to opt out of forward compatibility for this service.
-// Use of this interface is not recommended, as added methods to EvalServer will
+// UnsafeEvaluationServer may be embedded to opt out of forward compatibility for this service.
+// Use of this interface is not recommended, as added methods to EvaluationServer will
 // result in compilation errors.
-type UnsafeEvalServer interface {
-	mustEmbedUnimplementedEvalServer()
+type UnsafeEvaluationServer interface {
+	mustEmbedUnimplementedEvaluationServer()
 }
 
-func RegisterEvalServer(s grpc.ServiceRegistrar, srv EvalServer) {
-	s.RegisterService(&Eval_ServiceDesc, srv)
+func RegisterEvaluationServer(s grpc.ServiceRegistrar, srv EvaluationServer) {
+	s.RegisterService(&Evaluation_ServiceDesc, srv)
 }
 
-func _Eval_Scenario_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(EvalScenario)
+func _Evaluation_Init_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(Scenario)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(EvalServer).Scenario(ctx, in)
+		return srv.(EvaluationServer).Init(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/service.Eval/Scenario",
+		FullMethod: "/service.Evaluation/Init",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(EvalServer).Scenario(ctx, req.(*EvalScenario))
+		return srv.(EvaluationServer).Init(ctx, req.(*Scenario))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Eval_Action_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ActionEvent)
+func _Evaluation_Finish_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(emptypb.Empty)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(EvalServer).Action(ctx, in)
+		return srv.(EvaluationServer).Finish(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/service.Eval/Action",
+		FullMethod: "/service.Evaluation/Finish",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(EvalServer).Action(ctx, req.(*ActionEvent))
+		return srv.(EvaluationServer).Finish(ctx, req.(*emptypb.Empty))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Eval_Run_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(RunEvent)
+func _Evaluation_LogConnect_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeviceJoinEvent)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(EvalServer).Run(ctx, in)
+		return srv.(EvaluationServer).LogConnect(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/service.Eval/Run",
+		FullMethod: "/service.Evaluation/LogConnect",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(EvalServer).Run(ctx, req.(*RunEvent))
+		return srv.(EvaluationServer).LogConnect(ctx, req.(*DeviceJoinEvent))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Eval_Transfer_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(TransferEvent)
+func _Evaluation_Log_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(Event)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(EvalServer).Transfer(ctx, in)
+		return srv.(EvaluationServer).Log(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/service.Eval/Transfer",
+		FullMethod: "/service.Evaluation/Log",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(EvalServer).Transfer(ctx, req.(*TransferEvent))
+		return srv.(EvaluationServer).Log(ctx, req.(*Event))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Eval_Setup_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(SetupEvent)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(EvalServer).Setup(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/service.Eval/Setup",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(EvalServer).Setup(ctx, req.(*SetupEvent))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-// Eval_ServiceDesc is the grpc.ServiceDesc for Eval service.
+// Evaluation_ServiceDesc is the grpc.ServiceDesc for Evaluation service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
-var Eval_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "service.Eval",
-	HandlerType: (*EvalServer)(nil),
+var Evaluation_ServiceDesc = grpc.ServiceDesc{
+	ServiceName: "service.Evaluation",
+	HandlerType: (*EvaluationServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
-			MethodName: "Scenario",
-			Handler:    _Eval_Scenario_Handler,
+			MethodName: "Init",
+			Handler:    _Evaluation_Init_Handler,
 		},
 		{
-			MethodName: "Action",
-			Handler:    _Eval_Action_Handler,
+			MethodName: "Finish",
+			Handler:    _Evaluation_Finish_Handler,
 		},
 		{
-			MethodName: "Run",
-			Handler:    _Eval_Run_Handler,
+			MethodName: "LogConnect",
+			Handler:    _Evaluation_LogConnect_Handler,
 		},
 		{
-			MethodName: "Transfer",
-			Handler:    _Eval_Transfer_Handler,
-		},
-		{
-			MethodName: "Setup",
-			Handler:    _Eval_Setup_Handler,
+			MethodName: "Log",
+			Handler:    _Evaluation_Log_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

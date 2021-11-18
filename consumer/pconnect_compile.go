@@ -28,16 +28,22 @@ func (pConn *providerConnection) compileAndDownload(simulation *simulation) (err
 	log.Printf("[%s] compile: %s done", pConn.id(), arch)
 
 	start := time.Now()
-	done := eval.LogTransfer(pConn.id(), eval.TransferDirectionDownload, bin.Ref.Filename)
+	//done := eval.LogTransfer(pConn.id(), eval.TransferDirectionDownload, bin.Ref.Filename)
+	done := eval.Log(eval.Event{
+		DeviceId: pConn.id(),
+		Activity: eval.ActivityDownload,
+		Filename: bin.Ref.Filename,
+	})
 
 	var byt []byte
 	byt, err = store.Download(pConn.ctx, bin.Ref)
-	if err != nil {
-		return done(0, err)
-	}
 
 	size := uint64(len(byt))
-	_ = done(size, err)
+	done(err, 0)
+
+	if err != nil {
+		return err
+	}
 
 	log.Printf("[%s] compile: downloaded %s exe (%v in %v)",
 		pConn.id(), arch, simple.ByteSize(size), time.Now().Sub(start))

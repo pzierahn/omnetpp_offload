@@ -44,7 +44,7 @@ func Start(config gconfig.Broker) (err error) {
 
 	server := grpc.NewServer()
 	pb.RegisterBrokerServer(server, &brk)
-	pb.RegisterEvalServer(server, &eval.Server{})
+	pb.RegisterEvaluationServer(server, &eval.Server{})
 	err = server.Serve(lis)
 
 	return
