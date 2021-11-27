@@ -7,15 +7,15 @@ import (
 	"log"
 )
 
-func (pConn *providerConnection) download(dl *download) (byt []byte, err error) {
+func (connect *providerConnection) download(dl *download) (byt []byte, err error) {
 
 	// Allow only one download process per provider.
-	pConn.dmu.Lock()
-	defer pConn.dmu.Unlock()
+	connect.dmu.Lock()
+	defer connect.dmu.Unlock()
 
 	ref := dl.ref
 
-	store := storage.FromClient(pConn.store)
+	store := storage.FromClient(connect.store)
 
 	done := eval.Log(eval.Event{
 		Activity:      eval.ActivityDownload,
@@ -23,25 +23,25 @@ func (pConn *providerConnection) download(dl *download) (byt []byte, err error) 
 		Filename:      ref.Filename,
 	})
 
-	byt, err = store.Download(pConn.ctx, ref)
+	byt, err = store.Download(connect.ctx, ref)
 	size := uint64(len(byt))
 	dur := done(err, size)
 
 	if err != nil {
-		log.Printf("[%s] error %v", pConn.id(), err)
+		log.Printf("[%s] error %v", connect.id(), err)
 		return nil, err
 	}
 
-	log.Printf("[%s] download=%s size=%v time=%v", pConn.id(), ref.Filename, simple.ByteSize(size), dur)
+	log.Printf("[%s] download=%s size=%v time=%v", connect.id(), ref.Filename, simple.ByteSize(size), dur)
 
 	return
 }
 
-func (pConn *providerConnection) resultsDownloader(queue chan *download, sim *simulation) {
+func (connect *providerConnection) resultsDownloader(queue chan *download, sim *simulation) {
 	for obj := range queue {
-		buf, err := pConn.download(obj)
+		buf, err := connect.download(obj)
 		if err != nil {
-			log.Printf("[%s] download failed: reschedule %+v", pConn.id(), obj.task)
+			log.Printf("[%s] download failed: reschedule %+v", connect.id(), obj.task)
 			// Reschedule task.
 			sim.queue.add(obj.task)
 			return
@@ -60,7 +60,7 @@ func (pConn *providerConnection) resultsDownloader(queue chan *download, sim *si
 			log.Fatalf("cloudn't extract files: %v", err)
 		}
 
-		_, _ = pConn.store.Delete(pConn.ctx, obj.ref)
+		_, _ = connect.store.Delete(connect.ctx, obj.ref)
 
 		sim.finished.Done()
 	}

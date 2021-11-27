@@ -11,20 +11,20 @@ import (
 	"sync"
 )
 
-func (pConn *providerConnection) compileAndDownload(simulation *simulation) (err error) {
+func (connect *providerConnection) compileAndDownload(simulation *simulation) (err error) {
 
-	arch := sysinfo.Signature(pConn.info.Arch)
-	store := storage.FromClient(pConn.store)
+	arch := sysinfo.Signature(connect.info.Arch)
+	store := storage.FromClient(connect.store)
 
-	log.Printf("[%s] compile: %s", pConn.id(), arch)
+	log.Printf("[%s] compile: %s", connect.id(), arch)
 
 	var bin *pb.Binary
-	bin, err = pConn.provider.Compile(pConn.ctx, simulation.proto())
+	bin, err = connect.provider.Compile(connect.ctx, simulation.proto())
 	if err != nil {
 		return err
 	}
 
-	log.Printf("[%s] compile: %s done", pConn.id(), arch)
+	log.Printf("[%s] compile: %s done", connect.id(), arch)
 
 	done := eval.Log(eval.Event{
 		Activity: eval.ActivityDownload,
@@ -32,7 +32,7 @@ func (pConn *providerConnection) compileAndDownload(simulation *simulation) (err
 	})
 
 	var byt []byte
-	byt, err = store.Download(pConn.ctx, bin.Ref)
+	byt, err = store.Download(connect.ctx, bin.Ref)
 
 	size := uint64(len(byt))
 	dur := done(err, size)
@@ -42,7 +42,7 @@ func (pConn *providerConnection) compileAndDownload(simulation *simulation) (err
 	}
 
 	log.Printf("[%s] compile: downloaded %s exe (%v in %v)",
-		pConn.id(), arch, simple.ByteSize(size), dur)
+		connect.id(), arch, simple.ByteSize(size), dur)
 
 	simulation.bmu.Lock()
 	simulation.binaries[arch] = byt
@@ -51,9 +51,9 @@ func (pConn *providerConnection) compileAndDownload(simulation *simulation) (err
 	return
 }
 
-func (pConn *providerConnection) setupExecutable(simulation *simulation) (err error) {
+func (connect *providerConnection) setupExecutable(simulation *simulation) (err error) {
 
-	arch := sysinfo.Signature(pConn.info.Arch)
+	arch := sysinfo.Signature(connect.info.Arch)
 
 	var lock *sync.Mutex
 	simulation.amu.Lock()
@@ -79,7 +79,7 @@ func (pConn *providerConnection) setupExecutable(simulation *simulation) (err er
 		// Compile and download the executable.
 		//
 
-		err = pConn.compileAndDownload(simulation)
+		err = connect.compileAndDownload(simulation)
 	} else {
 
 		//
@@ -92,7 +92,7 @@ func (pConn *providerConnection) setupExecutable(simulation *simulation) (err er
 			Data:         buf,
 		}
 
-		err = pConn.extract(binary)
+		err = connect.extract(binary)
 	}
 
 	return

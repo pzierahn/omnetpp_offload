@@ -14,11 +14,11 @@ type fileMeta struct {
 	Data         []byte
 }
 
-func (pConn *providerConnection) extract(meta *fileMeta) (err error) {
+func (connect *providerConnection) extract(meta *fileMeta) (err error) {
 
 	size := uint64(len(meta.Data))
 	log.Printf("[%s] upload: %+v (%v)",
-		pConn.id(), meta.Filename, simple.ByteSize(size))
+		connect.id(), meta.Filename, simple.ByteSize(size))
 
 	ui := make(chan storage.UploadProgress)
 	defer close(ui)
@@ -26,14 +26,14 @@ func (pConn *providerConnection) extract(meta *fileMeta) (err error) {
 	go func() {
 		for info := range ui {
 			log.Printf("[%s] upload: file=%s uploaded=%v percent=%0.2f%%",
-				pConn.id(),
+				connect.id(),
 				meta.Filename,
 				simple.ByteSize(info.Uploaded),
 				info.Percent)
 		}
 	}()
 
-	storeCli := storage.FromClient(pConn.store)
+	storeCli := storage.FromClient(connect.store)
 
 	done := eval.Log(eval.Event{
 		Activity: eval.ActivityUpload,
@@ -53,16 +53,16 @@ func (pConn *providerConnection) extract(meta *fileMeta) (err error) {
 	}
 
 	log.Printf("[%s] upload: finished file=%s size=%s time=%v",
-		pConn.id(), meta.Filename, simple.ByteSize(size), dur)
+		connect.id(), meta.Filename, simple.ByteSize(size), dur)
 
-	log.Printf("[%s] extract: %s...", pConn.id(), meta.Filename)
+	log.Printf("[%s] extract: %s...", connect.id(), meta.Filename)
 
-	_, err = pConn.provider.Extract(pConn.ctx, &pb.Bundle{
+	_, err = connect.provider.Extract(connect.ctx, &pb.Bundle{
 		SimulationId: meta.SimulationId,
 		Source:       ref,
 	})
 
-	log.Printf("[%s] extract: %s done", pConn.id(), meta.Filename)
+	log.Printf("[%s] extract: %s done", connect.id(), meta.Filename)
 
 	return
 }

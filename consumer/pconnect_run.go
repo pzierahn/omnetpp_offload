@@ -6,16 +6,16 @@ import (
 	"time"
 )
 
-func (pConn *providerConnection) run(task *pb.SimulationRun) (ref *pb.StorageRef, err error) {
+func (connect *providerConnection) run(task *pb.SimulationRun) (ref *pb.StorageRef, err error) {
 	runName := task.Config + "-" + task.RunNum
-	log.Printf("[%s] %s start", pConn.id(), runName)
+	log.Printf("[%s] %s start", connect.id(), runName)
 
 	start := time.Now()
-	ref, err = pConn.provider.Run(pConn.ctx, task)
+	ref, err = connect.provider.Run(connect.ctx, task)
 	if err != nil {
-		log.Printf("[%s] %s error: %v", pConn.id(), runName, err)
+		log.Printf("[%s] %s error: %v", connect.id(), runName, err)
 	} else {
-		log.Printf("[%s] %s finished (%v)", pConn.id(), runName, time.Now().Sub(start))
+		log.Printf("[%s] %s finished (%v)", connect.id(), runName, time.Now().Sub(start))
 	}
 
 	return

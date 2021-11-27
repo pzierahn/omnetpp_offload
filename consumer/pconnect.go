@@ -26,15 +26,15 @@ type download struct {
 	ref  *pb.StorageRef
 }
 
-func (pConn *providerConnection) id() (name string) {
-	return pConn.info.ProviderId
+func (connect *providerConnection) id() (name string) {
+	return connect.info.ProviderId
 }
 
-func (pConn *providerConnection) close() {
-	//TODO: pConn.provider.DropSession(ctx, &pb.Session{})
+func (connect *providerConnection) close() {
+	//TODO: connect.provider.DropSession(ctx, &pb.Session{})
 
-	//close(pConn.downloadQueue)
-	_ = pConn.client.Close()
+	//close(connect.downloadQueue)
+	_ = connect.client.Close()
 }
 
 func pconnect(ctx context.Context, prov *pb.ProviderInfo) (pconn *providerConnection, err error) {

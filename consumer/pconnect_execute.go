@@ -8,30 +8,30 @@ import (
 	"log"
 )
 
-func (pConn *providerConnection) execute(sim *simulation) (err error) {
+func (connect *providerConnection) execute(sim *simulation) (err error) {
 
 	downloadQueue := make(chan *download, 32)
 	defer close(downloadQueue)
 
-	go pConn.resultsDownloader(downloadQueue, sim)
+	go connect.resultsDownloader(downloadQueue, sim)
 
 	ctx := metadata.AppendToOutgoingContext(sim.ctx, provider.MetaSimulationId, sim.id)
 
-	stream, err := pConn.provider.Allocate(ctx)
+	stream, err := connect.provider.Allocate(ctx)
 	if err != nil {
 		return
 	}
 
-	log.Printf("[%s] start allocator", pConn.id())
+	log.Printf("[%s] start allocator", connect.id())
 
 	for {
 		_, err = stream.Recv()
 		if err != nil {
-			log.Printf("[%s] error: %v", pConn.id(), err)
+			log.Printf("[%s] error: %v", connect.id(), err)
 			break
 		}
 
-		log.Printf("[%s] allocated slot", pConn.id())
+		log.Printf("[%s] allocated slot", connect.id())
 
 		task, ok := sim.queue.pop()
 		if !ok {
@@ -41,7 +41,7 @@ func (pConn *providerConnection) execute(sim *simulation) (err error) {
 
 			_ = stream.Send(&pb.FreeSlot{})
 
-			log.Printf("[%s] idle", pConn.id())
+			log.Printf("[%s] idle", connect.id())
 
 			// Wait to see if more slots are needed.
 			if sim.queue.linger() {
@@ -50,7 +50,7 @@ func (pConn *providerConnection) execute(sim *simulation) (err error) {
 				// A task was rescheduled, continue requesting slots.
 				//
 
-				log.Printf("[%s] continue requesting slots", pConn.id())
+				log.Printf("[%s] continue requesting slots", connect.id())
 
 				continue
 			} else {
@@ -59,17 +59,17 @@ func (pConn *providerConnection) execute(sim *simulation) (err error) {
 				// Simulation is finished, stop requesting slots.
 				//
 
-				log.Printf("[%s] stop requesting slots", pConn.id())
+				log.Printf("[%s] stop requesting slots", connect.id())
 
 				_ = stream.CloseSend()
-				_, _ = pConn.provider.StopEvaluation(ctx, &emptypb.Empty{})
+				_, _ = connect.provider.StopEvaluation(ctx, &emptypb.Empty{})
 
 				break
 			}
 		}
 
 		go func() {
-			ref, err := pConn.run(task)
+			ref, err := connect.run(task)
 			_ = stream.Send(&pb.FreeSlot{})
 
 			if err == nil {
@@ -88,7 +88,7 @@ func (pConn *providerConnection) execute(sim *simulation) (err error) {
 				// Execution failed: reschedule
 				//
 
-				log.Printf("[%s] run failed: reschedule %+v", pConn.id(), task)
+				log.Printf("[%s] run failed: reschedule %+v", connect.id(), task)
 				sim.queue.add(task)
 			}
 		}()
