@@ -6,7 +6,7 @@ import (
 )
 
 const (
-	projectName = "omnetpp-edge"
+	projectName = "omnetpp-offload"
 )
 
 func CacheDir() (dir string) {

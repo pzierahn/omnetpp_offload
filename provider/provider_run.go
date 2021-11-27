@@ -59,7 +59,6 @@ func (prov *provider) run(ctx context.Context, run *pb.SimulationRun) (ref *pb.S
 	}
 
 	done := eval.Log(eval.Event{
-		DeviceId:      prov.providerId,
 		Activity:      eval.ActivityRun,
 		SimulationRun: run,
 	})
@@ -78,7 +77,6 @@ func (prov *provider) run(ctx context.Context, run *pb.SimulationRun) (ref *pb.S
 
 	filename := fmt.Sprintf("results/%s_%s.tgz", run.Config, run.RunNum)
 	done = eval.Log(eval.Event{
-		DeviceId:      prov.providerId,
 		Activity:      eval.ActivityCompress,
 		SimulationRun: run,
 		Filename:      filename,

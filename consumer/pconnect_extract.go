@@ -38,7 +38,6 @@ func (pConn *providerConnection) extract(meta *fileMeta) (err error) {
 
 	start := time.Now()
 	done := eval.Log(eval.Event{
-		DeviceId: pConn.id(),
 		Activity: eval.ActivityUpload,
 		Filename: meta.Filename,
 	})

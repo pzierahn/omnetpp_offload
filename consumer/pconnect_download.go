@@ -18,17 +18,16 @@ func (pConn *providerConnection) download(dl *download) (byt []byte, err error) 
 
 	start := time.Now()
 	store := storage.FromClient(pConn.store)
-	//done := eval.LogTransfer(pConn.id(), eval.TransferDirectionDownload, ref.Filename)
-	done := eval.Log(eval.Event{
-		DeviceId:      pConn.id(),
-		Activity:      eval.ActivityDownload,
-		SimulationRun: dl.task,
-		Filename:      ref.Filename,
-	})
+	//done := eval.Log(eval.Event{
+	//	DeviceId:      pConn.id(),
+	//	Activity:      eval.ActivityDownload,
+	//	SimulationRun: dl.task,
+	//	Filename:      ref.Filename,
+	//})
 
 	byt, err = store.Download(pConn.ctx, ref)
 	size := uint64(len(byt))
-	done(err, size)
+	//done(err, size)
 
 	if err != nil {
 		log.Printf("[%s] error %v", pConn.id(), err)
@@ -52,7 +51,6 @@ func (pConn *providerConnection) resultsDownloader(queue chan *download, sim *si
 		}
 
 		done := eval.Log(eval.Event{
-			DeviceId:      pConn.id(),
 			Activity:      eval.ActivityExtract,
 			SimulationRun: obj.task,
 			Filename:      obj.ref.Filename,

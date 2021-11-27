@@ -11,20 +11,14 @@ import (
 	"sync"
 )
 
-const (
-	connectLocal = 1 << iota
-	connectP2P
-	connectRelay
-	connectAll = connectLocal | connectP2P | connectRelay
-)
-
 type providerConnection struct {
-	ctx      context.Context
-	conn     *grpc.ClientConn
-	info     *pb.ProviderInfo
-	provider pb.ProviderClient
-	store    pb.StorageClient
-	dmu      sync.Mutex
+	ctx        context.Context
+	client     *grpc.ClientConn
+	connection int
+	info       *pb.ProviderInfo
+	provider   pb.ProviderClient
+	store      pb.StorageClient
+	dmu        sync.Mutex
 }
 
 type download struct {
@@ -40,53 +34,47 @@ func (pConn *providerConnection) close() {
 	//TODO: pConn.provider.DropSession(ctx, &pb.Session{})
 
 	//close(pConn.downloadQueue)
-	_ = pConn.conn.Close()
+	_ = pConn.client.Close()
 }
 
-func pconnect(ctx context.Context, prov *pb.ProviderInfo) (conn *grpc.ClientConn, err error) {
+func pconnect(ctx context.Context, prov *pb.ProviderInfo) (pconn *providerConnection, err error) {
 
-	connect := connectAll
+	connect := stargrpc.ConnectAll
 
 	// Eval stuff to ensure that only the desired connection will be used
 	switch os.Getenv("CONNECT") {
 	case "local":
 		log.Println("########################## eval debug: connect only local!")
-		connect = connectLocal
+		connect = stargrpc.ConnectLocal
 
 	case "p2p":
 		log.Println("########################## eval debug: connect only p2p!")
-		connect = connectP2P
+		connect = stargrpc.ConnectP2P
 
 	case "relay":
 		log.Println("########################## eval debug: connect only relay!")
-		connect = connectRelay
+		connect = stargrpc.ConnectRelay
 	}
 
-	if connect&connectLocal != 0 {
-		conn, err = stargrpc.DialLocal(ctx, prov.ProviderId)
-		if err == nil {
-			log.Printf("[%v] Connect over local network", prov.ProviderId)
-			eval.LogSetup(eval.ConnectLocal, prov)
-			return
-		}
+	client, conn, err := stargrpc.ConnectFeedback(ctx, prov.ProviderId, connect)
+	if err != nil {
+		return nil, err
 	}
 
-	if connect&connectP2P != 0 {
-		conn, err = stargrpc.DialP2P(ctx, prov.ProviderId)
-		if err == nil {
-			log.Printf("[%v] Connect over peer-to-peer", prov.ProviderId)
-			eval.LogSetup(eval.ConnectP2P, prov)
-			return
-		}
+	pconn = &providerConnection{
+		client:     client,
+		connection: conn,
+		info:       prov,
+		provider:   pb.NewProviderClient(client),
+		store:      pb.NewStorageClient(client),
 	}
 
-	if connect&connectRelay != 0 {
-		conn, err = stargrpc.DialRelay(ctx, prov.ProviderId)
-		if err == nil {
-			log.Printf("[%v] Connect over relay server", prov.ProviderId)
-			eval.LogSetup(eval.ConnectRelay, prov)
-			return
-		}
+	if eval.IsEnabled() {
+		_, _ = pconn.provider.StartEvaluation(ctx, &pb.EvaluationScenario{
+			ScenarioId: eval.Scenario,
+			TrailId:    eval.Scenario,
+			Connection: stargrpc.ConnectionToName(conn),
+		})
 	}
 
 	return

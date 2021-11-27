@@ -22,6 +22,69 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
+type EvaluationScenario struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	ScenarioId string `protobuf:"bytes,1,opt,name=scenarioId,proto3" json:"scenarioId,omitempty"`
+	TrailId    string `protobuf:"bytes,2,opt,name=trailId,proto3" json:"trailId,omitempty"`
+	Connection string `protobuf:"bytes,3,opt,name=connection,proto3" json:"connection,omitempty"`
+}
+
+func (x *EvaluationScenario) Reset() {
+	*x = EvaluationScenario{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_provider_proto_msgTypes[0]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *EvaluationScenario) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*EvaluationScenario) ProtoMessage() {}
+
+func (x *EvaluationScenario) ProtoReflect() protoreflect.Message {
+	mi := &file_provider_proto_msgTypes[0]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use EvaluationScenario.ProtoReflect.Descriptor instead.
+func (*EvaluationScenario) Descriptor() ([]byte, []int) {
+	return file_provider_proto_rawDescGZIP(), []int{0}
+}
+
+func (x *EvaluationScenario) GetScenarioId() string {
+	if x != nil {
+		return x.ScenarioId
+	}
+	return ""
+}
+
+func (x *EvaluationScenario) GetTrailId() string {
+	if x != nil {
+		return x.TrailId
+	}
+	return ""
+}
+
+func (x *EvaluationScenario) GetConnection() string {
+	if x != nil {
+		return x.Connection
+	}
+	return ""
+}
+
 type ProviderInfo struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
@@ -36,7 +99,7 @@ type ProviderInfo struct {
 func (x *ProviderInfo) Reset() {
 	*x = ProviderInfo{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_provider_proto_msgTypes[0]
+		mi := &file_provider_proto_msgTypes[1]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -49,7 +112,7 @@ func (x *ProviderInfo) String() string {
 func (*ProviderInfo) ProtoMessage() {}
 
 func (x *ProviderInfo) ProtoReflect() protoreflect.Message {
-	mi := &file_provider_proto_msgTypes[0]
+	mi := &file_provider_proto_msgTypes[1]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -62,7 +125,7 @@ func (x *ProviderInfo) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ProviderInfo.ProtoReflect.Descriptor instead.
 func (*ProviderInfo) Descriptor() ([]byte, []int) {
-	return file_provider_proto_rawDescGZIP(), []int{0}
+	return file_provider_proto_rawDescGZIP(), []int{1}
 }
 
 func (x *ProviderInfo) GetProviderId() string {
@@ -105,7 +168,7 @@ type Arch struct {
 func (x *Arch) Reset() {
 	*x = Arch{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_provider_proto_msgTypes[1]
+		mi := &file_provider_proto_msgTypes[2]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -118,7 +181,7 @@ func (x *Arch) String() string {
 func (*Arch) ProtoMessage() {}
 
 func (x *Arch) ProtoReflect() protoreflect.Message {
-	mi := &file_provider_proto_msgTypes[1]
+	mi := &file_provider_proto_msgTypes[2]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -131,7 +194,7 @@ func (x *Arch) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Arch.ProtoReflect.Descriptor instead.
 func (*Arch) Descriptor() ([]byte, []int) {
-	return file_provider_proto_rawDescGZIP(), []int{1}
+	return file_provider_proto_rawDescGZIP(), []int{2}
 }
 
 func (x *Arch) GetOs() string {
@@ -162,7 +225,7 @@ type Utilization struct {
 func (x *Utilization) Reset() {
 	*x = Utilization{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_provider_proto_msgTypes[2]
+		mi := &file_provider_proto_msgTypes[3]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -175,7 +238,7 @@ func (x *Utilization) String() string {
 func (*Utilization) ProtoMessage() {}
 
 func (x *Utilization) ProtoReflect() protoreflect.Message {
-	mi := &file_provider_proto_msgTypes[2]
+	mi := &file_provider_proto_msgTypes[3]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -188,7 +251,7 @@ func (x *Utilization) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Utilization.ProtoReflect.Descriptor instead.
 func (*Utilization) Descriptor() ([]byte, []int) {
-	return file_provider_proto_rawDescGZIP(), []int{2}
+	return file_provider_proto_rawDescGZIP(), []int{3}
 }
 
 func (x *Utilization) GetCpuUsage() float32 {
@@ -228,7 +291,7 @@ type FreeSlot struct {
 func (x *FreeSlot) Reset() {
 	*x = FreeSlot{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_provider_proto_msgTypes[3]
+		mi := &file_provider_proto_msgTypes[4]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -241,7 +304,7 @@ func (x *FreeSlot) String() string {
 func (*FreeSlot) ProtoMessage() {}
 
 func (x *FreeSlot) ProtoReflect() protoreflect.Message {
-	mi := &file_provider_proto_msgTypes[3]
+	mi := &file_provider_proto_msgTypes[4]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -254,7 +317,7 @@ func (x *FreeSlot) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use FreeSlot.ProtoReflect.Descriptor instead.
 func (*FreeSlot) Descriptor() ([]byte, []int) {
-	return file_provider_proto_rawDescGZIP(), []int{3}
+	return file_provider_proto_rawDescGZIP(), []int{4}
 }
 
 type AllocateSlot struct {
@@ -266,7 +329,7 @@ type AllocateSlot struct {
 func (x *AllocateSlot) Reset() {
 	*x = AllocateSlot{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_provider_proto_msgTypes[4]
+		mi := &file_provider_proto_msgTypes[5]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -279,7 +342,7 @@ func (x *AllocateSlot) String() string {
 func (*AllocateSlot) ProtoMessage() {}
 
 func (x *AllocateSlot) ProtoReflect() protoreflect.Message {
-	mi := &file_provider_proto_msgTypes[4]
+	mi := &file_provider_proto_msgTypes[5]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -292,7 +355,7 @@ func (x *AllocateSlot) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AllocateSlot.ProtoReflect.Descriptor instead.
 func (*AllocateSlot) Descriptor() ([]byte, []int) {
-	return file_provider_proto_rawDescGZIP(), []int{4}
+	return file_provider_proto_rawDescGZIP(), []int{5}
 }
 
 type Simulation struct {
@@ -309,7 +372,7 @@ type Simulation struct {
 func (x *Simulation) Reset() {
 	*x = Simulation{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_provider_proto_msgTypes[5]
+		mi := &file_provider_proto_msgTypes[6]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -322,7 +385,7 @@ func (x *Simulation) String() string {
 func (*Simulation) ProtoMessage() {}
 
 func (x *Simulation) ProtoReflect() protoreflect.Message {
-	mi := &file_provider_proto_msgTypes[5]
+	mi := &file_provider_proto_msgTypes[6]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -335,7 +398,7 @@ func (x *Simulation) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Simulation.ProtoReflect.Descriptor instead.
 func (*Simulation) Descriptor() ([]byte, []int) {
-	return file_provider_proto_rawDescGZIP(), []int{5}
+	return file_provider_proto_rawDescGZIP(), []int{6}
 }
 
 func (x *Simulation) GetId() string {
@@ -381,7 +444,7 @@ type Session struct {
 func (x *Session) Reset() {
 	*x = Session{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_provider_proto_msgTypes[6]
+		mi := &file_provider_proto_msgTypes[7]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -394,7 +457,7 @@ func (x *Session) String() string {
 func (*Session) ProtoMessage() {}
 
 func (x *Session) ProtoReflect() protoreflect.Message {
-	mi := &file_provider_proto_msgTypes[6]
+	mi := &file_provider_proto_msgTypes[7]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -407,7 +470,7 @@ func (x *Session) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Session.ProtoReflect.Descriptor instead.
 func (*Session) Descriptor() ([]byte, []int) {
-	return file_provider_proto_rawDescGZIP(), []int{6}
+	return file_provider_proto_rawDescGZIP(), []int{7}
 }
 
 func (x *Session) GetSimulationId() string {
@@ -458,7 +521,7 @@ type SimulationRun struct {
 func (x *SimulationRun) Reset() {
 	*x = SimulationRun{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_provider_proto_msgTypes[7]
+		mi := &file_provider_proto_msgTypes[8]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -471,7 +534,7 @@ func (x *SimulationRun) String() string {
 func (*SimulationRun) ProtoMessage() {}
 
 func (x *SimulationRun) ProtoReflect() protoreflect.Message {
-	mi := &file_provider_proto_msgTypes[7]
+	mi := &file_provider_proto_msgTypes[8]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -484,7 +547,7 @@ func (x *SimulationRun) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SimulationRun.ProtoReflect.Descriptor instead.
 func (*SimulationRun) Descriptor() ([]byte, []int) {
-	return file_provider_proto_rawDescGZIP(), []int{7}
+	return file_provider_proto_rawDescGZIP(), []int{8}
 }
 
 func (x *SimulationRun) GetSimulationId() string {
@@ -519,7 +582,7 @@ type SimulationRunList struct {
 func (x *SimulationRunList) Reset() {
 	*x = SimulationRunList{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_provider_proto_msgTypes[8]
+		mi := &file_provider_proto_msgTypes[9]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -532,7 +595,7 @@ func (x *SimulationRunList) String() string {
 func (*SimulationRunList) ProtoMessage() {}
 
 func (x *SimulationRunList) ProtoReflect() protoreflect.Message {
-	mi := &file_provider_proto_msgTypes[8]
+	mi := &file_provider_proto_msgTypes[9]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -545,7 +608,7 @@ func (x *SimulationRunList) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SimulationRunList.ProtoReflect.Descriptor instead.
 func (*SimulationRunList) Descriptor() ([]byte, []int) {
-	return file_provider_proto_rawDescGZIP(), []int{8}
+	return file_provider_proto_rawDescGZIP(), []int{9}
 }
 
 func (x *SimulationRunList) GetItems() []*SimulationRun {
@@ -567,7 +630,7 @@ type Bundle struct {
 func (x *Bundle) Reset() {
 	*x = Bundle{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_provider_proto_msgTypes[9]
+		mi := &file_provider_proto_msgTypes[10]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -580,7 +643,7 @@ func (x *Bundle) String() string {
 func (*Bundle) ProtoMessage() {}
 
 func (x *Bundle) ProtoReflect() protoreflect.Message {
-	mi := &file_provider_proto_msgTypes[9]
+	mi := &file_provider_proto_msgTypes[10]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -593,7 +656,7 @@ func (x *Bundle) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Bundle.ProtoReflect.Descriptor instead.
 func (*Bundle) Descriptor() ([]byte, []int) {
-	return file_provider_proto_rawDescGZIP(), []int{9}
+	return file_provider_proto_rawDescGZIP(), []int{10}
 }
 
 func (x *Bundle) GetSimulationId() string {
@@ -623,7 +686,7 @@ type Binary struct {
 func (x *Binary) Reset() {
 	*x = Binary{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_provider_proto_msgTypes[10]
+		mi := &file_provider_proto_msgTypes[11]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -636,7 +699,7 @@ func (x *Binary) String() string {
 func (*Binary) ProtoMessage() {}
 
 func (x *Binary) ProtoReflect() protoreflect.Message {
-	mi := &file_provider_proto_msgTypes[10]
+	mi := &file_provider_proto_msgTypes[11]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -649,7 +712,7 @@ func (x *Binary) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Binary.ProtoReflect.Descriptor instead.
 func (*Binary) Descriptor() ([]byte, []int) {
-	return file_provider_proto_rawDescGZIP(), []int{10}
+	return file_provider_proto_rawDescGZIP(), []int{11}
 }
 
 func (x *Binary) GetSimulationId() string {
@@ -683,7 +746,14 @@ var file_provider_proto_rawDesc = []byte{
 	0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66, 0x2f, 0x74, 0x69, 0x6d, 0x65, 0x73, 0x74, 0x61, 0x6d,
 	0x70, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x1a, 0x0d, 0x73, 0x74, 0x6f, 0x72, 0x61, 0x67, 0x65,
 	0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x1a, 0x10, 0x6f, 0x70, 0x70, 0x5f, 0x63, 0x6f, 0x6e, 0x66,
-	0x69, 0x67, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x22, 0x85, 0x01, 0x0a, 0x0c, 0x50, 0x72, 0x6f,
+	0x69, 0x67, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x22, 0x6e, 0x0a, 0x12, 0x45, 0x76, 0x61, 0x6c,
+	0x75, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x53, 0x63, 0x65, 0x6e, 0x61, 0x72, 0x69, 0x6f, 0x12, 0x1e,
+	0x0a, 0x0a, 0x73, 0x63, 0x65, 0x6e, 0x61, 0x72, 0x69, 0x6f, 0x49, 0x64, 0x18, 0x01, 0x20, 0x01,
+	0x28, 0x09, 0x52, 0x0a, 0x73, 0x63, 0x65, 0x6e, 0x61, 0x72, 0x69, 0x6f, 0x49, 0x64, 0x12, 0x18,
+	0x0a, 0x07, 0x74, 0x72, 0x61, 0x69, 0x6c, 0x49, 0x64, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52,
+	0x07, 0x74, 0x72, 0x61, 0x69, 0x6c, 0x49, 0x64, 0x12, 0x1e, 0x0a, 0x0a, 0x63, 0x6f, 0x6e, 0x6e,
+	0x65, 0x63, 0x74, 0x69, 0x6f, 0x6e, 0x18, 0x03, 0x20, 0x01, 0x28, 0x09, 0x52, 0x0a, 0x63, 0x6f,
+	0x6e, 0x6e, 0x65, 0x63, 0x74, 0x69, 0x6f, 0x6e, 0x22, 0x85, 0x01, 0x0a, 0x0c, 0x50, 0x72, 0x6f,
 	0x76, 0x69, 0x64, 0x65, 0x72, 0x49, 0x6e, 0x66, 0x6f, 0x12, 0x1e, 0x0a, 0x0a, 0x70, 0x72, 0x6f,
 	0x76, 0x69, 0x64, 0x65, 0x72, 0x49, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x0a, 0x70,
 	0x72, 0x6f, 0x76, 0x69, 0x64, 0x65, 0x72, 0x49, 0x64, 0x12, 0x21, 0x0a, 0x04, 0x61, 0x72, 0x63,
@@ -753,7 +823,7 @@ var file_provider_proto_rawDesc = []byte{
 	0x65, 0x2e, 0x41, 0x72, 0x63, 0x68, 0x52, 0x04, 0x61, 0x72, 0x63, 0x68, 0x12, 0x25, 0x0a, 0x03,
 	0x72, 0x65, 0x66, 0x18, 0x03, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x13, 0x2e, 0x73, 0x65, 0x72, 0x76,
 	0x69, 0x63, 0x65, 0x2e, 0x53, 0x74, 0x6f, 0x72, 0x61, 0x67, 0x65, 0x52, 0x65, 0x66, 0x52, 0x03,
-	0x72, 0x65, 0x66, 0x32, 0xf3, 0x03, 0x0a, 0x08, 0x50, 0x72, 0x6f, 0x76, 0x69, 0x64, 0x65, 0x72,
+	0x72, 0x65, 0x66, 0x32, 0xfd, 0x04, 0x0a, 0x08, 0x50, 0x72, 0x6f, 0x76, 0x69, 0x64, 0x65, 0x72,
 	0x12, 0x35, 0x0a, 0x04, 0x49, 0x6e, 0x66, 0x6f, 0x12, 0x16, 0x2e, 0x67, 0x6f, 0x6f, 0x67, 0x6c,
 	0x65, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66, 0x2e, 0x45, 0x6d, 0x70, 0x74, 0x79,
 	0x1a, 0x15, 0x2e, 0x73, 0x65, 0x72, 0x76, 0x69, 0x63, 0x65, 0x2e, 0x50, 0x72, 0x6f, 0x76, 0x69,
@@ -784,8 +854,17 @@ var file_provider_proto_rawDesc = []byte{
 	0x6e, 0x4c, 0x69, 0x73, 0x74, 0x12, 0x32, 0x0a, 0x03, 0x52, 0x75, 0x6e, 0x12, 0x16, 0x2e, 0x73,
 	0x65, 0x72, 0x76, 0x69, 0x63, 0x65, 0x2e, 0x53, 0x69, 0x6d, 0x75, 0x6c, 0x61, 0x74, 0x69, 0x6f,
 	0x6e, 0x52, 0x75, 0x6e, 0x1a, 0x13, 0x2e, 0x73, 0x65, 0x72, 0x76, 0x69, 0x63, 0x65, 0x2e, 0x53,
-	0x74, 0x6f, 0x72, 0x61, 0x67, 0x65, 0x52, 0x65, 0x66, 0x42, 0x09, 0x5a, 0x07, 0x2e, 0x2f, 0x70,
-	0x72, 0x6f, 0x74, 0x6f, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
+	0x74, 0x6f, 0x72, 0x61, 0x67, 0x65, 0x52, 0x65, 0x66, 0x12, 0x46, 0x0a, 0x0f, 0x53, 0x74, 0x61,
+	0x72, 0x74, 0x45, 0x76, 0x61, 0x6c, 0x75, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x12, 0x1b, 0x2e, 0x73,
+	0x65, 0x72, 0x76, 0x69, 0x63, 0x65, 0x2e, 0x45, 0x76, 0x61, 0x6c, 0x75, 0x61, 0x74, 0x69, 0x6f,
+	0x6e, 0x53, 0x63, 0x65, 0x6e, 0x61, 0x72, 0x69, 0x6f, 0x1a, 0x16, 0x2e, 0x67, 0x6f, 0x6f, 0x67,
+	0x6c, 0x65, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66, 0x2e, 0x45, 0x6d, 0x70, 0x74,
+	0x79, 0x12, 0x40, 0x0a, 0x0e, 0x53, 0x74, 0x6f, 0x70, 0x45, 0x76, 0x61, 0x6c, 0x75, 0x61, 0x74,
+	0x69, 0x6f, 0x6e, 0x12, 0x16, 0x2e, 0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x2e, 0x70, 0x72, 0x6f,
+	0x74, 0x6f, 0x62, 0x75, 0x66, 0x2e, 0x45, 0x6d, 0x70, 0x74, 0x79, 0x1a, 0x16, 0x2e, 0x67, 0x6f,
+	0x6f, 0x67, 0x6c, 0x65, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66, 0x2e, 0x45, 0x6d,
+	0x70, 0x74, 0x79, 0x42, 0x09, 0x5a, 0x07, 0x2e, 0x2f, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62, 0x06,
+	0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
 }
 
 var (
@@ -800,54 +879,59 @@ func file_provider_proto_rawDescGZIP() []byte {
 	return file_provider_proto_rawDescData
 }
 
-var file_provider_proto_msgTypes = make([]protoimpl.MessageInfo, 11)
+var file_provider_proto_msgTypes = make([]protoimpl.MessageInfo, 12)
 var file_provider_proto_goTypes = []interface{}{
-	(*ProviderInfo)(nil),          // 0: service.ProviderInfo
-	(*Arch)(nil),                  // 1: service.Arch
-	(*Utilization)(nil),           // 2: service.Utilization
-	(*FreeSlot)(nil),              // 3: service.FreeSlot
-	(*AllocateSlot)(nil),          // 4: service.AllocateSlot
-	(*Simulation)(nil),            // 5: service.Simulation
-	(*Session)(nil),               // 6: service.Session
-	(*SimulationRun)(nil),         // 7: service.SimulationRun
-	(*SimulationRunList)(nil),     // 8: service.SimulationRunList
-	(*Bundle)(nil),                // 9: service.Bundle
-	(*Binary)(nil),                // 10: service.Binary
-	(*timestamppb.Timestamp)(nil), // 11: google.protobuf.Timestamp
-	(*OppConfig)(nil),             // 12: service.OppConfig
-	(*StorageRef)(nil),            // 13: service.StorageRef
-	(*emptypb.Empty)(nil),         // 14: google.protobuf.Empty
+	(*EvaluationScenario)(nil),    // 0: service.EvaluationScenario
+	(*ProviderInfo)(nil),          // 1: service.ProviderInfo
+	(*Arch)(nil),                  // 2: service.Arch
+	(*Utilization)(nil),           // 3: service.Utilization
+	(*FreeSlot)(nil),              // 4: service.FreeSlot
+	(*AllocateSlot)(nil),          // 5: service.AllocateSlot
+	(*Simulation)(nil),            // 6: service.Simulation
+	(*Session)(nil),               // 7: service.Session
+	(*SimulationRun)(nil),         // 8: service.SimulationRun
+	(*SimulationRunList)(nil),     // 9: service.SimulationRunList
+	(*Bundle)(nil),                // 10: service.Bundle
+	(*Binary)(nil),                // 11: service.Binary
+	(*timestamppb.Timestamp)(nil), // 12: google.protobuf.Timestamp
+	(*OppConfig)(nil),             // 13: service.OppConfig
+	(*StorageRef)(nil),            // 14: service.StorageRef
+	(*emptypb.Empty)(nil),         // 15: google.protobuf.Empty
 }
 var file_provider_proto_depIdxs = []int32{
-	1,  // 0: service.ProviderInfo.arch:type_name -> service.Arch
-	11, // 1: service.Utilization.updated:type_name -> google.protobuf.Timestamp
-	12, // 2: service.Simulation.oppConfig:type_name -> service.OppConfig
-	12, // 3: service.Session.oppConfig:type_name -> service.OppConfig
-	11, // 4: service.Session.ttl:type_name -> google.protobuf.Timestamp
-	7,  // 5: service.SimulationRunList.items:type_name -> service.SimulationRun
-	13, // 6: service.Bundle.source:type_name -> service.StorageRef
-	1,  // 7: service.Binary.arch:type_name -> service.Arch
-	13, // 8: service.Binary.ref:type_name -> service.StorageRef
-	14, // 9: service.Provider.Info:input_type -> google.protobuf.Empty
-	14, // 10: service.Provider.Status:input_type -> google.protobuf.Empty
-	3,  // 11: service.Provider.Allocate:input_type -> service.FreeSlot
-	5,  // 12: service.Provider.GetSession:input_type -> service.Simulation
-	6,  // 13: service.Provider.SetSession:input_type -> service.Session
-	9,  // 14: service.Provider.Extract:input_type -> service.Bundle
-	5,  // 15: service.Provider.Compile:input_type -> service.Simulation
-	5,  // 16: service.Provider.ListRunNums:input_type -> service.Simulation
-	7,  // 17: service.Provider.Run:input_type -> service.SimulationRun
-	0,  // 18: service.Provider.Info:output_type -> service.ProviderInfo
-	2,  // 19: service.Provider.Status:output_type -> service.Utilization
-	4,  // 20: service.Provider.Allocate:output_type -> service.AllocateSlot
-	6,  // 21: service.Provider.GetSession:output_type -> service.Session
-	6,  // 22: service.Provider.SetSession:output_type -> service.Session
-	14, // 23: service.Provider.Extract:output_type -> google.protobuf.Empty
-	10, // 24: service.Provider.Compile:output_type -> service.Binary
-	8,  // 25: service.Provider.ListRunNums:output_type -> service.SimulationRunList
-	13, // 26: service.Provider.Run:output_type -> service.StorageRef
-	18, // [18:27] is the sub-list for method output_type
-	9,  // [9:18] is the sub-list for method input_type
+	2,  // 0: service.ProviderInfo.arch:type_name -> service.Arch
+	12, // 1: service.Utilization.updated:type_name -> google.protobuf.Timestamp
+	13, // 2: service.Simulation.oppConfig:type_name -> service.OppConfig
+	13, // 3: service.Session.oppConfig:type_name -> service.OppConfig
+	12, // 4: service.Session.ttl:type_name -> google.protobuf.Timestamp
+	8,  // 5: service.SimulationRunList.items:type_name -> service.SimulationRun
+	14, // 6: service.Bundle.source:type_name -> service.StorageRef
+	2,  // 7: service.Binary.arch:type_name -> service.Arch
+	14, // 8: service.Binary.ref:type_name -> service.StorageRef
+	15, // 9: service.Provider.Info:input_type -> google.protobuf.Empty
+	15, // 10: service.Provider.Status:input_type -> google.protobuf.Empty
+	4,  // 11: service.Provider.Allocate:input_type -> service.FreeSlot
+	6,  // 12: service.Provider.GetSession:input_type -> service.Simulation
+	7,  // 13: service.Provider.SetSession:input_type -> service.Session
+	10, // 14: service.Provider.Extract:input_type -> service.Bundle
+	6,  // 15: service.Provider.Compile:input_type -> service.Simulation
+	6,  // 16: service.Provider.ListRunNums:input_type -> service.Simulation
+	8,  // 17: service.Provider.Run:input_type -> service.SimulationRun
+	0,  // 18: service.Provider.StartEvaluation:input_type -> service.EvaluationScenario
+	15, // 19: service.Provider.StopEvaluation:input_type -> google.protobuf.Empty
+	1,  // 20: service.Provider.Info:output_type -> service.ProviderInfo
+	3,  // 21: service.Provider.Status:output_type -> service.Utilization
+	5,  // 22: service.Provider.Allocate:output_type -> service.AllocateSlot
+	7,  // 23: service.Provider.GetSession:output_type -> service.Session
+	7,  // 24: service.Provider.SetSession:output_type -> service.Session
+	15, // 25: service.Provider.Extract:output_type -> google.protobuf.Empty
+	11, // 26: service.Provider.Compile:output_type -> service.Binary
+	9,  // 27: service.Provider.ListRunNums:output_type -> service.SimulationRunList
+	14, // 28: service.Provider.Run:output_type -> service.StorageRef
+	15, // 29: service.Provider.StartEvaluation:output_type -> google.protobuf.Empty
+	15, // 30: service.Provider.StopEvaluation:output_type -> google.protobuf.Empty
+	20, // [20:31] is the sub-list for method output_type
+	9,  // [9:20] is the sub-list for method input_type
 	9,  // [9:9] is the sub-list for extension type_name
 	9,  // [9:9] is the sub-list for extension extendee
 	0,  // [0:9] is the sub-list for field type_name
@@ -862,7 +946,7 @@ func file_provider_proto_init() {
 	file_opp_config_proto_init()
 	if !protoimpl.UnsafeEnabled {
 		file_provider_proto_msgTypes[0].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*ProviderInfo); i {
+			switch v := v.(*EvaluationScenario); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -874,7 +958,7 @@ func file_provider_proto_init() {
 			}
 		}
 		file_provider_proto_msgTypes[1].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*Arch); i {
+			switch v := v.(*ProviderInfo); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -886,7 +970,7 @@ func file_provider_proto_init() {
 			}
 		}
 		file_provider_proto_msgTypes[2].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*Utilization); i {
+			switch v := v.(*Arch); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -898,7 +982,7 @@ func file_provider_proto_init() {
 			}
 		}
 		file_provider_proto_msgTypes[3].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*FreeSlot); i {
+			switch v := v.(*Utilization); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -910,7 +994,7 @@ func file_provider_proto_init() {
 			}
 		}
 		file_provider_proto_msgTypes[4].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*AllocateSlot); i {
+			switch v := v.(*FreeSlot); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -922,7 +1006,7 @@ func file_provider_proto_init() {
 			}
 		}
 		file_provider_proto_msgTypes[5].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*Simulation); i {
+			switch v := v.(*AllocateSlot); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -934,7 +1018,7 @@ func file_provider_proto_init() {
 			}
 		}
 		file_provider_proto_msgTypes[6].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*Session); i {
+			switch v := v.(*Simulation); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -946,7 +1030,7 @@ func file_provider_proto_init() {
 			}
 		}
 		file_provider_proto_msgTypes[7].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*SimulationRun); i {
+			switch v := v.(*Session); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -958,7 +1042,7 @@ func file_provider_proto_init() {
 			}
 		}
 		file_provider_proto_msgTypes[8].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*SimulationRunList); i {
+			switch v := v.(*SimulationRun); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -970,7 +1054,7 @@ func file_provider_proto_init() {
 			}
 		}
 		file_provider_proto_msgTypes[9].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*Bundle); i {
+			switch v := v.(*SimulationRunList); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -982,6 +1066,18 @@ func file_provider_proto_init() {
 			}
 		}
 		file_provider_proto_msgTypes[10].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*Bundle); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_provider_proto_msgTypes[11].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*Binary); i {
 			case 0:
 				return &v.state
@@ -1000,7 +1096,7 @@ func file_provider_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: file_provider_proto_rawDesc,
 			NumEnums:      0,
-			NumMessages:   11,
+			NumMessages:   12,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

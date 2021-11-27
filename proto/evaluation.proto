@@ -3,29 +3,31 @@ package service;
 
 option go_package = "./proto";
 
-//import "google/protobuf/timestamp.proto";
 import "google/protobuf/empty.proto";
 
 service Evaluation {
-  rpc Init       (Scenario)              returns (google.protobuf.Empty);
-  rpc Finish     (google.protobuf.Empty) returns (google.protobuf.Empty);
-  rpc LogConnect (DeviceJoinEvent)       returns (google.protobuf.Empty);
-  rpc Log        (Event)                 returns (google.protobuf.Empty);
-}
-
-message DeviceJoinEvent {
-  string deviceId = 1;
-  string timestamp = 2;
-  string arch = 3;
-  string os = 4;
-  uint32 numCPUs = 5;
-  uint32 numJobs = 6;
+  rpc Init   (Device)                returns (google.protobuf.Empty);
+  rpc Log    (Event)                 returns (google.protobuf.Empty);
+  rpc Start  (Scenario)              returns (google.protobuf.Empty);
+  rpc Finish (google.protobuf.Empty) returns (google.protobuf.Empty);
 }
 
 message Scenario {
-  string scenarioId = 1;
-  string trailId = 2;
-  string simulationId = 3;
+  string scenario = 1;
+  string trail = 2;
+  string simulation = 3;
+}
+
+message Device {
+  string deviceId = 1;
+  string hostname = 2;
+  string timesent = 3;
+  string timereceived = 4;
+  string os = 5;
+  string arch = 6;
+  uint32 numCPUs = 7;
+  uint32 numJobs = 8;
+  string connect = 9;
 }
 
 message Event {
@@ -34,9 +36,10 @@ message Event {
   string timestamp = 3;
   string activity = 4;
   uint32 state = 5;
-  string simulationRun = 6;
-  string error = 7;
+  string config = 6;
+  string runNum = 7;
+  string error = 8;
 
-  uint64 byteSize = 8; // download & upload size
-  string filename = 9; // filename
+  uint64 byteSize = 9; // download & upload size
+  string filename = 10; // filename
 }

@@ -19,10 +19,10 @@ const _ = grpc.SupportPackageIsVersion7
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type EvaluationClient interface {
-	Init(ctx context.Context, in *Scenario, opts ...grpc.CallOption) (*emptypb.Empty, error)
-	Finish(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*emptypb.Empty, error)
-	LogConnect(ctx context.Context, in *DeviceJoinEvent, opts ...grpc.CallOption) (*emptypb.Empty, error)
+	Init(ctx context.Context, in *Device, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	Log(ctx context.Context, in *Event, opts ...grpc.CallOption) (*emptypb.Empty, error)
+	Start(ctx context.Context, in *Scenario, opts ...grpc.CallOption) (*emptypb.Empty, error)
+	Finish(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*emptypb.Empty, error)
 }
 
 type evaluationClient struct {
@@ -33,27 +33,9 @@ func NewEvaluationClient(cc grpc.ClientConnInterface) EvaluationClient {
 	return &evaluationClient{cc}
 }
 
-func (c *evaluationClient) Init(ctx context.Context, in *Scenario, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+func (c *evaluationClient) Init(ctx context.Context, in *Device, opts ...grpc.CallOption) (*emptypb.Empty, error) {
 	out := new(emptypb.Empty)
 	err := c.cc.Invoke(ctx, "/service.Evaluation/Init", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *evaluationClient) Finish(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*emptypb.Empty, error) {
-	out := new(emptypb.Empty)
-	err := c.cc.Invoke(ctx, "/service.Evaluation/Finish", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *evaluationClient) LogConnect(ctx context.Context, in *DeviceJoinEvent, opts ...grpc.CallOption) (*emptypb.Empty, error) {
-	out := new(emptypb.Empty)
-	err := c.cc.Invoke(ctx, "/service.Evaluation/LogConnect", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -69,14 +51,32 @@ func (c *evaluationClient) Log(ctx context.Context, in *Event, opts ...grpc.Call
 	return out, nil
 }
 
+func (c *evaluationClient) Start(ctx context.Context, in *Scenario, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+	out := new(emptypb.Empty)
+	err := c.cc.Invoke(ctx, "/service.Evaluation/Start", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *evaluationClient) Finish(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+	out := new(emptypb.Empty)
+	err := c.cc.Invoke(ctx, "/service.Evaluation/Finish", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // EvaluationServer is the server API for Evaluation service.
 // All implementations must embed UnimplementedEvaluationServer
 // for forward compatibility
 type EvaluationServer interface {
-	Init(context.Context, *Scenario) (*emptypb.Empty, error)
-	Finish(context.Context, *emptypb.Empty) (*emptypb.Empty, error)
-	LogConnect(context.Context, *DeviceJoinEvent) (*emptypb.Empty, error)
+	Init(context.Context, *Device) (*emptypb.Empty, error)
 	Log(context.Context, *Event) (*emptypb.Empty, error)
+	Start(context.Context, *Scenario) (*emptypb.Empty, error)
+	Finish(context.Context, *emptypb.Empty) (*emptypb.Empty, error)
 	mustEmbedUnimplementedEvaluationServer()
 }
 
@@ -84,17 +84,17 @@ type EvaluationServer interface {
 type UnimplementedEvaluationServer struct {
 }
 
-func (UnimplementedEvaluationServer) Init(context.Context, *Scenario) (*emptypb.Empty, error) {
+func (UnimplementedEvaluationServer) Init(context.Context, *Device) (*emptypb.Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Init not implemented")
-}
-func (UnimplementedEvaluationServer) Finish(context.Context, *emptypb.Empty) (*emptypb.Empty, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method Finish not implemented")
-}
-func (UnimplementedEvaluationServer) LogConnect(context.Context, *DeviceJoinEvent) (*emptypb.Empty, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method LogConnect not implemented")
 }
 func (UnimplementedEvaluationServer) Log(context.Context, *Event) (*emptypb.Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Log not implemented")
+}
+func (UnimplementedEvaluationServer) Start(context.Context, *Scenario) (*emptypb.Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Start not implemented")
+}
+func (UnimplementedEvaluationServer) Finish(context.Context, *emptypb.Empty) (*emptypb.Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Finish not implemented")
 }
 func (UnimplementedEvaluationServer) mustEmbedUnimplementedEvaluationServer() {}
 
@@ -110,7 +110,7 @@ func RegisterEvaluationServer(s grpc.ServiceRegistrar, srv EvaluationServer) {
 }
 
 func _Evaluation_Init_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(Scenario)
+	in := new(Device)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -122,43 +122,7 @@ func _Evaluation_Init_Handler(srv interface{}, ctx context.Context, dec func(int
 		FullMethod: "/service.Evaluation/Init",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(EvaluationServer).Init(ctx, req.(*Scenario))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _Evaluation_Finish_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(emptypb.Empty)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(EvaluationServer).Finish(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/service.Evaluation/Finish",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(EvaluationServer).Finish(ctx, req.(*emptypb.Empty))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _Evaluation_LogConnect_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(DeviceJoinEvent)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(EvaluationServer).LogConnect(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/service.Evaluation/LogConnect",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(EvaluationServer).LogConnect(ctx, req.(*DeviceJoinEvent))
+		return srv.(EvaluationServer).Init(ctx, req.(*Device))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -181,6 +145,42 @@ func _Evaluation_Log_Handler(srv interface{}, ctx context.Context, dec func(inte
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Evaluation_Start_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(Scenario)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(EvaluationServer).Start(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/service.Evaluation/Start",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(EvaluationServer).Start(ctx, req.(*Scenario))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Evaluation_Finish_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(emptypb.Empty)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(EvaluationServer).Finish(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/service.Evaluation/Finish",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(EvaluationServer).Finish(ctx, req.(*emptypb.Empty))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Evaluation_ServiceDesc is the grpc.ServiceDesc for Evaluation service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -193,16 +193,16 @@ var Evaluation_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _Evaluation_Init_Handler,
 		},
 		{
-			MethodName: "Finish",
-			Handler:    _Evaluation_Finish_Handler,
-		},
-		{
-			MethodName: "LogConnect",
-			Handler:    _Evaluation_LogConnect_Handler,
-		},
-		{
 			MethodName: "Log",
 			Handler:    _Evaluation_Log_Handler,
+		},
+		{
+			MethodName: "Start",
+			Handler:    _Evaluation_Start_Handler,
+		},
+		{
+			MethodName: "Finish",
+			Handler:    _Evaluation_Finish_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

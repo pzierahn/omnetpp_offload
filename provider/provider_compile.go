@@ -43,7 +43,6 @@ func (prov *provider) compile(ctx context.Context, simulation *pb.Simulation) (b
 	}
 
 	done := eval.Log(eval.Event{
-		DeviceId: prov.providerId,
 		Activity: eval.ActivityCompile,
 		Filename: sysinfo.ArchSignature(),
 	})
@@ -56,7 +55,6 @@ func (prov *provider) compile(ctx context.Context, simulation *pb.Simulation) (b
 
 	filename := fmt.Sprintf("binary/%s.tgz", sysinfo.ArchSignature())
 	done = eval.Log(eval.Event{
-		DeviceId: prov.providerId,
 		Activity: eval.ActivityCompress,
 		Filename: filename,
 	})

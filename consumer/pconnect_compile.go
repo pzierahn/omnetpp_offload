@@ -2,7 +2,6 @@ package consumer
 
 import (
 	"fmt"
-	"github.com/pzierahn/omnetpp_offload/eval"
 	pb "github.com/pzierahn/omnetpp_offload/proto"
 	"github.com/pzierahn/omnetpp_offload/simple"
 	"github.com/pzierahn/omnetpp_offload/storage"
@@ -29,17 +28,17 @@ func (pConn *providerConnection) compileAndDownload(simulation *simulation) (err
 
 	start := time.Now()
 	//done := eval.LogTransfer(pConn.id(), eval.TransferDirectionDownload, bin.Ref.Filename)
-	done := eval.Log(eval.Event{
-		DeviceId: pConn.id(),
-		Activity: eval.ActivityDownload,
-		Filename: bin.Ref.Filename,
-	})
+	//done := eval.Log(eval.Event{
+	//	DeviceId: pConn.id(),
+	//	Activity: eval.ActivityDownload,
+	//	Filename: bin.Ref.Filename,
+	//})
 
 	var byt []byte
 	byt, err = store.Download(pConn.ctx, bin.Ref)
 
 	size := uint64(len(byt))
-	done(err, 0)
+	//done(err, 0)
 
 	if err != nil {
 		return err

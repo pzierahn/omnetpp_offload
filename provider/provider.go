@@ -71,8 +71,11 @@ func Start(config gconfig.Config) {
 		log.Fatalln(err)
 	}
 
-	eval.DeviceId = prov.providerId
-	eval.Init(brokerConn)
+	defer func() {
+		_ = brokerConn.Close()
+	}()
+
+	eval.Init(brokerConn, prov.providerId)
 
 	broker := pb.NewBrokerClient(brokerConn)
 

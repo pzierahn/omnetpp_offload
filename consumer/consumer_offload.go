@@ -45,21 +45,30 @@ func OffloadSimulation(ctx context.Context, bconfig gconfig.Broker, config *Conf
 		_ = conn.Close()
 	}()
 
-	eval.Init(conn)
-	defer eval.Close()
+	scenario, trail := os.Getenv("SCENARIO"), os.Getenv("TRAIL")
+	if scenario != "" && trail != "" {
+		//
+		// Enable evaluation logging
+		//
 
-	eval.SetScenario(id)
-	eval.DeviceId, _ = os.Hostname()
+		eval.Init(conn, "")
+
+		eval.Start(ctx, scenario, trail, id)
+		eval.LogDevice("", 0)
+
+		defer eval.Finish()
+	}
 
 	log.Printf("OffloadSimulation: zipping %s", config.Path)
 
-	done := eval.Log(eval.Event{
-		DeviceId: eval.DeviceId,
+	finish := eval.Log(eval.Event{
 		Activity: eval.ActivityCompress,
 		Filename: "source.tgz",
 	})
+
 	buf, err := simple.TarGz(config.Path, id, config.Ignore...)
-	done(err, 0)
+	finish(err, 0)
+
 	if err != nil {
 		log.Fatalln(err)
 	}
