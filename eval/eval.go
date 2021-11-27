@@ -64,7 +64,6 @@ func Disable() {
 
 	enabled = false
 	Scenario, Trail = "", ""
-	cli = nil
 }
 
 func Start(ctx context.Context, scenario, trail, simulation string) {
