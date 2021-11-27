@@ -24,24 +24,12 @@ func main() {
 
 	csvs := []combine{
 		{
-			file:   "durations.csv",
-			prefix: "durations",
+			file:   "devices.csv",
+			suffix: "devices.csv",
 		},
 		{
-			file:   "setup.csv",
-			suffix: "setup.csv",
-		},
-		{
-			file:   "actions.csv",
-			suffix: "actions.csv",
-		},
-		{
-			file:   "transfers.csv",
-			suffix: "transfers.csv",
-		},
-		{
-			file:   "runs.csv",
-			suffix: "runs.csv",
+			file:   "events.csv",
+			suffix: "events.csv",
 		},
 	}
 
