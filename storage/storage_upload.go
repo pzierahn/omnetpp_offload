@@ -3,7 +3,6 @@ package storage
 import (
 	"bytes"
 	"context"
-	"github.com/pzierahn/omnetpp_offload/eval"
 	pb "github.com/pzierahn/omnetpp_offload/proto"
 	"google.golang.org/grpc/metadata"
 	"sync/atomic"
@@ -18,12 +17,6 @@ type UploadProgress struct {
 
 // Upload uploads a file to the storage server and returns a storage reference.
 func (client *Client) Upload(meta *File, fb chan<- UploadProgress) (ref *pb.StorageRef, err error) {
-
-	done := eval.Log(eval.Event{
-		Activity: eval.ActivityUpload,
-		Filename: meta.Filename,
-	})
-	defer done(err, uint64(len(meta.Data)))
 
 	md := metadata.New(map[string]string{
 		"bucket":   meta.Bucket,

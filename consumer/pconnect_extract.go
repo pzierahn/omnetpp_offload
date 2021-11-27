@@ -6,7 +6,6 @@ import (
 	"github.com/pzierahn/omnetpp_offload/simple"
 	"github.com/pzierahn/omnetpp_offload/storage"
 	"log"
-	"time"
 )
 
 type fileMeta struct {
@@ -36,7 +35,6 @@ func (pConn *providerConnection) extract(meta *fileMeta) (err error) {
 
 	storeCli := storage.FromClient(pConn.store)
 
-	start := time.Now()
 	done := eval.Log(eval.Event{
 		Activity: eval.ActivityUpload,
 		Filename: meta.Filename,
@@ -48,14 +46,14 @@ func (pConn *providerConnection) extract(meta *fileMeta) (err error) {
 		Data:     meta.Data,
 	}
 	ref, err := storeCli.Upload(upload, ui)
-	done(err, size)
+	dur := done(err, size)
 
 	if err != nil {
 		return err
 	}
 
 	log.Printf("[%s] upload: finished file=%s size=%s time=%v",
-		pConn.id(), meta.Filename, simple.ByteSize(size), time.Now().Sub(start))
+		pConn.id(), meta.Filename, simple.ByteSize(size), dur)
 
 	log.Printf("[%s] extract: %s...", pConn.id(), meta.Filename)
 
@@ -64,8 +62,7 @@ func (pConn *providerConnection) extract(meta *fileMeta) (err error) {
 		Source:       ref,
 	})
 
-	log.Printf("[%s] extract: %s done",
-		pConn.id(), meta.Filename)
+	log.Printf("[%s] extract: %s done", pConn.id(), meta.Filename)
 
 	return
 }

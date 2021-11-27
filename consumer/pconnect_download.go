@@ -5,7 +5,6 @@ import (
 	"github.com/pzierahn/omnetpp_offload/simple"
 	"github.com/pzierahn/omnetpp_offload/storage"
 	"log"
-	"time"
 )
 
 func (pConn *providerConnection) download(dl *download) (byt []byte, err error) {
@@ -16,26 +15,24 @@ func (pConn *providerConnection) download(dl *download) (byt []byte, err error) 
 
 	ref := dl.ref
 
-	start := time.Now()
 	store := storage.FromClient(pConn.store)
-	//done := eval.Log(eval.Event{
-	//	DeviceId:      pConn.id(),
-	//	Activity:      eval.ActivityDownload,
-	//	SimulationRun: dl.task,
-	//	Filename:      ref.Filename,
-	//})
+
+	done := eval.Log(eval.Event{
+		Activity:      eval.ActivityDownload,
+		SimulationRun: dl.task,
+		Filename:      ref.Filename,
+	})
 
 	byt, err = store.Download(pConn.ctx, ref)
 	size := uint64(len(byt))
-	//done(err, size)
+	dur := done(err, size)
 
 	if err != nil {
 		log.Printf("[%s] error %v", pConn.id(), err)
 		return nil, err
 	}
 
-	log.Printf("[%s] download=%s size=%v time=%v",
-		pConn.id(), ref.Filename, simple.ByteSize(size), time.Now().Sub(start))
+	log.Printf("[%s] download=%s size=%v time=%v", pConn.id(), ref.Filename, simple.ByteSize(size), dur)
 
 	return
 }
