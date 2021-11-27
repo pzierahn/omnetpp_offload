@@ -3,12 +3,21 @@ package storage
 import (
 	"bytes"
 	"context"
+	"github.com/pzierahn/omnetpp_offload/eval"
 	pb "github.com/pzierahn/omnetpp_offload/proto"
 	"io"
 )
 
 // Download downloads a file from the storage server and returns it bytes.
 func (client *Client) Download(ctx context.Context, file *pb.StorageRef) (byt []byte, err error) {
+
+	var size uint64
+
+	done := eval.Log(eval.Event{
+		Activity: eval.ActivityUpload,
+		Filename: file.Filename,
+	})
+	defer done(err, size)
 
 	stream, err := client.storage.Pull(ctx, file)
 	if err != nil {
@@ -45,6 +54,7 @@ func (client *Client) Download(ctx context.Context, file *pb.StorageRef) (byt []
 	//	file.Filename, buf.Len(), packages, time.Now().Sub(start))
 
 	byt = buf.Bytes()
+	size = uint64(len(byt))
 
 	return
 }
