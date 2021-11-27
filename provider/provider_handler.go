@@ -3,6 +3,7 @@ package provider
 import (
 	"context"
 	"fmt"
+	"github.com/pzierahn/omnetpp_offload/eval"
 	pb "github.com/pzierahn/omnetpp_offload/proto"
 	"github.com/pzierahn/omnetpp_offload/simple"
 	"github.com/pzierahn/omnetpp_offload/sysinfo"
@@ -90,7 +91,13 @@ func (prov *provider) Extract(_ context.Context, bundle *pb.Bundle) (empty *empt
 
 	path := filepath.Join(cachePath, bundle.SimulationId)
 
+	done := eval.Log(eval.Event{
+		Activity: eval.ActivityExtract,
+		Filename: bundle.Source.Filename,
+	})
 	err = simple.ExtractTarGz(cachePath, byt)
+	done(err, 0)
+
 	if err != nil {
 		log.Printf("Extract: %v error %v", bundle.SimulationId, err)
 		_ = os.RemoveAll(path)

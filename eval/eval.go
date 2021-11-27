@@ -22,6 +22,7 @@ const (
 	ActivityUpload   = "Upload"
 	ActivityDownload = "Download"
 	ActivityCompress = "Compress"
+	ActivityChecksum = "Checksum"
 	ActivityExtract  = "Extract"
 )
 

@@ -54,12 +54,7 @@ func (prov *provider) compile(ctx context.Context, simulation *pb.Simulation) (b
 	}
 
 	filename := fmt.Sprintf("binary/%s.tgz", sysinfo.ArchSignature())
-	done = eval.Log(eval.Event{
-		Activity: eval.ActivityCompress,
-		Filename: filename,
-	})
 	buf, err := cfiles.ZipChanges(simulation.Id)
-	done(err, 0)
 
 	if err != nil {
 		return
