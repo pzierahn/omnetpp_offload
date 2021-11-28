@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/.idea/project.go.omnetpp.iml" filepath="$PROJECT_DIR$/.idea/project.go.omnetpp.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/omnetpp_offload.iml" filepath="$PROJECT_DIR$/.idea/omnetpp_offload.iml" />
     </modules>
   </component>
 </project>
