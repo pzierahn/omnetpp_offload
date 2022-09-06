@@ -9,17 +9,8 @@ import (
 )
 
 type QUICConn struct {
-	Sess   quic.Session
+	Sess   quic.Connection
 	Stream quic.Stream
-}
-
-func NewQUICConn(sess quic.Session) (net.Conn, error) {
-	stream, err := sess.OpenStreamSync(context.Background())
-	if err != nil {
-		return nil, err
-	}
-
-	return &QUICConn{sess, stream}, nil
 }
 
 // Read reads data from the connection.

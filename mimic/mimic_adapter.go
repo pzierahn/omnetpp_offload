@@ -9,7 +9,6 @@ import (
 )
 
 var config = &quic.Config{
-	KeepAlive:      true,
 	MaxIdleTimeout: time.Millisecond * 2000,
 }
 
