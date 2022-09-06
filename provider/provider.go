@@ -11,6 +11,7 @@ import (
 	"github.com/pzierahn/omnetpp_offload/storage"
 	"github.com/pzierahn/omnetpp_offload/sysinfo"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
 	"log"
 	"sync"
 	"time"
@@ -64,7 +65,7 @@ func Start(config gconfig.Config) {
 
 	brokerConn, err := grpc.Dial(
 		config.Broker.BrokerDialAddr(),
-		grpc.WithInsecure(),
+		grpc.WithTransportCredentials(insecure.NewCredentials()),
 		grpc.WithBlock(),
 	)
 	if err != nil {

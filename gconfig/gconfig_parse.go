@@ -5,7 +5,6 @@ import (
 	"flag"
 	"github.com/pzierahn/omnetpp_offload/simple"
 	"github.com/pzierahn/omnetpp_offload/stargate"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -51,7 +50,7 @@ func init() {
 		return
 	}
 
-	byt, err := ioutil.ReadFile(configFile)
+	byt, err := os.ReadFile(configFile)
 	if err != nil {
 		panic(err)
 	}

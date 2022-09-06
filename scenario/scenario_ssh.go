@@ -3,7 +3,6 @@ package scenario
 import (
 	"fmt"
 	"golang.org/x/crypto/ssh"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 )
@@ -14,7 +13,7 @@ func connectSSH() (client *ssh.Client, err error) {
 		return
 	}
 
-	key, err := ioutil.ReadFile(filepath.Join(home, "/.ssh/id_rsa"))
+	key, err := os.ReadFile(filepath.Join(home, "/.ssh/id_rsa"))
 	if err != nil {
 		err = fmt.Errorf("unable to read private key: %v", err)
 		return

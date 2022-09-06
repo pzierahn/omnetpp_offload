@@ -5,6 +5,7 @@ import (
 	"github.com/pzierahn/omnetpp_offload/mimic"
 	"github.com/pzierahn/omnetpp_offload/stargate"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
 	"log"
 	"net"
 	"time"
@@ -28,7 +29,7 @@ func DialRelay(ctx context.Context, addr stargate.DialAddr) (cc *grpc.ClientConn
 	return grpc.DialContext(
 		ctx,
 		conn.RemoteAddr().String(),
-		grpc.WithInsecure(),
+		grpc.WithTransportCredentials(insecure.NewCredentials()),
 		grpc.WithBlock(),
 		grpc.WithContextDialer(func(_ context.Context, _ string) (net.Conn, error) {
 			return conn, nil

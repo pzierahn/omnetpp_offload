@@ -3,7 +3,6 @@ package simple
 import (
 	"compress/gzip"
 	"encoding/json"
-	"io/ioutil"
 	"log"
 	"os"
 )
@@ -21,7 +20,7 @@ func WritePrettyJson(filename string, bytes []byte) {
 		log.Panic(err)
 	}
 
-	err = ioutil.WriteFile(filename, jBytes, 0755)
+	err = os.WriteFile(filename, jBytes, 0755)
 	if err != nil {
 		log.Panic(err)
 	}
@@ -58,7 +57,7 @@ func PrettyBytesErr(data interface{}) ([]byte, error) {
 func WritePretty(filename string, data interface{}) {
 
 	bytes, err := json.MarshalIndent(data, "", "    ")
-	err = ioutil.WriteFile(filename, bytes, 0755)
+	err = os.WriteFile(filename, bytes, 0755)
 	if err != nil {
 		log.Panic(err)
 	}
@@ -108,7 +107,7 @@ func WritePrettyBytes(filename string, data []byte) {
 		log.Panic(err)
 	}
 
-	err = ioutil.WriteFile(filename, bytes, 0755)
+	err = os.WriteFile(filename, bytes, 0755)
 	if err != nil {
 		log.Panic(err)
 	}
@@ -116,7 +115,7 @@ func WritePrettyBytes(filename string, data []byte) {
 
 func RWPrettify(filename string) {
 
-	bytes, err := ioutil.ReadFile(filename)
+	bytes, err := os.ReadFile(filename)
 	if err != nil {
 		panic(err)
 	}

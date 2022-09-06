@@ -2,8 +2,8 @@ package simple
 
 import (
 	"fmt"
-	"io/ioutil"
 	"log"
+	"os"
 	"sort"
 	"strings"
 )
@@ -73,7 +73,7 @@ func SortToCVSInt(dict map[string]int) string {
 func WriteCVSInt(filename string, dict map[string]int) {
 
 	cvs := SortToCVSInt(dict)
-	err := ioutil.WriteFile(filename, []byte(cvs), 0755)
+	err := os.WriteFile(filename, []byte(cvs), 0755)
 	if err != nil {
 		log.Panic(err)
 	}
@@ -82,7 +82,7 @@ func WriteCVSInt(filename string, dict map[string]int) {
 func WriteCVSFloat(filename string, dict map[string]float64) {
 
 	cvs := SortToCVSFloat(dict)
-	err := ioutil.WriteFile(filename, []byte(cvs), 0755)
+	err := os.WriteFile(filename, []byte(cvs), 0755)
 	if err != nil {
 		log.Panic(err)
 	}
@@ -115,7 +115,7 @@ func WriteMultiCSVFloat(filename string, heads []string, content [][]float64) {
 
 	text = strings.TrimSpace(text)
 
-	err := ioutil.WriteFile(filename, []byte(text), 0644)
+	err := os.WriteFile(filename, []byte(text), 0644)
 	if err != nil {
 		log.Panic(err)
 	}

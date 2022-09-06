@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/pzierahn/omnetpp_offload/stargate"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
 	"log"
 	"net"
 	"time"
@@ -28,7 +29,7 @@ func DialLocal(ctx context.Context, addr stargate.DialAddr) (cc *grpc.ClientConn
 	return grpc.DialContext(
 		ctx,
 		raddr.String(),
-		grpc.WithInsecure(),
+		grpc.WithTransportCredentials(insecure.NewCredentials()),
 		grpc.WithBlock(),
 	)
 }

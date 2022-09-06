@@ -6,8 +6,8 @@ import (
 	"flag"
 	"fmt"
 	"github.com/pzierahn/omnetpp_offload/omnetpp"
-	"io/ioutil"
 	"log"
+	"os"
 	"path/filepath"
 )
 
@@ -59,7 +59,7 @@ func main() {
 	var config omnetpp.Config
 	config.Path = path
 
-	byt, err := ioutil.ReadFile(configPath)
+	byt, err := os.ReadFile(configPath)
 	if err != nil {
 		log.Panicln(err)
 	}

@@ -3,7 +3,6 @@ package gconfig
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 )
@@ -49,7 +48,7 @@ func Write() {
 	configFile := filepath.Join(configPath, "configuration.json")
 	fmt.Println("write config to", configFile)
 
-	err = ioutil.WriteFile(configFile, byt, 0644)
+	err = os.WriteFile(configFile, byt, 0644)
 	if err != nil {
 		panic(err)
 	}

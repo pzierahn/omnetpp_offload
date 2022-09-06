@@ -2,7 +2,6 @@ package main
 
 import (
 	"io/fs"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
@@ -76,7 +75,7 @@ func main() {
 		}
 
 		data := strings.Join(entries, "\n") + "\n"
-		err = ioutil.WriteFile(filepath.Join(outdir, obj.file), []byte(data), 0755)
+		err = os.WriteFile(filepath.Join(outdir, obj.file), []byte(data), 0755)
 		if err != nil {
 			panic(err)
 		}

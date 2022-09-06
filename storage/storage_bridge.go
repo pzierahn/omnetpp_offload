@@ -3,7 +3,6 @@ package storage
 import (
 	pb "github.com/pzierahn/omnetpp_offload/proto"
 	"io"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 )
@@ -41,7 +40,7 @@ func (server *Server) PullFile(ref *pb.StorageRef) (byt []byte, err error) {
 	log.Printf("PullFile: %v", ref)
 
 	src := filepath.Join(storagePath, ref.Bucket, ref.Filename)
-	byt, err = ioutil.ReadFile(src)
+	byt, err = os.ReadFile(src)
 
 	return
 }

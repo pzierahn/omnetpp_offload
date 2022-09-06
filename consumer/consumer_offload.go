@@ -7,6 +7,7 @@ import (
 	"github.com/pzierahn/omnetpp_offload/simple"
 	"github.com/pzierahn/omnetpp_offload/stargate"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
 	"log"
 	"os"
 	"path/filepath"
@@ -34,7 +35,7 @@ func OffloadSimulation(ctx context.Context, bconfig gconfig.Broker, config *Conf
 
 	conn, err := grpc.Dial(
 		bconfig.BrokerDialAddr(),
-		grpc.WithInsecure(),
+		grpc.WithTransportCredentials(insecure.NewCredentials()),
 		grpc.WithBlock(),
 	)
 	if err != nil {

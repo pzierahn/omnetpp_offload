@@ -6,8 +6,8 @@ import (
 	"flag"
 	"github.com/pzierahn/omnetpp_offload/consumer"
 	"github.com/pzierahn/omnetpp_offload/gconfig"
-	"io/ioutil"
 	"log"
+	"os"
 	"path/filepath"
 	"time"
 )
@@ -40,7 +40,7 @@ func main() {
 	var runConfig consumer.Config
 	runConfig.Path = path
 
-	byt, err := ioutil.ReadFile(configPath)
+	byt, err := os.ReadFile(configPath)
 	if err != nil {
 		log.Fatalln(err)
 	}
