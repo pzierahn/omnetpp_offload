@@ -13,7 +13,7 @@ RUN go install cmd/worker/opp_offload_worker.go; \
     go install cmd/stargate_client/stargate_client.go; \
     go install cmd/stargate_server/stargate_server.go
 
-FROM pzierahn/omnetpp
+FROM pzierahn/omnetpp:6.0.1
 WORKDIR /root
 
 COPY --from=builder /go/bin/ /bin/
