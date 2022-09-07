@@ -36,6 +36,14 @@ RUN chmod 775 /root/ && \
     chmod 775 /root/models
 WORKDIR /root/models
 ENV HOME=/root/
+
+RUN export DEBIAN_FRONTEND=noninteractive && \
+    apt-get update -y && \
+    apt-get install -y --no-install-recommends git wget curl make ca-certificates bison flex clang perl python3 libxml2-dev libavcodec-dev libavformat-dev  libavutil-dev libavresample-dev libfl-dev libpcap-dev && \
+    apt-get clean && \
+    update-alternatives --install /usr/bin/python python /usr/bin/python3.6 1 && \
+    rm -rf /var/lib/apt/lists/*
+
 RUN echo 'PS1="omnetpp-$OPP_VER:\w\$ "' >> /root/.bashrc && \
     echo '[ -f "$HOME/omnetpp/setenv" ] && source "$HOME/omnetpp/setenv" -f' >> /root/.bashrc && \
     touch /root/.hushlogin
