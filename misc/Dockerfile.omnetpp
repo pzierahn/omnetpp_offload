@@ -10,11 +10,14 @@ RUN export DEBIAN_FRONTEND=noninteractive && \
     apt-get clean
 
 ARG VERSION=6.0.1
+ENV OPP_VER=$VERSION
+
 WORKDIR /root
 RUN wget https://github.com/omnetpp/omnetpp/releases/download/omnetpp-$VERSION/omnetpp-$VERSION-core.tgz \
          --referer=https://omnetpp.org/ -O omnetpp-core.tgz --progress=dot:giga && \
          tar xf omnetpp-core.tgz && rm omnetpp-core.tgz
 RUN mv omnetpp-$VERSION omnetpp
+
 WORKDIR /root/omnetpp
 # remove unused files and build
 RUN . ./setenv && \
@@ -22,29 +25,18 @@ RUN . ./setenv && \
     make -j $(nproc) MODE=release base && \
     rm -r doc out test samples misc config.log config.status
 
-# second stage - copy only the final binaries (to get rid of the 'out' folder and reduce the image size)
-FROM ubuntu:latest
-
-ARG VERSION=6.0.1
-ENV OPP_VER=$VERSION
 RUN mkdir -p /root/omnetpp
 WORKDIR /root/omnetpp
-COPY --from=builder /root/omnetpp/ .
 ENV PATH /root/omnetpp/bin:$PATH
+
 RUN chmod 775 /root/ && \
     mkdir -p /root/models && \
     chmod 775 /root/models
+
 WORKDIR /root/models
 ENV HOME=/root/
-
-RUN export DEBIAN_FRONTEND=noninteractive && \
-    apt-get update -y && \
-    apt-get install -y --no-install-recommends git wget curl make ca-certificates bison flex clang perl python3 libxml2-dev libavcodec-dev libavformat-dev  libavutil-dev libavresample-dev libfl-dev libpcap-dev && \
-    apt-get clean && \
-    update-alternatives --install /usr/bin/python python /usr/bin/python3.6 1 && \
-    rm -rf /var/lib/apt/lists/*
 
 RUN echo 'PS1="omnetpp-$OPP_VER:\w\$ "' >> /root/.bashrc && \
     echo '[ -f "$HOME/omnetpp/setenv" ] && source "$HOME/omnetpp/setenv" -f' >> /root/.bashrc && \
     touch /root/.hushlogin
-#CMD ["/bin/bash", "--init-file", "/root/.bashrc"]
+CMD ["/bin/bash", "--init-file", "/root/.bashrc"]
