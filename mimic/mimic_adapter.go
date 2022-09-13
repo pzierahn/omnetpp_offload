@@ -9,7 +9,8 @@ import (
 )
 
 var config = &quic.Config{
-	MaxIdleTimeout: time.Millisecond * 2000,
+	KeepAlivePeriod: time.Millisecond * 250,
+	MaxIdleTimeout:  time.Millisecond * 2000,
 }
 
 type DialAdapter func(ctx context.Context, target string) (conn net.Conn, err error)
