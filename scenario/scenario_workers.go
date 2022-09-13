@@ -44,6 +44,8 @@ func (worker Worker) StartNative(jobs int) (cancel context.CancelFunc) {
 }
 
 func (worker Worker) StartDocker(jobs int) (cancel context.CancelFunc) {
+	log.Printf("start Docker container with %d cores", jobs)
+
 	ctx := context.Background()
 	resp, err := worker.docker.ContainerCreate(ctx, &container.Config{
 		Image: "pzierahn/omnetpp_offload",

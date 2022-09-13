@@ -16,7 +16,7 @@ import (
 )
 
 var (
-	broker         = "85.214.35.83"
+	broker         string
 	defaultJobNums = []int{1, 2, 4, 6, 8}
 	start          int
 	repeat         = 5
@@ -107,6 +107,8 @@ func runEvaluation(runner scenario.Runner, connect string, jobs int) error {
 }
 
 func omnetpprun() {
+	log.Printf("run omnetpprun")
+
 	for _, jobs := range jobNums {
 		secnario := fmt.Sprintf("opp-run-j%d", jobs)
 
@@ -159,13 +161,14 @@ func main() {
 	flag.BoolVar(&startWorker, "w", false, "start worker")
 	flag.StringVar(&scenarioName, "n", "", "scenario name")
 	flag.BoolVar(&opprun, "opprun", false, "run opp_run")
-	flag.StringVar(&broker, "broker", broker, "broker address")
+	flag.StringVar(&broker, "broker", "localhost", "broker address")
 	flag.Parse()
 
 	jobNums = *nums
 	connects = *conns
 
 	log.Printf("###################################################")
+	log.Printf("broker: %v", broker)
 	log.Printf("jobNums: %v", jobNums)
 	log.Printf("connects: %v", connects)
 	log.Printf("start: %v", start)
@@ -190,13 +193,13 @@ func main() {
 		home, _ := os.UserHomeDir()
 		runner = scenario.NewScenario(scenario.Simulation{
 			Broker:         broker,
-			OppEdgePath:    filepath.Join(home, "/github/project.go.omnetpp"),
-			SimulationPath: filepath.Join(home, "/github/project.go.omnetpp/evaluation/tictoc"),
+			OppEdgePath:    filepath.Join(home, "/github/omnetpp_offload"),
+			SimulationPath: filepath.Join(home, "/github/omnetpp_offload/evaluation/tictoc"),
 		})
 	} else {
 		runner = scenario.NewScenarioRemote(scenario.Simulation{
 			Broker:         broker,
-			ClientSSHAddr:  "dc1.fioo.one:4777",
+			ClientSSHAddr:  "raspberry.fritz.box:22",
 			OppEdgePath:    "~/patrick/project.go.omnetpp",
 			SimulationPath: "~/patrick/project.go.omnetpp/evaluation/tictoc",
 		})

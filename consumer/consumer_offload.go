@@ -48,9 +48,7 @@ func OffloadSimulation(ctx context.Context, bconfig gconfig.Broker, config *Conf
 
 	scenario, trail := os.Getenv("SCENARIO"), os.Getenv("TRAIL")
 	if scenario != "" && trail != "" {
-		//
-		// Enable evaluation logging
-		//
+		log.Printf("Enable evaluation logging: scenario=%s trail=%s", scenario, trail)
 
 		eval.Init(conn, "")
 
