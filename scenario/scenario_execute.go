@@ -108,7 +108,7 @@ func (runner RunnerLocal) RunScenario(scenario, connect string, trail int) (dura
 	}
 
 	var config *consumer.Config
-	err = simple.UnmarshallFile(filepath.Join(runner.sim.SimulationPath, "opp-edge-config.json"), &config)
+	err = simple.UnmarshallFile(filepath.Join(runner.sim.SimulationPath, "opp-offload-config.json"), &config)
 	if err != nil {
 		return
 	}
