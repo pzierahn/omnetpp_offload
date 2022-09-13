@@ -61,11 +61,9 @@ func (server *Server) Finish(_ context.Context, _ *emptypb.Empty) (empty *emptyp
 
 func (server *Server) Init(_ context.Context, device *pb.Device) (*emptypb.Empty, error) {
 
-	now := time.Now()
+	device.Timereceived = time2Tex(time.Now())
 
-	device.Timereceived = time2Tex(now)
-
-	log.Printf("Init: %s", simple.PrettyString(device))
+	log.Printf("Init: device=%s", simple.PrettyString(device))
 
 	server.devices.RecordProtos(server.scenario.ProtoReflect(), device.ProtoReflect())
 
