@@ -128,5 +128,5 @@ go install google.golang.org/protobuf/cmd/protoc-gen-go@latest
 go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@latest
 
 go get -u google.golang.org/grpc
-GOOS=linux GOARCH=amd64 go build cmd/consumer/opp_edge_run.go
+GOOS=linux GOARCH=amd64 go build cmd/consumer/opp_offload_run.go
 ```

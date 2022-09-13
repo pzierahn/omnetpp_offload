@@ -7,7 +7,7 @@ import (
 	"path/filepath"
 )
 
-func connectSSH() (client *ssh.Client, err error) {
+func connectSSH(addr string) (client *ssh.Client, err error) {
 	home, err := os.UserHomeDir()
 	if err != nil {
 		return
@@ -36,5 +36,5 @@ func connectSSH() (client *ssh.Client, err error) {
 		HostKeyCallback: ssh.InsecureIgnoreHostKey(),
 	}
 
-	return ssh.Dial("tcp", "dc1.fioo.one:4777", config)
+	return ssh.Dial("tcp", addr, config)
 }

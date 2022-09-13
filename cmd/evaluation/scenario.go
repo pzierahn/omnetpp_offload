@@ -15,11 +15,8 @@ import (
 	"time"
 )
 
-const (
-	broker = "85.214.35.83"
-)
-
 var (
+	broker         = "85.214.35.83"
 	defaultJobNums = []int{1, 2, 4, 6, 8}
 	start          int
 	repeat         = 5
@@ -162,6 +159,7 @@ func main() {
 	flag.BoolVar(&startWorker, "w", false, "start worker")
 	flag.StringVar(&scenarioName, "n", "", "scenario name")
 	flag.BoolVar(&opprun, "opprun", false, "run opp_run")
+	flag.StringVar(&broker, "broker", broker, "broker address")
 	flag.Parse()
 
 	jobNums = *nums
@@ -191,15 +189,16 @@ func main() {
 	if local {
 		home, _ := os.UserHomeDir()
 		runner = scenario.NewScenario(scenario.Simulation{
-			Broker:     broker,
-			OppEdge:    filepath.Join(home, "/github/project.go.omnetpp"),
-			Simulation: filepath.Join(home, "/github/project.go.omnetpp/evaluation/tictoc"),
+			Broker:         broker,
+			OppEdgePath:    filepath.Join(home, "/github/project.go.omnetpp"),
+			SimulationPath: filepath.Join(home, "/github/project.go.omnetpp/evaluation/tictoc"),
 		})
 	} else {
 		runner = scenario.NewScenarioRemote(scenario.Simulation{
-			Broker:     broker,
-			OppEdge:    "~/patrick/project.go.omnetpp",
-			Simulation: "~/patrick/project.go.omnetpp/evaluation/tictoc",
+			Broker:         broker,
+			ClientSSHAddr:  "dc1.fioo.one:4777",
+			OppEdgePath:    "~/patrick/project.go.omnetpp",
+			SimulationPath: "~/patrick/project.go.omnetpp/evaluation/tictoc",
 		})
 	}
 

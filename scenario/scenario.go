@@ -10,9 +10,10 @@ import (
 )
 
 type Simulation struct {
-	Broker     string
-	OppEdge    string
-	Simulation string
+	Broker         string
+	ClientSSHAddr  string
+	OppEdgePath    string
+	SimulationPath string
 }
 
 type Runner interface {
@@ -31,7 +32,7 @@ type RunnerLocal struct {
 
 func (runner RunnerRemote) UpdateRepo() {
 
-	log.Printf("Updating repository %s", runner.sim.OppEdge)
+	log.Printf("Updating repository %s", runner.sim.OppEdgePath)
 
 	session, err := runner.sshClient.NewSession()
 	if err != nil {
@@ -44,7 +45,7 @@ func (runner RunnerRemote) UpdateRepo() {
 	session.Stdout = os.Stdout
 	session.Stderr = os.Stderr
 
-	if err := session.Run(fmt.Sprintf("cd %s; git pull", runner.sim.OppEdge)); err != nil {
+	if err := session.Run(fmt.Sprintf("cd %s; git pull", runner.sim.OppEdgePath)); err != nil {
 		log.Fatalf("unable to update project: %s", err)
 	}
 }
@@ -55,7 +56,7 @@ func NewScenarioRemote(sim Simulation) Runner {
 	runner.sim = sim
 
 	var err error
-	runner.sshClient, err = connectSSH()
+	runner.sshClient, err = connectSSH(sim.ClientSSHAddr)
 	if err != nil {
 		log.Fatalf("unable to connect ssh client: %s", err)
 	}

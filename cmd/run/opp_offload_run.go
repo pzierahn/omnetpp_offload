@@ -34,7 +34,7 @@ func main() {
 	}
 
 	if configPath == "" {
-		configPath = filepath.Join(path, "opp-edge-config.json")
+		configPath = filepath.Join(path, "opp-offload-config.json")
 	}
 
 	var runConfig consumer.Config

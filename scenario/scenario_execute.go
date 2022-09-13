@@ -31,14 +31,14 @@ func (runner RunnerRemote) RunScenario(scenario, connect string, trail int) (dur
 		// Source GO paths.
 		fmt.Sprintf("source ~/.profile"),
 		// Switch to project dir
-		fmt.Sprintf("cd %s", runner.sim.OppEdge),
+		fmt.Sprintf("cd %s", runner.sim.OppEdgePath),
 	}
 
 	// Delete deprecated data.
 	deleteDirs := []string{
-		filepath.Join(runner.sim.Simulation, "opp-edge-results"),
-		filepath.Join(runner.sim.Simulation, "results"),
-		filepath.Join(runner.sim.Simulation, "out"),
+		filepath.Join(runner.sim.SimulationPath, "opp-edge-results"),
+		filepath.Join(runner.sim.SimulationPath, "results"),
+		filepath.Join(runner.sim.SimulationPath, "out"),
 	}
 
 	for _, dir := range deleteDirs {
@@ -47,11 +47,11 @@ func (runner RunnerRemote) RunScenario(scenario, connect string, trail int) (dur
 
 	cmd = append(cmd,
 		fmt.Sprintf(
-			"%s go run cmd/consumer/opp_edge_run.go -broker %s -path %s -config %s",
+			"%s go run cmd/consumer/opp_offload_run.go -broker %s -path %s -config %s",
 			envPrefix,
 			runner.sim.Broker,
-			runner.sim.Simulation,
-			filepath.Join(runner.sim.Simulation, "opp-edge-config.json"),
+			runner.sim.SimulationPath,
+			filepath.Join(runner.sim.SimulationPath, "opp-offload-config.json"),
 		),
 	)
 
@@ -98,9 +98,9 @@ func (runner RunnerLocal) RunScenario(scenario, connect string, trail int) (dura
 
 	// Delete deprecated data.
 	deleteDirs := []string{
-		filepath.Join(runner.sim.Simulation, "opp-edge-results"),
-		filepath.Join(runner.sim.Simulation, "results"),
-		filepath.Join(runner.sim.Simulation, "out"),
+		filepath.Join(runner.sim.SimulationPath, "opp-edge-results"),
+		filepath.Join(runner.sim.SimulationPath, "results"),
+		filepath.Join(runner.sim.SimulationPath, "out"),
 	}
 
 	for _, dir := range deleteDirs {
@@ -108,12 +108,12 @@ func (runner RunnerLocal) RunScenario(scenario, connect string, trail int) (dura
 	}
 
 	var config *consumer.Config
-	err = simple.UnmarshallFile(filepath.Join(runner.sim.Simulation, "opp-edge-config.json"), &config)
+	err = simple.UnmarshallFile(filepath.Join(runner.sim.SimulationPath, "opp-edge-config.json"), &config)
 	if err != nil {
 		return
 	}
 
-	config.Path = runner.sim.Simulation
+	config.Path = runner.sim.SimulationPath
 
 	brokerConfig := gconfig.Broker{
 		Address:      runner.sim.Broker,

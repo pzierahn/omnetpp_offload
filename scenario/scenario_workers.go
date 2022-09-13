@@ -29,7 +29,6 @@ func NewWorker(broker string) (worker Worker) {
 
 func (worker Worker) StartNative(jobs int) (cancel context.CancelFunc) {
 
-	//var ctx context.Context
 	ctx, cnl := context.WithCancel(context.Background())
 	cmd := exec.CommandContext(ctx, "go", "run", "cmd/worker/opp_edge_worker.go",
 		"-broker", worker.broker,
@@ -47,9 +46,9 @@ func (worker Worker) StartNative(jobs int) (cancel context.CancelFunc) {
 func (worker Worker) StartDocker(jobs int) (cancel context.CancelFunc) {
 	ctx := context.Background()
 	resp, err := worker.docker.ContainerCreate(ctx, &container.Config{
-		Image: "pzierahn/omnetpp_edge",
+		Image: "pzierahn/omnetpp_offload",
 		Cmd: []string{
-			"opp_edge_worker",
+			"opp_offload_worker",
 			"-broker", worker.broker,
 			"-name", "docker",
 			"-jobs", fmt.Sprint(jobs),
