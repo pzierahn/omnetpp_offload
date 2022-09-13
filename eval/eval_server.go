@@ -9,7 +9,6 @@ import (
 	"github.com/pzierahn/omnetpp_offload/simple"
 	"google.golang.org/protobuf/types/known/emptypb"
 	"log"
-	"os"
 	"path/filepath"
 	"sync"
 	"time"
@@ -32,7 +31,6 @@ func (server *Server) Start(_ context.Context, scenario *pb.Scenario) (empty *em
 	server.scenario = scenario
 
 	dir := filepath.Join(gconfig.CacheDir(), "evaluation", scenario.Scenario)
-	_ = os.MkdirAll(dir, 0755)
 
 	eventsLogFile := fmt.Sprintf("%s_%03s_events.csv", scenario.Scenario, scenario.Trail)
 	server.events = csv.NewWriter(dir, eventsLogFile)
