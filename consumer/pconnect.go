@@ -69,7 +69,7 @@ func pconnect(ctx context.Context, prov *pb.ProviderInfo) (pconn *providerConnec
 		store:      pb.NewStorageClient(client),
 	}
 
-	go eval.CollectLogs(prov, client)
+	go eval.CollectLogs(client, prov, conn)
 
 	return
 }

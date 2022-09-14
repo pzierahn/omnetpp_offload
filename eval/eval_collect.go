@@ -6,6 +6,7 @@ import (
 	"github.com/pzierahn/omnetpp_offload/csv"
 	"github.com/pzierahn/omnetpp_offload/gconfig"
 	pb "github.com/pzierahn/omnetpp_offload/proto"
+	"github.com/pzierahn/omnetpp_offload/stargrpc"
 	"google.golang.org/grpc"
 	"google.golang.org/protobuf/types/known/emptypb"
 	"google.golang.org/protobuf/types/known/timestamppb"
@@ -39,9 +40,38 @@ func StartCollecting(scenario, trail string) {
 	collecting = true
 	scenarioId = scenario
 	trailNum = trail
+
+	events.Write([]string{
+		"scenario",
+		"trail",
+		"eventId",
+		"providerId",
+		"timestamp",
+		"activity",
+		"state",
+		"opp-config",
+		"opp-runNum",
+		"error",
+		"byteSize",
+		"filename",
+	})
+
+	devices.Write([]string{
+		"scenario",
+		"trail",
+		"providerId",
+		"os",
+		"arch",
+		"cpus",
+		"numJobs",
+		"timesent",
+		"timerecieved",
+		"rtt",
+		"connect",
+	})
 }
 
-func CollectLogs(prov *pb.ProviderInfo, client *grpc.ClientConn) {
+func CollectLogs(client *grpc.ClientConn, prov *pb.ProviderInfo, connect int) {
 	if !collecting {
 		return
 	}
@@ -71,14 +101,6 @@ func CollectLogs(prov *pb.ProviderInfo, client *grpc.ClientConn) {
 		clock.Timesent.AsTime(), clock.Timereceived.AsTime(), rtt)
 
 	devices.Write([]string{
-		"scenario",
-		"trail",
-		"providerId",
-		"os",
-		"arch",
-		"cpus",
-		"numJobs",
-	}, []string{
 		scenarioId,
 		trailNum,
 		prov.ProviderId,
@@ -86,6 +108,10 @@ func CollectLogs(prov *pb.ProviderInfo, client *grpc.ClientConn) {
 		prov.Arch.Arch,
 		fmt.Sprint(prov.NumCPUs),
 		fmt.Sprint(prov.NumJobs),
+		fmt.Sprint(clock.Timesent.AsTime()),
+		fmt.Sprint(clock.Timereceived.AsTime()),
+		fmt.Sprint(rtt),
+		stargrpc.ConnectionToName(connect),
 	})
 
 	stream, err := evaluation.Logs(ctx, &emptypb.Empty{})
@@ -93,21 +119,6 @@ func CollectLogs(prov *pb.ProviderInfo, client *grpc.ClientConn) {
 		log.Fatalf("CollectLogs: cloudn't read logging on provider %v: %v",
 			prov.ProviderId, err)
 	}
-
-	events.Write([]string{
-		"scenario",
-		"trail",
-		"eventId",
-		"providerId",
-		"timestamp",
-		"activity",
-		"state",
-		"opp-config",
-		"opp-runNum",
-		"error",
-		"byteSize",
-		"filename",
-	})
 
 	for {
 		event, err := stream.Recv()
@@ -146,17 +157,20 @@ func LogLocal(event Event) (finish func(err error, dlsize uint64) (duration time
 
 	conf, runNum := event.runId()
 
-	evn := &pb.Event{
-		Timestamp: time2Tex(start),
-		State:     StateStarted,
-		EventId:   id,
-		Activity:  event.Activity,
-		Filename:  event.Filename,
-		Config:    conf,
-		RunNum:    runNum,
-	}
-
-	events.RecordProtos(evn.ProtoReflect())
+	events.Write([]string{
+		scenarioId,
+		trailNum,
+		id,
+		"consumer",
+		time2Tex(start),
+		event.Activity,
+		fmt.Sprint(StateStarted),
+		conf,
+		runNum,
+		"",
+		"",
+		event.Filename,
+	})
 
 	return func(err error, dlsize uint64) time.Duration {
 		var end = time.Now()
@@ -170,19 +184,20 @@ func LogLocal(event Event) (finish func(err error, dlsize uint64) (duration time
 			state = StateFinished
 		}
 
-		endEvent := &pb.Event{
-			EventId:   id,
-			Timestamp: time2Tex(end),
-			State:     state,
-			Error:     fail,
-			Activity:  event.Activity,
-			Filename:  event.Filename,
-			Config:    conf,
-			RunNum:    runNum,
-			ByteSize:  dlsize,
-		}
-
-		events.RecordProtos(endEvent.ProtoReflect())
+		events.Write([]string{
+			scenarioId,
+			trailNum,
+			id,
+			"consumer",
+			time2Tex(end),
+			event.Activity,
+			fmt.Sprint(state),
+			conf,
+			runNum,
+			fail,
+			fmt.Sprint(dlsize),
+			event.Filename,
+		})
 
 		return end.Sub(start)
 	}
