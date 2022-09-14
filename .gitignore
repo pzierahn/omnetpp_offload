@@ -33,3 +33,5 @@ evaluation/tictoc/results
 *.vec
 *.vci
 /evaluation/tictoc/.cmdenv-log
+/evaluation/tictoc/tictoc_dbg
+/evaluation/meta/patrick-test-scenario/durations.csv
