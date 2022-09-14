@@ -38,13 +38,12 @@ func BroadcastTCP(ctx context.Context, dialAddr DialAddr, addr *net.TCPAddr) (er
 			}
 
 			requestAddr := string(buf[:br])
-			log.Printf("BroadcastTCP: requested dialAddr %v from %v", requestAddr, raddr)
-
 			if dialAddr != requestAddr {
 				continue
 			}
 
-			log.Printf("BroadcastTCP: write %v", string(byt))
+			log.Printf("BroadcastTCP: requestAddr=%v responseTo=%v write=%v",
+				requestAddr, raddr, string(byt))
 
 			_, err = conn.WriteTo(byt, raddr)
 			if err != nil {
@@ -71,7 +70,7 @@ func DialLocal(ctx context.Context, dialAddr DialAddr) (raddr net.TCPAddr, err e
 		return
 	}
 
-	ctx, cnl := context.WithTimeout(ctx, time.Millisecond*200)
+	ctx, cnl := context.WithTimeout(ctx, time.Millisecond*1000)
 	defer cnl()
 
 	if deadline, ok := ctx.Deadline(); ok {
