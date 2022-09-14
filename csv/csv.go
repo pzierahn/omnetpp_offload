@@ -41,13 +41,15 @@ func (writer *Writer) Close() {
 	_ = writer.file.Close()
 }
 
-func (writer *Writer) Write(record []string) {
+func (writer *Writer) Write(records ...[]string) {
 	writer.mu.Lock()
 	defer writer.mu.Unlock()
 
-	err := writer.csv.Write(record)
-	if err != nil {
-		log.Fatalf("couldn't write to csv: %v", err)
+	for _, record := range records {
+		err := writer.csv.Write(record)
+		if err != nil {
+			log.Fatalf("couldn't write to csv: %v", err)
+		}
 	}
 
 	writer.csv.Flush()

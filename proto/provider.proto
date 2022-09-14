@@ -23,15 +23,6 @@ service Provider {
   rpc Compile     (Simulation)    returns (Binary);
   rpc ListRunNums (Simulation)    returns (SimulationRunList);
   rpc Run         (SimulationRun) returns (StorageRef);
-
-  rpc StartEvaluation (EvaluationScenario)    returns (google.protobuf.Empty);
-  rpc StopEvaluation  (google.protobuf.Empty) returns (google.protobuf.Empty);
-}
-
-message EvaluationScenario {
-  string scenarioId = 1;
-  string trailId = 2;
-  string connection = 3;
 }
 
 message ProviderInfo {

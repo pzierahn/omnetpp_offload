@@ -69,13 +69,7 @@ func pconnect(ctx context.Context, prov *pb.ProviderInfo) (pconn *providerConnec
 		store:      pb.NewStorageClient(client),
 	}
 
-	if eval.IsEnabled() {
-		_, _ = pconn.provider.StartEvaluation(ctx, &pb.EvaluationScenario{
-			ScenarioId: eval.Scenario,
-			TrailId:    eval.Scenario,
-			Connection: stargrpc.ConnectionToName(conn),
-		})
-	}
+	go eval.CollectLogs(prov, client)
 
 	return
 }

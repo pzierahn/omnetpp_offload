@@ -2,77 +2,54 @@ package eval
 
 import (
 	"context"
-	"fmt"
 	"github.com/pzierahn/omnetpp_offload/csv"
-	"github.com/pzierahn/omnetpp_offload/gconfig"
 	pb "github.com/pzierahn/omnetpp_offload/proto"
-	"github.com/pzierahn/omnetpp_offload/simple"
 	"google.golang.org/protobuf/types/known/emptypb"
+	"google.golang.org/protobuf/types/known/timestamppb"
 	"log"
-	"path/filepath"
 	"sync"
+	"sync/atomic"
 	"time"
 )
 
+var enabled atomic.Bool
+var eventChannel = make(chan *pb.Event, 64)
+
 type Server struct {
 	pb.UnimplementedEvaluationServer
-	mu       sync.Mutex
-	scenario *pb.Scenario
-	events   *csv.Writer
-	devices  *csv.Writer
+	mu      sync.Mutex
+	events  *csv.Writer
+	devices *csv.Writer
 }
 
-func (server *Server) Start(_ context.Context, scenario *pb.Scenario) (empty *emptypb.Empty, err error) {
-	log.Printf("Start: evaluation logging %v", simple.PrettyString(scenario))
+func (server *Server) EnableLog(_ context.Context, state *pb.Enable) (*emptypb.Empty, error) {
+	log.Printf("EnableLog %v", state.Enable)
 
-	server.mu.Lock()
-	defer server.mu.Unlock()
-
-	server.scenario = scenario
-
-	dir := filepath.Join(gconfig.CacheDir(), "evaluation", scenario.Scenario)
-
-	eventsLogFile := fmt.Sprintf("%s_%03s_events.csv", scenario.Scenario, scenario.Trail)
-	server.events = csv.NewWriter(dir, eventsLogFile)
-
-	devicesLogFile := fmt.Sprintf("%s_%03s_devices.csv", scenario.Scenario, scenario.Trail)
-	server.devices = csv.NewWriter(dir, devicesLogFile)
-
+	enabled.Store(state.Enable)
 	return &emptypb.Empty{}, nil
 }
 
-func (server *Server) Finish(_ context.Context, _ *emptypb.Empty) (empty *emptypb.Empty, err error) {
+func (server *Server) ClockSync(_ context.Context, in *pb.Clock) (out *pb.Clock, _ error) {
+	out = &pb.Clock{
+		Timesent:     in.Timesent,
+		Timereceived: timestamppb.New(time.Now()),
+	}
 
-	log.Printf("Finish: finishing evaluation logging")
-
-	server.mu.Lock()
-	defer server.mu.Unlock()
-
-	server.scenario = nil
-
-	server.events.Close()
-	server.events = nil
-
-	server.devices.Close()
-	server.devices = nil
-
-	return &emptypb.Empty{}, nil
+	return
 }
 
-func (server *Server) Init(_ context.Context, device *pb.Device) (*emptypb.Empty, error) {
+func (server *Server) Logs(_ *emptypb.Empty, stream pb.Evaluation_LogsServer) (_ error) {
 
-	device.Timereceived = time2Tex(time.Now())
+	if !enabled.Load() {
+		return
+	}
 
-	log.Printf("Init: device=%s", simple.PrettyString(device))
+	for event := range eventChannel {
+		err := stream.Send(event)
+		if err != nil {
+			log.Fatalf("Logs: couldn't send log event to consumer: %v", err)
+		}
+	}
 
-	server.devices.RecordProtos(server.scenario.ProtoReflect(), device.ProtoReflect())
-
-	return &emptypb.Empty{}, nil
-}
-
-func (server *Server) Log(_ context.Context, event *pb.Event) (*emptypb.Empty, error) {
-
-	server.events.RecordProtos(server.scenario.ProtoReflect(), event.ProtoReflect())
-
-	return &emptypb.Empty{}, nil
+	return
 }

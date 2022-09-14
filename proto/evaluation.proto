@@ -4,30 +4,21 @@ package service;
 option go_package = "./proto";
 
 import "google/protobuf/empty.proto";
+import "google/protobuf/timestamp.proto";
 
 service Evaluation {
-  rpc Init   (Device)                returns (google.protobuf.Empty);
-  rpc Log    (Event)                 returns (google.protobuf.Empty);
-  rpc Start  (Scenario)              returns (google.protobuf.Empty);
-  rpc Finish (google.protobuf.Empty) returns (google.protobuf.Empty);
+  rpc EnableLog(Enable) returns (google.protobuf.Empty);
+  rpc ClockSync(Clock) returns (Clock);
+  rpc Logs(google.protobuf.Empty) returns (stream Event);
 }
 
-message Scenario {
-  string scenario = 1;
-  string trail = 2;
-  string simulation = 3;
+message Enable {
+  bool enable = 1;
 }
 
-message Device {
-  string deviceId = 1;
-  string hostname = 2;
-  string timesent = 3;
-  string timereceived = 4;
-  string os = 5;
-  string arch = 6;
-  uint32 numCPUs = 7;
-  uint32 numJobs = 8;
-  string connect = 9;
+message Clock {
+  google.protobuf.Timestamp timesent = 1;
+  google.protobuf.Timestamp timereceived = 2;
 }
 
 message Event {

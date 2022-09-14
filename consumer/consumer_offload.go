@@ -48,19 +48,12 @@ func OffloadSimulation(ctx context.Context, bconfig gconfig.Broker, config *Conf
 
 	scenario, trail := os.Getenv("SCENARIO"), os.Getenv("TRAIL")
 	if scenario != "" && trail != "" {
-		log.Printf("Enable evaluation logging: scenario=%s trail=%s", scenario, trail)
-
-		eval.Init(conn, "")
-
-		eval.Start(ctx, scenario, trail, id)
-		eval.LogDevice("", 0)
-
-		defer eval.Finish()
+		eval.StartCollecting(scenario, trail)
 	}
 
 	log.Printf("OffloadSimulation: zipping %s", config.Path)
 
-	finish := eval.Log(eval.Event{
+	finish := eval.LogLocal(eval.Event{
 		Activity: eval.ActivityCompress,
 		Filename: "source.tgz",
 	})

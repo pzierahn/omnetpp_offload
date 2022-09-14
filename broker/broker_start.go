@@ -2,7 +2,6 @@ package broker
 
 import (
 	"context"
-	"github.com/pzierahn/omnetpp_offload/eval"
 	"github.com/pzierahn/omnetpp_offload/gconfig"
 	pb "github.com/pzierahn/omnetpp_offload/proto"
 	"github.com/pzierahn/omnetpp_offload/stargate"
@@ -44,7 +43,6 @@ func Start(config gconfig.Broker) (err error) {
 
 	server := grpc.NewServer()
 	pb.RegisterBrokerServer(server, &brk)
-	pb.RegisterEvaluationServer(server, &eval.Server{})
 	err = server.Serve(lis)
 
 	return

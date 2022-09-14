@@ -4,7 +4,6 @@ import (
 	pb "github.com/pzierahn/omnetpp_offload/proto"
 	"github.com/pzierahn/omnetpp_offload/provider"
 	"google.golang.org/grpc/metadata"
-	"google.golang.org/protobuf/types/known/emptypb"
 	"log"
 )
 
@@ -60,9 +59,7 @@ func (connect *providerConnection) execute(sim *simulation) (err error) {
 				//
 
 				log.Printf("[%s] stop requesting slots", connect.id())
-
 				_ = stream.CloseSend()
-				_, _ = connect.provider.StopEvaluation(ctx, &emptypb.Empty{})
 
 				break
 			}

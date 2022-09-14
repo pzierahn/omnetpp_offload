@@ -76,8 +76,6 @@ func Start(config gconfig.Config) {
 		_ = brokerConn.Close()
 	}()
 
-	eval.Init(brokerConn, prov.providerId)
-
 	broker := pb.NewBrokerClient(brokerConn)
 
 	stream, err := broker.Register(context.Background())
@@ -116,6 +114,7 @@ func Start(config gconfig.Config) {
 	server := grpc.NewServer()
 	pb.RegisterProviderServer(server, prov)
 	pb.RegisterStorageServer(server, prov.store)
+	pb.RegisterEvaluationServer(server, &eval.Server{})
 
 	stargate.SetConfig(stargate.Config{
 		Addr: config.Broker.Address,
