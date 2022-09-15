@@ -12,6 +12,7 @@ import (
 	"google.golang.org/protobuf/types/known/timestamppb"
 	"log"
 	"math/rand"
+	"os"
 	"path/filepath"
 	"time"
 )
@@ -23,7 +24,12 @@ var trailNum string
 var events *csv.Writer
 var devices *csv.Writer
 
-func StartCollecting(scenario, trail string) {
+func init() {
+	scenario, trail := os.Getenv("SCENARIO"), os.Getenv("TRAIL")
+	if scenario != "" && trail != "" {
+		return
+	}
+
 	dir := filepath.Join(gconfig.CacheDir(), "evaluation", scenario)
 
 	log.Printf("################################################################")

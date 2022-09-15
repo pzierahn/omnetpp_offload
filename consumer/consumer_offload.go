@@ -9,7 +9,6 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 	"log"
-	"os"
 	"path/filepath"
 	"sync"
 	"time"
@@ -45,11 +44,6 @@ func OffloadSimulation(ctx context.Context, bconfig gconfig.Broker, config *Conf
 		log.Printf("closing connection to broker")
 		_ = conn.Close()
 	}()
-
-	scenario, trail := os.Getenv("SCENARIO"), os.Getenv("TRAIL")
-	if scenario != "" && trail != "" {
-		eval.StartCollecting(scenario, trail)
-	}
 
 	log.Printf("OffloadSimulation: zipping %s", config.Path)
 
