@@ -3,33 +3,10 @@ package eval
 import (
 	"fmt"
 	pb "github.com/pzierahn/omnetpp_offload/proto"
+	"google.golang.org/protobuf/types/known/timestamppb"
 	"math/rand"
 	"time"
 )
-
-type Event struct {
-	Activity      string
-	SimulationRun *pb.SimulationRun
-	Filename      string
-}
-
-func (event Event) runId() (conf string, num string) {
-	if event.SimulationRun == nil {
-		return "", ""
-	}
-
-	return event.SimulationRun.Config, event.SimulationRun.RunNum
-}
-
-func time2Tex(date time.Time) (ts string) {
-	data, _ := date.MarshalText()
-	return string(data)
-}
-
-func tex2Time(ts string) (parse time.Time) {
-	parse, _ = time.Parse(time.Layout, ts)
-	return
-}
 
 func Log(event Event) (finish func(err error, dlsize uint64) (duration time.Duration)) {
 
@@ -46,9 +23,9 @@ func Log(event Event) (finish func(err error, dlsize uint64) (duration time.Dura
 	conf, runNum := event.runId()
 
 	eventChannel <- &pb.Event{
-		Timestamp: time2Tex(start),
-		State:     StateStarted,
 		EventId:   id,
+		Timestamp: timestamppb.New(start),
+		State:     StateStarted,
 		Activity:  event.Activity,
 		Filename:  event.Filename,
 		Config:    conf,
@@ -70,7 +47,7 @@ func Log(event Event) (finish func(err error, dlsize uint64) (duration time.Dura
 
 		eventChannel <- &pb.Event{
 			EventId:   id,
-			Timestamp: time2Tex(end),
+			Timestamp: timestamppb.New(end),
 			State:     state,
 			Error:     fail,
 			Activity:  event.Activity,

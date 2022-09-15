@@ -24,7 +24,7 @@ message Clock {
 message Event {
   string eventId = 1;
   string deviceId = 2;
-  string timestamp = 3;
+  google.protobuf.Timestamp timestamp = 3;
   string activity = 4;
   uint32 state = 5;
   string config = 6;
