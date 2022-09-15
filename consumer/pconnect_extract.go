@@ -35,7 +35,7 @@ func (connect *providerConnection) extract(meta *fileMeta) (err error) {
 
 	storeCli := storage.FromClient(connect.store)
 
-	done := eval.Log(eval.Event{
+	done := eval.LogLocal(eval.Event{
 		Activity: eval.ActivityUpload,
 		Filename: meta.Filename,
 	})

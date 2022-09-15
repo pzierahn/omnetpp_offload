@@ -26,7 +26,7 @@ func (connect *providerConnection) compileAndDownload(simulation *simulation) (e
 
 	log.Printf("[%s] compile: %s done", connect.id(), arch)
 
-	done := eval.Log(eval.Event{
+	done := eval.LogLocal(eval.Event{
 		Activity: eval.ActivityDownload,
 		Filename: bin.Ref.Filename,
 	})

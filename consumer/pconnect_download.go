@@ -17,7 +17,7 @@ func (connect *providerConnection) download(dl *download) (byt []byte, err error
 
 	store := storage.FromClient(connect.store)
 
-	done := eval.Log(eval.Event{
+	done := eval.LogLocal(eval.Event{
 		Activity:      eval.ActivityDownload,
 		SimulationRun: dl.task,
 		Filename:      ref.Filename,
