@@ -7,13 +7,8 @@ import "google/protobuf/empty.proto";
 import "google/protobuf/timestamp.proto";
 
 service Evaluation {
-  rpc EnableLog(Enable) returns (google.protobuf.Empty);
   rpc ClockSync(Clock) returns (Clock);
   rpc Logs(google.protobuf.Empty) returns (stream Event);
-}
-
-message Enable {
-  bool enable = 1;
 }
 
 message Clock {

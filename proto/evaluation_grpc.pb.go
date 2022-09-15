@@ -23,7 +23,6 @@ const _ = grpc.SupportPackageIsVersion7
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type EvaluationClient interface {
-	EnableLog(ctx context.Context, in *Enable, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	ClockSync(ctx context.Context, in *Clock, opts ...grpc.CallOption) (*Clock, error)
 	Logs(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (Evaluation_LogsClient, error)
 }
@@ -34,15 +33,6 @@ type evaluationClient struct {
 
 func NewEvaluationClient(cc grpc.ClientConnInterface) EvaluationClient {
 	return &evaluationClient{cc}
-}
-
-func (c *evaluationClient) EnableLog(ctx context.Context, in *Enable, opts ...grpc.CallOption) (*emptypb.Empty, error) {
-	out := new(emptypb.Empty)
-	err := c.cc.Invoke(ctx, "/service.Evaluation/EnableLog", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
 }
 
 func (c *evaluationClient) ClockSync(ctx context.Context, in *Clock, opts ...grpc.CallOption) (*Clock, error) {
@@ -90,7 +80,6 @@ func (x *evaluationLogsClient) Recv() (*Event, error) {
 // All implementations must embed UnimplementedEvaluationServer
 // for forward compatibility
 type EvaluationServer interface {
-	EnableLog(context.Context, *Enable) (*emptypb.Empty, error)
 	ClockSync(context.Context, *Clock) (*Clock, error)
 	Logs(*emptypb.Empty, Evaluation_LogsServer) error
 	mustEmbedUnimplementedEvaluationServer()
@@ -100,9 +89,6 @@ type EvaluationServer interface {
 type UnimplementedEvaluationServer struct {
 }
 
-func (UnimplementedEvaluationServer) EnableLog(context.Context, *Enable) (*emptypb.Empty, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method EnableLog not implemented")
-}
 func (UnimplementedEvaluationServer) ClockSync(context.Context, *Clock) (*Clock, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ClockSync not implemented")
 }
@@ -120,24 +106,6 @@ type UnsafeEvaluationServer interface {
 
 func RegisterEvaluationServer(s grpc.ServiceRegistrar, srv EvaluationServer) {
 	s.RegisterService(&Evaluation_ServiceDesc, srv)
-}
-
-func _Evaluation_EnableLog_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(Enable)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(EvaluationServer).EnableLog(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/service.Evaluation/EnableLog",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(EvaluationServer).EnableLog(ctx, req.(*Enable))
-	}
-	return interceptor(ctx, in, info, handler)
 }
 
 func _Evaluation_ClockSync_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
@@ -186,10 +154,6 @@ var Evaluation_ServiceDesc = grpc.ServiceDesc{
 	ServiceName: "service.Evaluation",
 	HandlerType: (*EvaluationServer)(nil),
 	Methods: []grpc.MethodDesc{
-		{
-			MethodName: "EnableLog",
-			Handler:    _Evaluation_EnableLog_Handler,
-		},
 		{
 			MethodName: "ClockSync",
 			Handler:    _Evaluation_ClockSync_Handler,

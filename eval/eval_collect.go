@@ -85,15 +85,6 @@ func CollectLogs(client *grpc.ClientConn, prov *pb.ProviderInfo, connect int) {
 	ctx := context.Background()
 	evaluation := pb.NewEvaluationClient(client)
 
-	_, err := evaluation.EnableLog(ctx, &pb.Enable{Enable: true})
-	if err != nil {
-		log.Fatalf("CollectLogs: cloudn't enable evaluation logging on provider %v: %v",
-			prov.ProviderId, err)
-	}
-	defer func() {
-		_, _ = evaluation.EnableLog(ctx, &pb.Enable{Enable: false})
-	}()
-
 	clock, err := evaluation.ClockSync(ctx, &pb.Clock{
 		Timesent: timestamppb.New(time.Now()),
 	})
