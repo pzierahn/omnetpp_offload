@@ -2,12 +2,10 @@ package eval
 
 import (
 	"context"
-	"github.com/pzierahn/omnetpp_offload/csv"
 	pb "github.com/pzierahn/omnetpp_offload/proto"
 	"google.golang.org/protobuf/types/known/emptypb"
 	"google.golang.org/protobuf/types/known/timestamppb"
 	"log"
-	"sync"
 	"sync/atomic"
 	"time"
 )
@@ -17,9 +15,6 @@ var eventChannel = make(chan *pb.Event, 64)
 
 type Server struct {
 	pb.UnimplementedEvaluationServer
-	mu      sync.Mutex
-	events  *csv.Writer
-	devices *csv.Writer
 }
 
 func (server *Server) EnableLog(_ context.Context, state *pb.Enable) (*emptypb.Empty, error) {
