@@ -124,7 +124,7 @@ func CollectLogs(client *grpc.ClientConn, prov *pb.ProviderInfo, connect int) {
 				trailNum,
 				event.EventId,
 				prov.ProviderId,
-				event.Timestamp.String(),
+				fmt.Sprint(event.Timestamp.AsTime()),
 				event.Activity,
 				fmt.Sprint(event.State),
 				event.Config,
