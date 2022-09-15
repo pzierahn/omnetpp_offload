@@ -1,6 +1,7 @@
 package consumer
 
 import (
+	"github.com/pzierahn/omnetpp_offload/eval"
 	pb "github.com/pzierahn/omnetpp_offload/proto"
 	"github.com/pzierahn/omnetpp_offload/simple"
 	"google.golang.org/grpc"
@@ -20,6 +21,9 @@ func (sim *simulation) connect(prov *pb.ProviderInfo, once *sync.Once) {
 		log.Println(prov.ProviderId, err)
 		return
 	}
+
+	// Start evaluation
+	eval.CollectLogs(pconn.client, prov, pconn.connection)
 
 	//
 	// Phase 2: Deploy the simulation

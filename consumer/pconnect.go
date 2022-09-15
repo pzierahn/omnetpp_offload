@@ -2,7 +2,6 @@ package consumer
 
 import (
 	"context"
-	"github.com/pzierahn/omnetpp_offload/eval"
 	pb "github.com/pzierahn/omnetpp_offload/proto"
 	"github.com/pzierahn/omnetpp_offload/stargrpc"
 	"google.golang.org/grpc"
@@ -68,8 +67,6 @@ func pconnect(ctx context.Context, prov *pb.ProviderInfo) (pconn *providerConnec
 		provider:   pb.NewProviderClient(client),
 		store:      pb.NewStorageClient(client),
 	}
-
-	eval.CollectLogs(client, prov, conn)
 
 	return
 }
