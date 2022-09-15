@@ -13,6 +13,9 @@ type Config struct {
 	Tag             string   `json:"tag"`
 	SimulateConfigs []string `json:"run"`
 	Ignore          []string `json:"ignore"`
+	Scenario        string
+	Trail           string
+	Connect         int
 }
 
 type simulation struct {

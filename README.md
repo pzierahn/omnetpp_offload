@@ -110,7 +110,7 @@ docker buildx build \
 ```shell
 go run cmd/run/opp_offload_run.go -path ~/github/TaskletSimulator
 go run cmd/run/opp_offload_run.go -path evaluation/tictoc
-SCENARIO=test-scenario TRAIL=69 go run cmd/run/opp_offload_run.go -path evaluation/tictoc
+SCENARIO=test-scenario TRAIL=1 go run cmd/run/opp_offload_run.go -path evaluation/tictoc
 ```
 
 ## Install and run broker

@@ -30,7 +30,24 @@ func ConnectionToName(connection int) (name string) {
 	return "none"
 }
 
+func NameToConnection(name string) (connection int) {
+	switch name {
+	case "local":
+		return ConnectLocal
+	case "p2p":
+		return ConnectP2P
+	case "relay":
+		return ConnectRelay
+	default:
+		return ConnectAll
+	}
+}
+
 func ConnectFeedback(ctx context.Context, addr string, connect int) (client *grpc.ClientConn, connection int, err error) {
+
+	if connect == 0 {
+		connect = ConnectAll
+	}
 
 	if connect&ConnectLocal != 0 {
 		client, err = DialLocal(ctx, addr)

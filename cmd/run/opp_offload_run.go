@@ -39,6 +39,8 @@ func main() {
 
 	var runConfig consumer.Config
 	runConfig.Path = path
+	runConfig.Scenario = os.Getenv("SCENARIO")
+	runConfig.Trail = os.Getenv("TRAIL")
 
 	byt, err := os.ReadFile(configPath)
 	if err != nil {

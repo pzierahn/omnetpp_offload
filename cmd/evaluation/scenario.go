@@ -2,236 +2,82 @@ package main
 
 import (
 	"context"
-	"encoding/csv"
+	"encoding/json"
 	"flag"
 	"fmt"
-	"github.com/pzierahn/omnetpp_offload/scenario"
-	"google.golang.org/grpc/benchmark/flags"
+	"github.com/pzierahn/omnetpp_offload/consumer"
+	"github.com/pzierahn/omnetpp_offload/gconfig"
+	"github.com/pzierahn/omnetpp_offload/stargate"
+	"github.com/pzierahn/omnetpp_offload/stargrpc"
 	"log"
 	"os"
-	"os/exec"
-	"os/signal"
 	"path/filepath"
-	"time"
 )
 
-var (
-	broker         string
-	defaultJobNums = []int{1, 2, 4, 6, 8}
-	start          int
-	repeat         = 5
-	docker         bool
-	local          bool
-	startWorker    bool
-	jobNums        []int
-	connects       []string
-	scenarioName   string
-	opprun         bool
-)
-
-var cancel context.CancelFunc
-
-func init() {
-	sig := make(chan os.Signal, 1)
-	signal.Notify(sig, os.Interrupt)
-	go func() {
-		select {
-		case rec := <-sig:
-			log.Printf("received Interrupt %v\n", rec)
-			cancel()
-			os.Exit(1)
-		}
-	}()
+type Config struct {
+	ScenarioName   string `json:"scenario-name"`
+	Broker         string `json:"broker"`
+	Repeat         int    `json:"repeat"`
+	Connect        string `json:"connect"`
+	SimulationPath string `json:"simulation-path"`
 }
 
-func csvFile(scenario string) (file *os.File, writer *csv.Writer) {
-	dir := filepath.Join("evaluation", "meta", scenario)
-	_ = os.MkdirAll(dir, 0755)
+var (
+	scenarioPath = flag.String("scenario", "", "set scenario JSON path")
+)
 
-	filename := filepath.Join(dir, "durations.csv")
-
-	_ = os.Remove(filename)
-
-	file, err := os.Create(filename)
+func readConfig() (config Config) {
+	byt, err := os.ReadFile(*scenarioPath)
 	if err != nil {
-		log.Fatalf("unable to create logfile: %s", err)
+		log.Fatalf("couldn't read scenario JSON: %v", err)
 	}
 
-	writer = csv.NewWriter(file)
+	err = json.Unmarshal(byt, &config)
+	if err != nil {
+		log.Fatalf("couldn't parse scenario JSON: %v", err)
+	}
+
 	return
 }
 
-func runEvaluation(runner scenario.Runner, connect string, jobs int) error {
+func readSimulationConfig(config Config) (runConfig *consumer.Config) {
 
-	name := scenarioName
-	if name == "" {
-		name = fmt.Sprintf("c%sj%d", string(connect[0]), jobs)
-		if docker {
-			name += "d"
-		}
-
-		//if local {
-		//	name += "l"
-		//}
+	simConfPath := filepath.Join(config.SimulationPath, "opp-offload-config.json")
+	byt, err := os.ReadFile(simConfPath)
+	if err != nil {
+		log.Fatalln(err)
 	}
 
-	file, writer := csvFile(name)
-	defer func() {
-		writer.Flush()
-		_ = file.Close()
-	}()
-
-	_ = writer.Write([]string{"scenarioId", "trailId", "duration"})
-	defer writer.Flush()
-
-	for inx := start; inx < repeat; inx++ {
-		duration, err := runner.RunScenario(name, connect, inx)
-
-		if err != nil {
-			return err
-		}
-
-		record := []string{
-			name, fmt.Sprint(inx), duration.String(),
-		}
-
-		log.Printf("record: %v", record)
-		_ = writer.Write(record)
-		writer.Flush()
-
-		// Wait some time to clear buffers.
-		time.Sleep(time.Second * 3)
+	err = json.Unmarshal(byt, &runConfig)
+	if err != nil {
+		log.Fatalln(err)
 	}
 
-	return nil
-}
+	runConfig.Path = config.SimulationPath
+	runConfig.Connect = stargrpc.NameToConnection(config.Connect)
 
-func omnetpprun() {
-	log.Printf("run omnetpprun")
-
-	for _, jobs := range jobNums {
-		secnario := fmt.Sprintf("opp-run-j%d", jobs)
-
-		log.Printf("omnetpprun: %v", secnario)
-
-		file, writer := csvFile(secnario)
-		_ = writer.Write([]string{"scenarioId", "trailId", "duration"})
-		writer.Flush()
-
-		for inx := start; inx < repeat; inx++ {
-			starttime := time.Now()
-
-			// TODO: try with "-b", "1",
-			cmd := exec.Command("opp_runall", "-j", fmt.Sprint(jobs),
-				"./tictoc", "-c", "TicToc18", "-u", "Cmdenv")
-			cmd.Dir = "evaluation/tictoc"
-
-			cmd.Stdout = os.Stdout
-			cmd.Stderr = os.Stderr
-
-			err := cmd.Run()
-			if err != nil {
-				log.Fatalln(err)
-			}
-
-			record := []string{
-				secnario, fmt.Sprint(inx), time.Now().Sub(starttime).String(),
-			}
-
-			log.Printf("record: %v", record)
-			_ = writer.Write(record)
-			writer.Flush()
-		}
-
-		writer.Flush()
-		_ = file.Close()
-	}
+	return
 }
 
 func main() {
 
 	log.SetFlags(log.LstdFlags | log.Lshortfile)
-
-	nums := flags.IntSlice("j", defaultJobNums, "set parallel job numbers")
-	conns := flags.StringSlice("c", []string{"p2p", "relay"}, "set connection")
-	flag.IntVar(&start, "ts", 0, "trail start")
-	flag.IntVar(&repeat, "tr", repeat, "repeat")
-	flag.BoolVar(&docker, "d", false, "use docker")
-	flag.BoolVar(&local, "l", false, "start from local")
-	flag.BoolVar(&startWorker, "w", false, "start worker")
-	flag.StringVar(&scenarioName, "n", "", "scenario name")
-	flag.BoolVar(&opprun, "opprun", false, "run opp_run")
-	flag.StringVar(&broker, "broker", "localhost", "broker address")
 	flag.Parse()
 
-	jobNums = *nums
-	connects = *conns
+	config := readConfig()
+	simConfig := readSimulationConfig(config)
 
-	log.Printf("###################################################")
-	log.Printf("broker: %v", broker)
-	log.Printf("jobNums: %v", jobNums)
-	log.Printf("connects: %v", connects)
-	log.Printf("start: %v", start)
-	log.Printf("repeat: %v", repeat)
-	log.Printf("docker: %v", docker)
-	log.Printf("local: %v", local)
-	log.Printf("startWorker: %v", startWorker)
-	log.Printf("scenarioName: %v", scenarioName)
-	log.Printf("opprun: %v", opprun)
-	log.Printf("###################################################")
+	for trail := 0; trail < config.Repeat; trail++ {
+		log.Printf("Running evaluation %s ==> %d", config.ScenarioName, trail)
 
-	if opprun {
-		omnetpprun()
-		return
-	}
+		simConfig.Scenario = config.ScenarioName
+		simConfig.Trail = fmt.Sprint(trail)
 
-	worker := scenario.NewWorker(broker)
-
-	var runner scenario.Runner
-
-	if local {
-		home, _ := os.UserHomeDir()
-		runner = scenario.NewScenario(scenario.Simulation{
-			Broker:         broker,
-			OppEdgePath:    filepath.Join(home, "/github/omnetpp_offload"),
-			SimulationPath: filepath.Join(home, "/github/omnetpp_offload/evaluation/tictoc"),
-		})
-	} else {
-		runner = scenario.NewScenarioRemote(scenario.Simulation{
-			Broker:         broker,
-			ClientSSHAddr:  "raspberry.fritz.box:22",
-			OppEdgePath:    "~/patrick/project.go.omnetpp",
-			SimulationPath: "~/patrick/project.go.omnetpp/evaluation/tictoc",
-		})
-	}
-
-	if !startWorker {
-		for _, connect := range connects {
-			if err := runEvaluation(runner, connect, 0); err != nil {
-				cancel()
-				log.Fatalln(err)
-			}
-		}
-
-		return
-	}
-
-	for _, jobs := range jobNums {
-		if docker {
-			cancel = worker.StartDocker(jobs)
-		} else {
-			cancel = worker.StartNative(jobs)
-		}
-
-		time.Sleep(time.Second * 3)
-
-		for _, connect := range connects {
-			if err := runEvaluation(runner, connect, jobs); err != nil {
-				cancel()
-				log.Fatalln(err)
-			}
-		}
-
-		cancel()
+		ctx := context.Background()
+		consumer.OffloadSimulation(ctx, gconfig.Broker{
+			Address:      config.Broker,
+			BrokerPort:   gconfig.DefaultBrokerPort,
+			StargatePort: stargate.DefaultPort,
+		}, simConfig)
 	}
 }

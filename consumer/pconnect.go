@@ -5,8 +5,6 @@ import (
 	pb "github.com/pzierahn/omnetpp_offload/proto"
 	"github.com/pzierahn/omnetpp_offload/stargrpc"
 	"google.golang.org/grpc"
-	"log"
-	"os"
 	"sync"
 )
 
@@ -36,24 +34,7 @@ func (connect *providerConnection) close() {
 	_ = connect.client.Close()
 }
 
-func pconnect(ctx context.Context, prov *pb.ProviderInfo) (pconn *providerConnection, err error) {
-
-	connect := stargrpc.ConnectAll
-
-	// Eval stuff to ensure that only the desired connection will be used
-	switch os.Getenv("CONNECT") {
-	case "local":
-		log.Println("########################## eval debug: connect only local!")
-		connect = stargrpc.ConnectLocal
-
-	case "p2p":
-		log.Println("########################## eval debug: connect only p2p!")
-		connect = stargrpc.ConnectP2P
-
-	case "relay":
-		log.Println("########################## eval debug: connect only relay!")
-		connect = stargrpc.ConnectRelay
-	}
+func pconnect(ctx context.Context, prov *pb.ProviderInfo, connect int) (pconn *providerConnection, err error) {
 
 	client, conn, err := stargrpc.ConnectFeedback(ctx, prov.ProviderId, connect)
 	if err != nil {

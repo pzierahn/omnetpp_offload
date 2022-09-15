@@ -16,7 +16,7 @@ func (sim *simulation) connect(prov *pb.ProviderInfo, once *sync.Once) {
 	// Phase 1: Connect to provider
 	//
 
-	pconn, err := pconnect(sim.ctx, prov)
+	pconn, err := pconnect(sim.ctx, prov, sim.config.Connect)
 	if err != nil {
 		log.Println(prov.ProviderId, err)
 		return

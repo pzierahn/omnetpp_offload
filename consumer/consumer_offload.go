@@ -9,7 +9,6 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 	"log"
-	"os"
 	"path/filepath"
 	"sync"
 	"time"
@@ -46,7 +45,7 @@ func OffloadSimulation(ctx context.Context, bconfig gconfig.Broker, config *Conf
 		_ = conn.Close()
 	}()
 
-	scenario, trail := os.Getenv("SCENARIO"), os.Getenv("TRAIL")
+	scenario, trail := config.Scenario, config.Trail
 	if scenario != "" && trail != "" {
 		eval.RecordScenario(scenario, trail)
 	}
