@@ -12,7 +12,6 @@ import (
 	"google.golang.org/protobuf/types/known/timestamppb"
 	"log"
 	"math/rand"
-	"os"
 	"path/filepath"
 	"time"
 )
@@ -24,11 +23,7 @@ var trailNum string
 var events *csv.Writer
 var devices *csv.Writer
 
-func init() {
-	scenario, trail := os.Getenv("SCENARIO"), os.Getenv("TRAIL")
-	if scenario != "" && trail != "" {
-		return
-	}
+func RecordScenario(scenario, trail string) {
 
 	dir := filepath.Join(gconfig.CacheDir(), "evaluation", scenario)
 
@@ -117,27 +112,29 @@ func CollectLogs(client *grpc.ClientConn, prov *pb.ProviderInfo, connect int) {
 			prov.ProviderId, err)
 	}
 
-	for {
-		event, err := stream.Recv()
-		if err != nil {
-			break
-		}
+	go func() {
+		for {
+			event, err := stream.Recv()
+			if err != nil {
+				break
+			}
 
-		events.Write([]string{
-			scenarioId,
-			trailNum,
-			event.EventId,
-			prov.ProviderId,
-			event.Timestamp.String(),
-			event.Activity,
-			fmt.Sprint(event.State),
-			event.Config,
-			event.RunNum,
-			event.Error,
-			fmt.Sprint(event.ByteSize),
-			event.Filename,
-		})
-	}
+			events.Write([]string{
+				scenarioId,
+				trailNum,
+				event.EventId,
+				prov.ProviderId,
+				event.Timestamp.String(),
+				event.Activity,
+				fmt.Sprint(event.State),
+				event.Config,
+				event.RunNum,
+				event.Error,
+				fmt.Sprint(event.ByteSize),
+				event.Filename,
+			})
+		}
+	}()
 }
 
 func LogLocal(event Event) (finish func(err error, dlsize uint64) (duration time.Duration)) {
