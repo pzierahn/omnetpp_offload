@@ -1,0 +1,12 @@
+[
+  {
+    "name": "docker-1",
+    "docker": true,
+    "jobs": 1
+  },
+  {
+    "name": "docker-2",
+    "docker": true,
+    "jobs": 1
+  }
+]
