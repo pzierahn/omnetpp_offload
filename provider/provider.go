@@ -32,7 +32,7 @@ type provider struct {
 	allocRecvs     map[simulationId]chan<- int
 }
 
-func Start(config gconfig.Config) {
+func Start(ctx context.Context, config gconfig.Config) {
 
 	mu := &sync.RWMutex{}
 	prov := &provider{
@@ -77,8 +77,7 @@ func Start(config gconfig.Config) {
 	}()
 
 	broker := pb.NewBrokerClient(brokerConn)
-
-	stream, err := broker.Register(context.Background())
+	stream, err := broker.Register(ctx)
 	if err != nil {
 		log.Fatalln(err)
 	}
@@ -92,7 +91,7 @@ func Start(config gconfig.Config) {
 		for range time.Tick(time.Millisecond * 500) {
 
 			var util *pb.Utilization
-			util, err = sysinfo.GetUtilization(context.Background())
+			util, err = sysinfo.GetUtilization(ctx)
 			if err != nil {
 				log.Fatalln(err)
 			}
@@ -124,6 +123,13 @@ func Start(config gconfig.Config) {
 	go stargrpc.ServeLocal(prov.providerId, server)
 	go stargrpc.ServeP2P(prov.providerId, server)
 	go stargrpc.ServeRelay(prov.providerId, server)
+
+	go func() {
+		select {
+		case <-ctx.Done():
+			server.Stop()
+		}
+	}()
 
 	//
 	// Start resource allocator.

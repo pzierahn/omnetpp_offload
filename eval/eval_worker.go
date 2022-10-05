@@ -6,8 +6,10 @@ import (
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/client"
+	"github.com/pzierahn/omnetpp_offload/gconfig"
+	"github.com/pzierahn/omnetpp_offload/provider"
+	"github.com/pzierahn/omnetpp_offload/stargate"
 	"log"
-	"os/exec"
 )
 
 type WorkerConfig struct {
@@ -62,16 +64,23 @@ func StartWorker(worker WorkerConfig) (cancel context.CancelFunc) {
 	log.Printf("Starting worker: worker=%+v", worker)
 
 	ctx, cnl := context.WithCancel(context.Background())
-	cmd := exec.CommandContext(ctx, "opp_offload_worker",
-		"-broker", worker.Broker,
-		"-name", worker.Name,
-		"-jobs", fmt.Sprint(worker.Jobs))
-	if err := cmd.Start(); err != nil {
-		log.Fatalf("unable to start worker: %s", err)
-	}
+
+	go func() {
+		provider.Start(ctx, gconfig.Config{
+			Provider: gconfig.Provider{
+				Name: worker.Name,
+				Jobs: worker.Jobs,
+			},
+			Broker: gconfig.Broker{
+				Address:      worker.Broker,
+				BrokerPort:   gconfig.DefaultBrokerPort,
+				StargatePort: stargate.DefaultPort,
+			},
+		})
+	}()
 
 	return func() {
-		log.Printf("Stopping worker")
+		log.Printf("Stopping worker %s", worker.Name)
 		cnl()
 	}
 }
