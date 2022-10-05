@@ -5,9 +5,12 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
+	"github.com/docker/docker/api/types"
+	"github.com/docker/docker/api/types/container"
+	"github.com/docker/docker/client"
 	"github.com/pzierahn/omnetpp_offload/consumer"
-	"github.com/pzierahn/omnetpp_offload/eval"
 	"github.com/pzierahn/omnetpp_offload/gconfig"
+	"github.com/pzierahn/omnetpp_offload/provider"
 	"github.com/pzierahn/omnetpp_offload/stargate"
 	"github.com/pzierahn/omnetpp_offload/stargrpc"
 	"log"
@@ -21,6 +24,12 @@ type Worker struct {
 	Name   string `json:"name"`
 	Docker bool   `json:"docker"`
 	Jobs   int    `json:"jobs"`
+}
+
+type workerConfig struct {
+	name   string
+	broker string
+	jobs   int
 }
 
 var (
@@ -87,6 +96,72 @@ func killOnExit(stopFuncs []context.CancelFunc) {
 	}()
 }
 
+func startDockerWorker(worker workerConfig) (cancel context.CancelFunc) {
+	log.Printf("Starting docker worker: worker=%+v", worker)
+
+	var err error
+	dockerClI, err := client.NewClientWithOpts(client.FromEnv, client.WithAPIVersionNegotiation())
+	if err != nil {
+		log.Fatalf("unable to connect to docker: %s", err)
+	}
+
+	ctx := context.Background()
+	resp, err := dockerClI.ContainerCreate(ctx, &container.Config{
+		Image: "pzierahn/omnetpp_offload",
+		Cmd: []string{
+			"opp_offload_worker",
+			"-broker", worker.broker,
+			"-name", worker.name,
+			"-jobs", fmt.Sprint(worker.jobs),
+		},
+	}, nil, nil, nil, worker.name)
+	if err != nil {
+		panic(err)
+	}
+
+	if err := dockerClI.ContainerStart(ctx, resp.ID, types.ContainerStartOptions{}); err != nil {
+		panic(err)
+	}
+
+	return func() {
+		log.Printf("Stopping container %s", resp.ID)
+		if err := dockerClI.ContainerStop(ctx, resp.ID, nil); err != nil {
+			panic(err)
+		}
+
+		log.Printf("Removing container %s", resp.ID)
+		if err := dockerClI.ContainerRemove(ctx, resp.ID, types.ContainerRemoveOptions{}); err != nil {
+			panic(err)
+		}
+	}
+
+	return
+}
+
+func startWorker(worker workerConfig) (cancel context.CancelFunc) {
+	log.Printf("Starting worker: worker=%+v", worker)
+
+	ctx, cnl := context.WithCancel(context.Background())
+
+	go func() {
+		provider.Start(ctx, gconfig.Config{
+			Provider: gconfig.Provider{
+				Name: worker.name,
+				Jobs: worker.jobs,
+			},
+			Broker: gconfig.Broker{
+				Address:      worker.broker,
+				BrokerPort:   gconfig.DefaultBrokerPort,
+				StargatePort: stargate.DefaultPort,
+			},
+		})
+	}()
+
+	return func() {
+		log.Printf("Stopping worker %s", worker.name)
+		cnl()
+	}
+}
 func main() {
 
 	log.SetFlags(log.LstdFlags | log.Lshortfile)
@@ -97,17 +172,17 @@ func main() {
 
 	for _, start := range workers {
 
-		workerConf := eval.WorkerConfig{
-			Name:   start.Name,
-			Broker: *broker,
-			Jobs:   start.Jobs,
+		workerConf := workerConfig{
+			name:   start.Name,
+			broker: *broker,
+			jobs:   start.Jobs,
 		}
 
 		var cnl context.CancelFunc
 		if start.Docker {
-			cnl = eval.StartDockerWorker(workerConf)
+			cnl = startDockerWorker(workerConf)
 		} else {
-			cnl = eval.StartWorker(workerConf)
+			cnl = startWorker(workerConf)
 		}
 
 		stopFuncs = append(stopFuncs, cnl)
