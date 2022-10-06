@@ -141,7 +141,7 @@ func DialRelayTCP(ctx context.Context, dial DialAddr) (conn *net.TCPConn, err er
 		return
 	}
 
-	buf := make([]byte, 1024)
+	buf := make([]byte, len(success))
 	br, err := conn.Read(buf)
 	if err != nil {
 		return
