@@ -193,8 +193,8 @@ func main() {
 	simConfig := readSimulationConfig()
 
 	if len(workers) > 0 {
-		log.Printf("Sleep 8 seconds to ensure all workers have started")
-		time.Sleep(time.Second * 8)
+		log.Printf("Sleep 4 seconds to ensure all workers have started")
+		time.Sleep(time.Second * 4)
 	}
 
 	for trail := 0; trail < *repeat; trail++ {
