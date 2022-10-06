@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"flag"
 	"github.com/pzierahn/omnetpp_offload/gconfig"
 	"github.com/pzierahn/omnetpp_offload/provider"
@@ -23,11 +24,5 @@ func main() {
 		return
 	}
 
-	// TODO: Cloud compatibility.
-	//envPort := os.Getenv("PORT")
-	//if envPort != "" {
-	//	config.Port, _ = strconv.Atoi(envPort)
-	//}
-
-	provider.Start(config)
+	provider.Start(context.Background(), config)
 }
