@@ -8,5 +8,10 @@
     "name": "docker-2",
     "docker": true,
     "jobs": 1
+  },
+  {
+    "name": "docker-3",
+    "docker": true,
+    "jobs": 1
   }
 ]
