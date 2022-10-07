@@ -105,6 +105,7 @@ func startDockerWorker(worker workerConfig) (cancel context.CancelFunc) {
 		log.Fatalf("unable to connect to docker: %s", err)
 	}
 
+	// TODO: --security-opt=seccomp:unconfined
 	ctx := context.Background()
 	resp, err := dockerClI.ContainerCreate(ctx, &container.Config{
 		Image: "pzierahn/omnetpp_offload",
