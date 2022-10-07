@@ -90,7 +90,7 @@ Usage of opp_offload_run:
 ### Install and run with Docker
 
 * Get Docker image ```docker pull pzierahn/omnetpp_offload```
-* Start worker ```docker run --rm pzierahn/omnetpp_offload opp_offload_worker -broker 85.214.35.83 -name `hostname -s` ```
+* Start worker ```docker run --rm --security-opt=seccomp:unconfined pzierahn/omnetpp_offload opp_offload_worker -broker 85.214.35.83 -name `hostname -s` ```
 
 ## Build and upload docker images
 
