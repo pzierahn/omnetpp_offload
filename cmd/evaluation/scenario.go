@@ -174,6 +174,7 @@ func main() {
 	workers := readWorkers()
 	var stopFuncs []context.CancelFunc
 	defer func() {
+		log.Printf("Stopping workers...")
 		for _, cnl := range stopFuncs {
 			cnl()
 		}
