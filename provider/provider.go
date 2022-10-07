@@ -55,7 +55,8 @@ func Start(ctx context.Context, config gconfig.Config) {
 
 	prov.recoverSessions()
 
-	startWatchers(prov)
+	// Debug web server
+	// startWatchers(prov)
 
 	//
 	// Register provider
