@@ -1,0 +1,17 @@
+[
+  {
+    "name": "native-1",
+    "docker": false,
+    "jobs": 1
+  },
+  {
+    "name": "native-2",
+    "docker": false,
+    "jobs": 1
+  },
+  {
+    "name": "native-3",
+    "docker": false,
+    "jobs": 1
+  }
+]
