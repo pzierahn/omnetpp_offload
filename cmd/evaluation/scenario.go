@@ -173,6 +173,11 @@ func main() {
 
 	workers := readWorkers()
 	var stopFuncs []context.CancelFunc
+	defer func() {
+		for _, cnl := range stopFuncs {
+			cnl()
+		}
+	}()
 
 	for _, start := range workers {
 
