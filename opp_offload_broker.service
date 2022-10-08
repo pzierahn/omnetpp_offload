@@ -1,0 +1,21 @@
+[Unit]
+Description=OMNeT++ Offload Broker Service
+ConditionPathExists=/home/ubuntu
+After=network.target
+
+[Service]
+Type=simple
+User=ubuntu
+Group=ubuntu
+
+WorkingDirectory=/home/ubuntu
+ExecStart=/home/ubuntu/go/bin/opp_offload_broker
+
+Restart=on-failure
+RestartSec=10
+
+StandardOutput=append:/var/log/opp_offload_broker.log
+StandardError=append:/var/log/opp_offload_broker.log
+
+[Install]
+WantedBy=multi-user.target
