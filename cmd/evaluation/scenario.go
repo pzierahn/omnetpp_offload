@@ -33,9 +33,9 @@ type workerConfig struct {
 }
 
 type ScenarioTrail struct {
-	Trail int       `json:"index"`
-	Start time.Time `json:"start"`
-	End   time.Time `json:"end"`
+	Trail int   `json:"index"`
+	Start int64 `json:"start"`
+	End   int64 `json:"end"`
 }
 
 type ScenarioDoc struct {
@@ -248,8 +248,8 @@ func main() {
 
 		doc.Trails = append(doc.Trails, ScenarioTrail{
 			Trail: trail,
-			Start: start,
-			End:   time.Now(),
+			Start: start.UnixMilli(),
+			End:   time.Now().UnixMilli(),
 		})
 	}
 
