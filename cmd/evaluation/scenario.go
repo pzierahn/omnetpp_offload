@@ -32,6 +32,22 @@ type workerConfig struct {
 	jobs   int
 }
 
+type ScenarioTrail struct {
+	Trail int       `json:"index"`
+	Start time.Time `json:"start"`
+	End   time.Time `json:"end"`
+}
+
+type ScenarioDoc struct {
+	Name       string          `json:"name"`
+	Broker     string          `json:"broker"`
+	Repeat     int             `json:"repeat"`
+	Connect    string          `json:"connect"`
+	Simulation string          `json:"simulation"`
+	Workers    []Worker        `json:"local-workers"`
+	Trails     []ScenarioTrail `json:"trails"`
+}
+
 var (
 	name       = flag.String("scenario", "", "set scenario name")
 	broker     = flag.String("broker", "", "set broker addr")
@@ -207,17 +223,44 @@ func main() {
 		time.Sleep(time.Second * 4)
 	}
 
+	doc := ScenarioDoc{
+		Name:       *name,
+		Broker:     *broker,
+		Repeat:     *repeat,
+		Connect:    *connect,
+		Simulation: *simulation,
+		Workers:    workers,
+	}
+
 	for trail := 0; trail < *repeat; trail++ {
-		log.Printf("Running evaluation %s ==> %d", *name, trail)
+		log.Printf("Running evaluation %s ==> trail=%d", *name, trail)
 
 		simConfig.Scenario = *name
 		simConfig.Trail = fmt.Sprint(trail)
 
+		start := time.Now()
 		ctx := context.Background()
 		consumer.OffloadSimulation(ctx, gconfig.Broker{
 			Address:      *broker,
 			BrokerPort:   gconfig.DefaultBrokerPort,
 			StargatePort: stargate.DefaultPort,
 		}, simConfig)
+
+		doc.Trails = append(doc.Trails, ScenarioTrail{
+			Trail: trail,
+			Start: start,
+			End:   time.Now(),
+		})
+	}
+
+	byt, err := json.MarshalIndent(doc, "", "  ")
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+	filename := filepath.Join(gconfig.CacheDir(), "evaluation", *name, "scenario_documentation.json")
+	err = os.WriteFile(filename, byt, 0655)
+	if err != nil {
+		log.Fatalln(err)
 	}
 }
