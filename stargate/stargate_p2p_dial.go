@@ -2,6 +2,7 @@ package stargate
 
 import (
 	"context"
+	"math/rand"
 	"net"
 	"time"
 )
@@ -12,7 +13,9 @@ func DialP2PUDP(ctx context.Context, dialAddr DialAddr) (conn *net.UDPConn, addr
 
 	log.Printf("DialP2PUDP: dialAddr=%v", dialAddr)
 
-	conn, err = net.ListenUDP("udp", &net.UDPAddr{})
+	conn, err = net.ListenUDP("udp", &net.UDPAddr{
+		Port: 25000 + rand.Intn(5000),
+	})
 	if err != nil {
 		return
 	}
