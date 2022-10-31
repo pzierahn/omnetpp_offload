@@ -32,7 +32,7 @@ func init() {
 func main() {
 
 	if writeLog {
-		simple.WriteLogToFile("consumer")
+		simple.WriteLogToFile("consumer", gconfig.CacheDir())
 	}
 
 	config := gconfig.ParseFlagsBroker()

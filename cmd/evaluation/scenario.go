@@ -190,7 +190,7 @@ func main() {
 	flag.Parse()
 
 	if *writeLog {
-		simple.WriteLogToFile("scenario")
+		simple.WriteLogToFile("scenario", gconfig.CacheDir())
 	}
 
 	workers := readWorkers()
