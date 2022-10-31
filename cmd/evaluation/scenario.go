@@ -11,6 +11,7 @@ import (
 	"github.com/pzierahn/omnetpp_offload/consumer"
 	"github.com/pzierahn/omnetpp_offload/gconfig"
 	"github.com/pzierahn/omnetpp_offload/provider"
+	"github.com/pzierahn/omnetpp_offload/simple"
 	"github.com/pzierahn/omnetpp_offload/stargate"
 	"github.com/pzierahn/omnetpp_offload/stargrpc"
 	"log"
@@ -55,6 +56,7 @@ var (
 	connect    = flag.String("connect", "", "connect p2p,local,relay")
 	simulation = flag.String("simulation", "", "path to simulation")
 	worker     = flag.String("worker", "", "path to worker JSON")
+	writeLog   = flag.Bool("wl", false, "write logs to .cache/evaluation")
 )
 
 func readSimulationConfig() (runConfig *consumer.Config) {
@@ -186,6 +188,10 @@ func main() {
 
 	log.SetFlags(log.LstdFlags | log.Lshortfile)
 	flag.Parse()
+
+	if *writeLog {
+		simple.WriteLogToFile("scenario")
+	}
 
 	workers := readWorkers()
 	var stopFuncs []context.CancelFunc

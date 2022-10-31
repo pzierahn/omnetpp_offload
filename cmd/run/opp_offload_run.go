@@ -4,10 +4,9 @@ import (
 	"context"
 	"encoding/json"
 	"flag"
-	"fmt"
 	"github.com/pzierahn/omnetpp_offload/consumer"
 	"github.com/pzierahn/omnetpp_offload/gconfig"
-	"io"
+	"github.com/pzierahn/omnetpp_offload/simple"
 	"log"
 	"os"
 	"path/filepath"
@@ -30,33 +29,10 @@ func init() {
 	flag.Parse()
 }
 
-func enableLogWrite() {
-
-	date := time.Now()
-	logName := fmt.Sprintf("consumer.%s.%s.log",
-		date.Format("2006-02-01"), date.Format("15-04-05"))
-
-	logDir := filepath.Join(gconfig.CacheDir(), "logs")
-	if err := os.MkdirAll(logDir, 0755); err != nil {
-		log.Fatalln(err)
-	}
-
-	logPath := filepath.Join(logDir, logName)
-	log.Printf("Write logs to %s", logPath)
-
-	file, err := os.OpenFile(logPath, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
-	if err != nil {
-		log.Fatalf("error opening file: %v", err)
-	}
-
-	mw := io.MultiWriter(os.Stderr, file)
-	log.SetOutput(mw)
-}
-
 func main() {
 
 	if writeLog {
-		enableLogWrite()
+		simple.WriteLogToFile("consumer")
 	}
 
 	config := gconfig.ParseFlagsBroker()
