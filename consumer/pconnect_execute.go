@@ -43,6 +43,8 @@ func (connect *providerConnection) execute(sim *simulation) (err error) {
 			log.Printf("[%s] idle", connect.id())
 
 			// Wait to see if more slots are needed.
+			// For example if a provider shouts down while executing a task.
+			// Then it will be rescheduled.
 			if sim.queue.linger() {
 
 				//
