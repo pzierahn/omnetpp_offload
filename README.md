@@ -1,5 +1,7 @@
 # OMNeT++ simulation distributor
 
+A framework to offload OMNeT++ simulations to an edge computing peer-to-peer network using GO, Docker, gRPC, and UDP-Holepunching techniques.
+
 ## Command line tools and usage
 
 ### Install
